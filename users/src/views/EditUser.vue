@@ -4,7 +4,7 @@
 
 <script>
 import { useRoute } from "vue-router";
-import { ref, watch, computed, reactive } from "vue";
+import { ref, watch, computed, reactive, inject } from "vue";
 import useSpawn from "../hooks/useSpawn";
 import UserEditor from "../components/UserEditor.vue";
 
@@ -34,8 +34,10 @@ export default {
 		const shells = ref([]);
 		const loaded = ref(false);
 		let pauseUserWatch = false;
+		const processing = inject('processing');
 
 		const getShells = async () => {
+			processing.value = true;
 			try {
 				shells.value = (await cockpit.file("/etc/shells", { superuser: 'try' }).read())
 					.split('\n')
@@ -60,6 +62,7 @@ export default {
 		}
 
 		const getUserInfo = async () => {
+			processing.value = true;
 			let tmpUser = {};
 			try {
 				const fields = (await useSpawn(['getent', 'passwd'], { superuser: 'try' }).promise()).stdout
@@ -89,11 +92,13 @@ export default {
 				return;
 			}
 			userProxy.value = tmpUser;
+			processing.value = false;
 		}
 
 		const applyChanges = async (newUser, oldUser) => {
 			if (pauseUserWatch)
 				return;
+			processing.value = true;
 			const procs = [];
 			let errors = false;
 			if (newUser.name !== oldUser.name)
@@ -115,6 +120,8 @@ export default {
 				await getUserInfo(); // reset values
 				pauseUserWatch = false;
 			}
+			await new Promise((resolve, reject) => setTimeout(resolve, 1000));
+			processing.value = false;
 		}
 
 		watch(route, async () => {
@@ -139,6 +146,7 @@ export default {
 			userProxy,
 			shells,
 			loaded,
+			processing,
 		}
 	},
 	components: {

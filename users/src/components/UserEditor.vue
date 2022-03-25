@@ -1,7 +1,7 @@
 <template>
-	<div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8 py-8">
-		<div class="card divide-y divide-y-gray-100">
-			<div class="card-header">
+	<div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8 py-8 overflow-visible">
+		<div class="card divide-y divide-y-gray-100 overflow-visible">
+			<div class="card-header flex flex-row">
 				<h3>
 					{{ user.name === "" ? user.user : user.name }}
 					<span class="text-gray-500 font-mono text-sm">
@@ -10,8 +10,9 @@
 						gid={{ user.gid }})
 					</span>
 				</h3>
+				<LoadingSpinner class="w-6 h-6" v-if="processing" />
 			</div>
-			<div class="card-body space-y-5">
+			<div class="card-body space-y-5 overflow-visible">
 				<div>
 					<label class="block text-sm font-medium">Full Name/Description</label>
 					<div class="mt-1">
@@ -41,9 +42,9 @@
 						<span>{{ feedback.home }}</span>
 					</div>
 				</div>
-				<Listbox as="div" v-model="user.shell" v-if="user.shell">
+				<Listbox as="div" v-model="user.shell" v-if="user.shell" class="overflow-visible">
 					<ListboxLabel class="block text-sm font-medium">Login Shell</ListboxLabel>
-					<div class="mt-1 relative">
+					<div class="mt-1 relative overflow-visible">
 						<ListboxButton
 							class="relative w-full bg-white dark:bg-neutral-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-0 sm:text-sm"
 						>
@@ -111,10 +112,11 @@
 </template>
 
 <script>
-import { ref, watch, reactive } from "vue";
+import { ref, watch, reactive, inject } from "vue";
 import useSpawn from "../hooks/useSpawn";
-import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
-import { CheckIcon, SelectorIcon } from '@heroicons/vue/solid'
+import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue';
+import { CheckIcon, SelectorIcon } from '@heroicons/vue/solid';
+import LoadingSpinner from "../components/LoadingSpinner.vue";
 
 export default {
 	props: {
@@ -126,6 +128,7 @@ export default {
 		const changesMade = ref(false);
 		const inputsValid = ref(true);
 		const feedback = reactive({});
+		const processing = inject('processing');
 
 		const cancel = () => {
 			Object.assign(user, props.modelValue);
@@ -166,6 +169,7 @@ export default {
 			changesMade,
 			inputsValid,
 			feedback,
+			processing,
 			cancel,
 			apply,
 		}
@@ -178,6 +182,7 @@ export default {
 		ListboxOptions,
 		CheckIcon,
 		SelectorIcon,
+		LoadingSpinner,
 	},
 	emits: [
 		'update:modelValue',
