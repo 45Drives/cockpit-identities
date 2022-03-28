@@ -1,5 +1,23 @@
 <template>
-	<UserEditor v-if="loaded" v-model="userProxy" />
+	<div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8 py-8 overflow-visible">
+		<div class="card divide-y divide-y-gray-100 overflow-visible">
+			<div class="card-header flex flex-row space-x-2">
+				<h3>
+					{{ user.name === "" ? user.user : user.name }}
+					<span class="text-gray-500 font-mono text-sm">
+						<span v-if="user.name">(login={{ user.user }}, </span>
+						<span v-else>(</span>
+						<span>uid={{ user.uid }}, </span>
+						<span>gid={{ user.gid }})</span>
+					</span>
+				</h3>
+				<LoadingSpinner class="w-6 h-6" v-if="processing" />
+			</div>
+			<UserEditor v-model="userProxy">
+				<SambaPassword :user="user" />
+			</UserEditor>
+		</div>
+	</div>
 </template>
 
 <script>
@@ -7,11 +25,13 @@ import { useRoute } from "vue-router";
 import { ref, watch, computed, reactive, inject } from "vue";
 import useSpawn from "../hooks/useSpawn";
 import UserEditor from "../components/UserEditor.vue";
+import SambaPassword from "../components/SambaPassword.vue";
+import LoadingSpinner from "../components/LoadingSpinner.vue";
 
 export default {
 	setup() {
 		const route = useRoute();
-		const user = reactive({groups: []});
+		const user = reactive({ groups: [] });
 		const userProxy = computed({
 			get() {
 				return user;
@@ -20,13 +40,12 @@ export default {
 				Object.assign(user, newUser);
 			}
 		});
-		const loaded = ref(false);
 		let pauseUserWatch = false;
 		const processing = inject('processing');
 		const shells = inject('shells');
 
 		const getUserInfo = async () => {
-			processing.value = true;
+			processing.value++;
 			let tmpUser = {};
 			try {
 				const fields = (await useSpawn(['getent', 'passwd'], { superuser: 'try' }).promise()).stdout
@@ -35,6 +54,7 @@ export default {
 					?.split(':');
 				if (!fields) {
 					alert("User not found: " + user.user);
+					processing.value--;
 					cockpit.location.go("/users");
 					return;
 				}
@@ -52,17 +72,18 @@ export default {
 					.sort();
 			} catch (state) {
 				alert("Failed to query user: " + state?.stderr ?? state.message);
+				processing.value--;
 				cockpit.location.go("/users");
 				return;
 			}
 			userProxy.value = tmpUser;
-			processing.value = false;
+			processing.value--;
 		}
 
 		const applyChanges = async (newUser, oldUser) => {
 			if (pauseUserWatch)
 				return;
-			processing.value = true;
+			processing.value++;
 			const procs = [];
 			let errors = false;
 			if (newUser.name !== oldUser.name)
@@ -96,33 +117,33 @@ export default {
 				userProxy.value = newUser;
 			}
 			pauseUserWatch = false;
-			processing.value = false;
+			processing.value--;
 		}
 
 		watch(route, async () => {
 			if (!/^\/users\/.*$/.test(route.path)) {
 				return;
 			}
-			loaded.value = false;
 			user.user = route.params.username;
 
+			pauseUserWatch = true;
 			await getUserInfo();
-
-			watch(() => ({ ...user }), applyChanges, { deep: true });
-
-			loaded.value = true;
+			pauseUserWatch = false;
 
 		}, { immediate: true });
+
+		watch(() => ({ ...user }), applyChanges, { deep: true });
 
 		return {
 			user,
 			userProxy,
-			loaded,
 			processing,
 		}
 	},
 	components: {
 		UserEditor,
+		SambaPassword,
+		LoadingSpinner,
 	}
 }
 </script>

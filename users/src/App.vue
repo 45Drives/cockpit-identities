@@ -15,12 +15,12 @@ import { ref, provide } from 'vue';
 import shellObj from './hooks/shellObj';
 import useSpawn from './hooks/useSpawn';
 
-const processing = ref(false);
+const processing = ref(0);
 provide('processing', processing);
 
 const shells = ref([]);
 const getShells = async () => {
-	processing.value = true;
+	processing.value++;
 	try {
 		shells.value = (await cockpit.file("/etc/shells", { superuser: 'try' }).read())
 			.split('\n')
@@ -28,6 +28,7 @@ const getShells = async () => {
 			.map(path => (shellObj(path)));
 	} catch (error) {
 		alert("Failed to get shells: " + error.message);
+		processing.value--;
 		return;
 	}
 
@@ -41,13 +42,13 @@ const getShells = async () => {
 			return a.path.localeCompare(b.path);
 		return a.name.localeCompare(b.name);
 	});
-	processing.value = false;
+	processing.value--;
 }
 provide('shells', shells);
 
 const groups = ref([]);
 const getGroups = async () => {
-	processing.value = true;
+	processing.value++;
 	try {
 		const groupDB = (await useSpawn(['getent', 'group'], { superuser: 'try' }).promise()).stdout;
 		groups.value = groupDB
@@ -61,9 +62,8 @@ const getGroups = async () => {
 			));
 	} catch (state) {
 		alert("Failed to get groups: " + state?.stderr ?? state?.message ?? state);
-		return;
 	}
-	processing.value = false;
+	processing.value--;
 }
 provide('groups', groups);
 
