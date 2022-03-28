@@ -1,5 +1,5 @@
 <template>
-	<UserEditor v-if="loaded" :shells="shells" v-model="userProxy" />
+	<UserEditor v-if="loaded" v-model="userProxy" />
 </template>
 
 <script>
@@ -7,17 +7,6 @@ import { useRoute } from "vue-router";
 import { ref, watch, computed, reactive, inject } from "vue";
 import useSpawn from "../hooks/useSpawn";
 import UserEditor from "../components/UserEditor.vue";
-
-function shellObj(path) {
-	if (!path || /^\s*$/.test(path))
-		return null;
-	let name = path
-		.replace(/^(?:\/[^\/]*)*\//, '') // remove path leaving only executable name
-		.replace(/-/g, ' ') // kebab case to spaces
-		.replace(/\b\w/g, c => c.toUpperCase()) // capitalize first letters
-		.replace(/Nologin/, "No Login"); // special case of nologin
-	return { path, name };
-}
 
 export default {
 	setup() {
@@ -31,35 +20,10 @@ export default {
 				Object.assign(user, newUser);
 			}
 		});
-		const shells = ref([]);
 		const loaded = ref(false);
 		let pauseUserWatch = false;
 		const processing = inject('processing');
-
-		const getShells = async () => {
-			processing.value = true;
-			try {
-				shells.value = (await cockpit.file("/etc/shells", { superuser: 'try' }).read())
-					.split('\n')
-					.filter(line => !/^\s*(?:#.*)?$/.test(line))
-					.map(path => (shellObj(path)));
-			} catch (error) {
-				alert("Failed to get shells: " + error.message);
-				cockpit.location.go("/users");
-				return;
-			}
-
-			shells.value.push(
-				shellObj("/usr/bin/nologin"),
-				shellObj("/bin/nologin"),
-			);
-
-			shells.value.sort((a, b) => {
-				if (a.name === b.name)
-					return a.path.localeCompare(b.path);
-				return a.name.localeCompare(b.name);
-			});
-		}
+		const shells = inject('shells');
 
 		const getUserInfo = async () => {
 			processing.value = true;
@@ -70,7 +34,7 @@ export default {
 					.find(record => record.substring(0, user.user?.length) === user.user)
 					?.split(':');
 				if (!fields) {
-					alert("User not found: " + tmpUser.user);
+					alert("User not found: " + user.user);
 					cockpit.location.go("/users");
 					return;
 				}
@@ -80,10 +44,10 @@ export default {
 				tmpUser.home = fields[5];
 				tmpUser.shell = shells.value.find(shell => shell.path === fields[6]);
 				if (!tmpUser.shell)
-					throw new Error("Invalid shell: " + fields[6]);
+					throw new Error("Invalid shell: " + fields[6] + "(not in /etc/shells)");
 				tmpUser.groups = (await useSpawn(['groups', user.user]).promise()).stdout
 					.replace(/^[^:]+:\s*/, '') // remove "user: " prefix present in some distributions
-					.split('\n')
+					.split(/\s+/g)
 					.filter(line => !/^\s*$/.test(line)) // remove empty lines
 					.sort();
 			} catch (state) {
@@ -131,8 +95,6 @@ export default {
 			loaded.value = false;
 			user.user = route.params.username;
 
-			await getShells();
-
 			await getUserInfo();
 
 			watch(() => ({ ...user }), applyChanges, { deep: true });
@@ -144,7 +106,6 @@ export default {
 		return {
 			user,
 			userProxy,
-			shells,
 			loaded,
 			processing,
 		}

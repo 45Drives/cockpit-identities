@@ -94,8 +94,99 @@
 						</transition>
 					</div>
 				</Listbox>
+				<div class="mt-8 flex flex-col">
+					<div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+						<div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+							<div
+								class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 dark:ring-gray-700 md:rounded-lg"
+							>
+								<table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+									<thead class="bg-neutral-50 dark:bg-neutral-800">
+										<tr>
+											<th
+												scope="col"
+												class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+											>{{ user.name === "" ? user.user : user.name }}'s Groups</th>
+											<th
+												scope="col"
+												class="sr-only py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+											>Remove</th>
+											<div class="relative">
+												<Listbox as="div" class="overflow-visible" v-model="addGroupSelectorValue">
+													<div class="mt-1 relative overflow-visible">
+														<ListboxButton>
+															<PlusIcon class="w-5 h-5 absolute right-3 top-3.5 cursor-pointer text-gray-500" />
+														</ListboxButton>
+
+														<transition
+															leave-active-class="transition ease-in duration-100"
+															leave-from-class="opacity-100"
+															leave-to-class="opacity-0"
+														>
+															<ListboxOptions
+																class="absolute z-10 mt-1 w-full bg-white dark:bg-neutral-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+															>
+																<ListboxOption
+																	as="template"
+																	v-for="group in nonMemberGroups"
+																	:value="group"
+																	v-slot="{ active, selected }"
+																>
+																	<li
+																		:class="[active ? 'text-white bg-red-500 dark:bg-red-600' : '', 'cursor-default select-none relative py-2 pl-3 pr-9']"
+																	>
+																		<div class="flex">
+																			<span
+																				:class="[selected ? 'font-semibold' : 'font-normal', 'truncate']"
+																			>{{ group }}</span>
+																		</div>
+
+																		<span
+																			v-if="selected"
+																			:class="[active ? 'text-white' : 'text-red-600', 'absolute inset-y-0 right-0 flex items-center pr-4']"
+																		>
+																			<CheckIcon class="h-5 w-5" aria-hidden="true" />
+																		</span>
+																	</li>
+																</ListboxOption>
+															</ListboxOptions>
+														</transition>
+													</div>
+												</Listbox>
+											</div>
+										</tr>
+									</thead>
+									<tbody class="dark:bg-neutral-800">
+										<tr
+											v-for="(group, index) in user.groups"
+											:class="index % 2 === 0 ? undefined : 'bg-neutral-50 dark:bg-neutral-700'"
+										>
+											<td
+												class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
+											>{{ group }}</td>
+											<td
+												class="flex flex-row justify-end whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium"
+											>
+												<MinusIcon
+													@click="removeGroup(group)"
+													class="uppercase text-red-600 hover:text-red-900 cursor-pointer w-5 h-5"
+												/>
+											</td>
+										</tr>
+										<tr v-if="user.groups.length === 0">
+											<td
+												colspan="4"
+												class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6 lg:pl-8"
+											>No groups. Click "+" to add one.</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
 				<div>
-					<span>Groups: </span>
+					<span>Available Groups:</span>
 					<span v-for="group in user.groups">{{ group }}</span>
 				</div>
 				<div class="flex flex-row space-x-2">
@@ -113,15 +204,13 @@
 
 <script>
 import { ref, watch, reactive, inject } from "vue";
-import useSpawn from "../hooks/useSpawn";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue';
-import { CheckIcon, SelectorIcon } from '@heroicons/vue/solid';
+import { CheckIcon, SelectorIcon, PlusIcon, MinusIcon } from '@heroicons/vue/solid';
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 
 export default {
 	props: {
 		modelValue: Object,
-		shells: Array[Object],
 	},
 	setup(props, { emit }) {
 		const user = reactive({ ...props.modelValue });
@@ -129,6 +218,10 @@ export default {
 		const inputsValid = ref(true);
 		const feedback = reactive({});
 		const processing = inject('processing');
+		const shells = inject('shells');
+		const groups = inject('groups').value.map(groupObj => groupObj.group); // get just plain group names
+		const nonMemberGroups = ref(groups.filter(group => !(user.groups?.includes(group))));
+		const addGroupSelectorValue = ref("");
 
 		const cancel = () => {
 			Object.assign(user, props.modelValue);
@@ -138,6 +231,17 @@ export default {
 		const apply = () => {
 			emit('update:modelValue', user);
 		};
+
+		const addGroup = (group) => {
+			if (!group)
+				return;
+			user.groups = [group, ...user.groups];
+			user.groups.sort();
+		};
+
+		const removeGroup = (groupToRemove) => {
+			user.groups = user.groups.filter(group => group !== groupToRemove);
+		}
 
 		const validateInputs = async () => {
 			let result = true;
@@ -153,9 +257,13 @@ export default {
 		watch(user, async () => {
 			let changes = false;
 			for (let key of Object.keys(props.modelValue)) {
-				if (user[key] !== props.modelValue[key])
+				if (Array.isArray(user[key])) {
+					if (user[key].sort().join(',') !== props.modelValue[key].sort().join(','))
+						changes = true
+				} else if (user[key] !== props.modelValue[key])
 					changes = true;
 			}
+			nonMemberGroups.value = groups.filter(group => !(user.groups?.includes(group)));
 			await validateInputs(); // validate first to avoid split second where apply is not disabled while invalid
 			changesMade.value = changes;
 		});
@@ -164,14 +272,24 @@ export default {
 			Object.assign(user, props.modelValue);
 		});
 
+		watch(addGroupSelectorValue, (group) => {
+			addGroup(group);
+			addGroupSelectorValue.value = "";
+		});
+
 		return {
 			user,
 			changesMade,
 			inputsValid,
 			feedback,
 			processing,
+			shells,
+			nonMemberGroups,
+			addGroupSelectorValue,
 			cancel,
 			apply,
+			addGroup,
+			removeGroup,
 		}
 	},
 	components: {
@@ -183,6 +301,8 @@ export default {
 		CheckIcon,
 		SelectorIcon,
 		LoadingSpinner,
+		PlusIcon,
+		MinusIcon,
 	},
 	emits: [
 		'update:modelValue',
