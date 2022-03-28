@@ -20,13 +20,13 @@
  
  @layer components {
 	 .btn {
-		 @apply py-2 px-4 font-semibold rounded-lg shadow-md focus:outline-none focus:ring-0;
+		 @apply box-border py-2 px-4 font-semibold rounded-lg shadow-md focus:outline-none focus:ring-0;
 	 }
 	 .btn-primary {
 		 @apply bg-blue-500 dark:bg-blue-800 text-white dark:text-gray-100 hover:bg-blue-700 dark:hover:bg-blue-900;
 	 }
 	 .btn-secondary {
-		 @apply box-border border-solid border-2 border-blue-500 text-blue-500 hover:border-blue-700 hover:text-blue-700;
+		 @apply border-solid border-2 border-blue-500 text-blue-500 hover:border-blue-700 hover:text-blue-700;
 	 }
 	 .btn-danger {
 		 @apply bg-red-500 dark:bg-red-800 text-white dark:text-gray-100 hover:bg-red-700 dark:hover:bg-red-900;
