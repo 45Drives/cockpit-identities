@@ -94,15 +94,15 @@
 						</transition>
 					</div>
 				</Listbox>
-				<div class="mt-8 flex flex-col">
-					<div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-						<div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+				<div class="mt-8 flex flex-col overflow-visible">
+					<div class="-my-2 -mx-4 sm:-mx-6 lg:-mx-8 overflow-visible">
+						<div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8 overflow-visible">
 							<div
-								class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 dark:ring-gray-700 md:rounded-lg"
+								class="overflow-visible shadow ring-1 ring-black ring-opacity-5 dark:ring-gray-700 md:rounded-lg"
 							>
-								<table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
-									<thead class="bg-neutral-50 dark:bg-neutral-800">
-										<tr>
+								<table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700 overflow-visible">
+									<thead class="bg-neutral-50 dark:bg-neutral-800 overflow-visible">
+										<tr class="overflow-visible">
 											<th
 												scope="col"
 												class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
@@ -111,7 +111,7 @@
 												scope="col"
 												class="sr-only py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
 											>Remove</th>
-											<div class="relative">
+											<div class="overflow-visible">
 												<Listbox as="div" class="overflow-visible" v-model="addGroupSelectorValue">
 													<div class="mt-1 relative overflow-visible">
 														<ListboxButton>
@@ -124,7 +124,7 @@
 															leave-to-class="opacity-0"
 														>
 															<ListboxOptions
-																class="absolute z-10 mt-1 w-full bg-white dark:bg-neutral-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+																class="absolute z-10 mt-1 right-0 top-10 bg-white dark:bg-neutral-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
 															>
 																<ListboxOption
 																	as="template"
@@ -175,7 +175,6 @@
 										</tr>
 										<tr v-if="user.groups.length === 0">
 											<td
-												colspan="4"
 												class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6 lg:pl-8"
 											>No groups. Click "+" to add one.</td>
 										</tr>
@@ -185,11 +184,7 @@
 						</div>
 					</div>
 				</div>
-				<div>
-					<span>Available Groups:</span>
-					<span v-for="group in user.groups">{{ group }}</span>
-				</div>
-				<div class="flex flex-row space-x-2">
+				<div class="flex flex-row space-x-2 justify-end">
 					<button class="btn btn-secondary" v-if="changesMade" @click="cancel()">Cancel</button>
 					<button
 						class="btn btn-primary"
@@ -254,7 +249,7 @@ export default {
 			inputsValid.value = result;
 		};
 
-		watch(user, async () => {
+		const checkIfChanged = async () => {
 			let changes = false;
 			for (let key of Object.keys(props.modelValue)) {
 				if (Array.isArray(user[key])) {
@@ -266,10 +261,13 @@ export default {
 			nonMemberGroups.value = groups.filter(group => !(user.groups?.includes(group)));
 			await validateInputs(); // validate first to avoid split second where apply is not disabled while invalid
 			changesMade.value = changes;
-		});
+		};
+
+		watch(() => ({ ...user }), checkIfChanged);
 
 		watch(props.modelValue, () => {
 			Object.assign(user, props.modelValue);
+			checkIfChanged();
 		});
 
 		watch(addGroupSelectorValue, (group) => {

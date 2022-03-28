@@ -70,7 +70,17 @@ export default {
 			if (newUser.home !== oldUser.home)
 				procs.push(useSpawn(['usermod', '-m', '-d', newUser.home, newUser.user], { superuser: 'try' }).promise());
 			if (newUser.shell.path !== oldUser.shell.path)
-				procs.push(useSpawn(['chsh', '-s', newUser.shell, newUser.user], { superuser: 'try' }).promise());
+				procs.push(useSpawn(['chsh', '-s', newUser.shell.path, newUser.user], { superuser: 'try' }).promise());
+
+			const groupsToAdd = newUser.groups.filter(group => !oldUser.groups.includes(group));
+			const groupsToRemove = oldUser.groups.filter(group => !newUser.groups.includes(group));
+
+			if (groupsToAdd.length)
+				procs.push(useSpawn(['usermod', '-aG', groupsToAdd.join(','), newUser.user], { superuser: 'try' }).promise());
+			if (groupsToRemove.length)
+				for (const group of groupsToRemove)
+					procs.push(useSpawn(['gpasswd', '-d', newUser.user, group]));
+
 			for (const proc of procs) {
 				try {
 					await proc;
@@ -79,12 +89,13 @@ export default {
 					errors = true;
 				}
 			}
+			pauseUserWatch = true; // avoid retriggering applyChanges during getUserInfo
 			if (errors) {
-				pauseUserWatch = true; // avoid retriggering applyChanges during getUserInfo
 				await getUserInfo(); // reset values
-				pauseUserWatch = false;
+			} else {
+				userProxy.value = newUser;
 			}
-			await new Promise((resolve, reject) => setTimeout(resolve, 1000));
+			pauseUserWatch = false;
 			processing.value = false;
 		}
 
