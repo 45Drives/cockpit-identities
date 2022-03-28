@@ -19,6 +19,11 @@ const routes = [
 		component: () => import('../views/EditUser.vue'),
 	},
 	{
+		path: '/new-user',
+		name: 'new-user',
+		component: () => import('../views/AddUser.vue'),
+	},
+	{
 		path: '/groups',
 		name: 'group-editor',
 		component: () => import('../views/GroupsMain.vue'),

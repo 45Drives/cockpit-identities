@@ -9,11 +9,18 @@
 			<div>{{ user.name ?? user.user }}</div>
 			<div v-if="user.user !== user.name" class="whitespace-nowrap text-sm font-mono text-gray-500">({{user.user}})</div>
 		</div>
+		<div
+			@click="addUser()"
+			class="card flex flex-col items-center justify-center h-36 min-w-[10rem] cursor-pointer p-4"
+		>
+			<UserAddIcon class="w-20 h-20 text-gray-500 shrink-0" />
+			<div>New User</div>
+		</div>
 	</div>
 </template>
 
 <script>
-import { UserIcon } from "@heroicons/vue/solid";
+import { UserIcon, UserAddIcon } from "@heroicons/vue/solid";
 import useSpawn from '../hooks/useSpawn';
 import { ref } from "vue";
 
@@ -47,13 +54,19 @@ export default {
 
 		getUsers();
 
+		const addUser = () => {
+			cockpit.location.go('/new-user');
+		}
+
 		return {
 			openUser,
 			users,
+			addUser,
 		}
 	},
 	components: {
 		UserIcon,
+		UserAddIcon,
 	}
 }
 </script>

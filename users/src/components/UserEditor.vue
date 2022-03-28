@@ -1,5 +1,23 @@
 <template>
 	<div class="card-body space-y-5 overflow-visible">
+		<div v-if="createNew">
+			<label class="block text-sm font-medium">Username</label>
+			<div class="mt-1">
+				<input
+					type="text"
+					class="shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
+					placeholder="jdoe"
+					v-model="user.user"
+				/>
+			</div>
+			<div
+				class="mt-2 text-sm text-red-600 flex flex-row justify-start items-center space-x-1"
+				v-if="feedback.user"
+			>
+				<ExclamationCircleIcon class="w-5 h-5 inline" />
+				<span>{{ feedback.user }}</span>
+			</div>
+		</div>
 		<div>
 			<label class="block text-sm font-medium">Full Name/Description</label>
 			<div class="mt-1">
@@ -184,6 +202,7 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 export default {
 	props: {
 		modelValue: Object,
+		createNew: Boolean,
 	},
 	setup(props, { emit }) {
 		const user = reactive({ ...props.modelValue });
@@ -219,7 +238,7 @@ export default {
 
 		const validateInputs = async () => {
 			let result = true;
-			if (!/^\//.test(user.home)) {
+			if (user.home && !/^\//.test(user.home)) {
 				feedback.home = "Home path must be absolute.";
 				result = false;
 			} else {
