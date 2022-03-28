@@ -3,10 +3,11 @@
 		<div
 			v-for="user in users"
 			@click="openUser(user.user)"
-			class="card flex flex-col items-center justify-center h-32 min-w-[10rem] cursor-pointer p-4"
+			class="card flex flex-col items-center justify-center h-36 min-w-[10rem] cursor-pointer p-4"
 		>
-			<UserIcon class="w-20 h-20 text-gray-500" />
-			<div>{{ user.name ?? user.user }} <span v-if="user.user !== user.name" class="whitespace-nowrap text-sm font-mono text-gray-500">({{user.user}})</span></div>
+			<UserIcon class="w-20 h-20 text-gray-500 shrink-0" />
+			<div>{{ user.name ?? user.user }}</div>
+			<div v-if="user.user !== user.name" class="whitespace-nowrap text-sm font-mono text-gray-500">({{user.user}})</div>
 		</div>
 	</div>
 </template>
