@@ -6,7 +6,7 @@
 				<input
 					type="text"
 					class="shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
-					placeholder="jdoe"
+					placeholder="Valid format: [a-z_][a-z0-9_-]*[$a-z0-9_-]"
 					v-model="user.user"
 				/>
 			</div>
@@ -202,7 +202,11 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 export default {
 	props: {
 		modelValue: Object,
-		createNew: Boolean,
+		createNew: {
+			type: Boolean,
+			required: false,
+			default: false,
+		}
 	},
 	setup(props, { emit }) {
 		const user = reactive({ ...props.modelValue });
@@ -238,13 +242,31 @@ export default {
 
 		const validateInputs = async () => {
 			let result = true;
+			feedback.home = feedback.user = "";
+
 			if (user.home && !/^\//.test(user.home)) {
 				feedback.home = "Home path must be absolute.";
 				result = false;
-			} else {
-				delete feedback.home;
 			}
+
+			if (!user.user) {
+				feedback.user = (feedback.user ?? "") + "Username required.\n";
+				result = false;
+			}
+			if (!/^[a-z_][a-z0-9_-]*[\$a-z0-9_-]?$/.test(user.user)) {
+				const invalidCharacters = [...(user.user.match(/(?:^[^a-z_]|(?<=.+)[^a-z0-9_-](?=.+)|[^\$a-z0-9_-]$)/g) ?? [])];
+				feedback.user = (feedback.user ?? "")
+					+ `Invalid character${invalidCharacters.length > 1 ? 's' : ''}: `
+					+ invalidCharacters.map(char => `"${char}"`).join(', ') + '\n';
+				result = false;
+			}
+			if (user.user.length > 32) {
+				feedback.user = (feedback.user ?? "") + "Username too long.\n";
+				result = false;
+			}
+			
 			inputsValid.value = result;
+			console.log(JSON.stringify(feedback));
 		};
 
 		const checkIfChanged = async () => {
@@ -274,6 +296,10 @@ export default {
 		});
 
 		watch(groupsRef, () => { groups = groupsRef.value.map(groupObj => groupObj.group) }, { immediate: true });
+
+		if (props.createNew) {
+
+		}
 
 		return {
 			user,
