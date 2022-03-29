@@ -21,7 +21,13 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 
 export default {
 	setup() {
-		const user = reactive({ groups: [] });
+		const user = reactive({
+			user: "",
+			name: "",
+			home: "",
+			shell: "",
+			groups: [],
+		});
 		const userProxy = computed({
 			get() {
 				return user;
