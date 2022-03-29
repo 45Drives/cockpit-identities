@@ -35,6 +35,8 @@ const getShells = async () => {
 	shells.value.push(
 		shellObj("/usr/bin/nologin"),
 		shellObj("/bin/nologin"),
+		shellObj("/usr/sbin/nologin"),
+		shellObj("/sbin/nologin"),
 	);
 
 	shells.value.sort((a, b) => {
