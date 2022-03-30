@@ -15,6 +15,7 @@
 			</div>
 			<UserEditor v-model="userProxy">
 				<SambaPassword :user="user" />
+				<SSHKeys :user="user" />
 			</UserEditor>
 		</div>
 	</div>
@@ -23,10 +24,11 @@
 <script>
 import { useRoute } from "vue-router";
 import { ref, watch, computed, reactive, inject } from "vue";
-import useSpawn from "../hooks/useSpawn";
+import { useSpawn, errorString } from "../hooks/useSpawn";
 import UserEditor from "../components/UserEditor.vue";
 import SambaPassword from "../components/SambaPassword.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
+import SSHKeys from "../components/SSHKeys.vue";
 
 export default {
 	setup() {
@@ -64,14 +66,14 @@ export default {
 				tmpUser.home = fields[5];
 				tmpUser.shell = shells.value.find(shell => shell.path === fields[6]);
 				if (!tmpUser.shell)
-					throw new Error("Invalid shell: " + fields[6] + "(not in /etc/shells)");
+					throw new Error("Invalid shell: " + fields[6] + " (not in /etc/shells)");
 				tmpUser.groups = (await useSpawn(['groups', user.user]).promise()).stdout
 					.replace(/^[^:]+:\s*/, '') // remove "user: " prefix present in some distributions
 					.split(/\s+/g)
 					.filter(line => !/^\s*$/.test(line)) // remove empty lines
 					.sort();
 			} catch (state) {
-				alert("Failed to query user: " + state?.stderr ?? state.message);
+				alert("Failed to query user: " + errorString(state));
 				processing.value--;
 				cockpit.location.go("/users");
 				return;
@@ -106,7 +108,7 @@ export default {
 				try {
 					await proc;
 				} catch (state) {
-					alert("Error applying changes:\n" + state.argv.join(' ') + ":\n" + state?.stderr ?? state.message);
+					alert("Error applying changes:\n" + state.argv.join(' ') + ":\n" + errorString(state));
 					errors = true;
 				}
 			}
@@ -141,9 +143,10 @@ export default {
 		}
 	},
 	components: {
-		UserEditor,
-		SambaPassword,
-		LoadingSpinner,
-	}
+    UserEditor,
+    SambaPassword,
+    LoadingSpinner,
+    SSHKeys
+}
 }
 </script>
