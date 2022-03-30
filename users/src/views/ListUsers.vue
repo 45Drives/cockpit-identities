@@ -21,7 +21,7 @@
 
 <script>
 import { UserIcon, UserAddIcon } from "@heroicons/vue/solid";
-import useSpawn from '../hooks/useSpawn';
+import { useSpawn, errorString } from '../hooks/useSpawn';
 import { ref } from "vue";
 
 export default {
@@ -44,7 +44,7 @@ export default {
 					users.value.push({user, name: name === "" ? user : name});
 				})
 			} catch (state) {
-				alert("Failed to get users: " + state.stderr);
+				alert("Failed to get users: " + errorString(state));
 			}
 		}
 

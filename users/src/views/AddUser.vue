@@ -14,7 +14,7 @@
 
 <script>
 import { ref, watch, computed, reactive, inject } from "vue";
-import useSpawn from "../hooks/useSpawn";
+import { useSpawn, errorString } from "../hooks/useSpawn";
 import UserEditor from "../components/UserEditor.vue";
 import SambaPassword from "../components/SambaPassword.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
@@ -65,7 +65,7 @@ export default {
 				try {
 					await proc;
 				} catch (state) {
-					alert("Error creating user:\n" + state.argv.join(' ') + ":\n" + state?.stderr ?? state.message);
+					alert("Error creating user:\n" + state.argv.join(' ') + ":\n" + errorString(state));
 					errors = true;
 				}
 			}

@@ -13,7 +13,7 @@
 import FfdHeader from './components/FfdHeader.vue';
 import { ref, provide } from 'vue';
 import shellObj from './hooks/shellObj';
-import useSpawn from './hooks/useSpawn';
+import { useSpawn, errorString } from './hooks/useSpawn';
 
 const processing = ref(0);
 provide('processing', processing);
@@ -63,7 +63,7 @@ const getGroups = async () => {
 				}
 			));
 	} catch (state) {
-		alert("Failed to get groups: " + state?.stderr ?? state?.message ?? state);
+		alert("Failed to get groups: " + errorString(state));
 	}
 	processing.value--;
 }

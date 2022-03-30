@@ -64,7 +64,7 @@ if (import.meta.env.DEV && typeof cockpit === 'undefined') {
  * @param {'out'|'err'} stderr - where to pipe stderr of proc
  * @returns {SpawnState} state - the process state object
  */
-export default function useSpawn(argv = [], opts = {}, stderr = 'message') {
+function useSpawn(argv = [], opts = {}, stderr = 'message') {
 	const state = reactive({
 		loading: true,
 		status: 0,
@@ -110,4 +110,22 @@ export default function useSpawn(argv = [], opts = {}, stderr = 'message') {
 		});
 
 	return state;
+}
+
+/** To be used in the catch of a try...catch where useSpawn is called.
+ * Allows for easily getting a string out of either a SpawnState, and Error,
+ * or just a String.
+ * 
+ * @param {SpawnState|Error|String} state 
+ * @returns Error message
+ */
+function errorString(state) {
+	if (typeof state === "string")
+		return state;
+	return (state?.stderr ?? state?.message ?? JSON.stringify(state));
+}
+
+export {
+	useSpawn,
+	errorString,
 }
