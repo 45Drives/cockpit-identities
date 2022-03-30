@@ -1,14 +1,17 @@
 <template>
-	<div class="flex flex-row space-x-3">
-		<button
-			class="btn btn-primary"
-			@click="showModal('set')"
-		>{{ smbpasswd.isSet ? 'Change' : 'Set' }} Samba Password</button>
-		<button
-			class="btn btn-primary"
-			@click="showModal('remove')"
-			v-if="smbpasswd.isSet"
-		>Remove Samba Password</button>
+	<div>
+		<label class="block text-sm font-medium">Samba Credentials</label>
+		<div class="flex flex-row space-x-3 mt-1">
+			<button
+				class="btn btn-primary"
+				@click="showModal('set')"
+			>{{ smbpasswd.isSet ? 'Change' : 'Set' }} Samba Password</button>
+			<button
+				class="btn btn-primary"
+				@click="showModal('remove')"
+				v-if="smbpasswd.isSet"
+			>Remove Samba Password</button>
+		</div>
 	</div>
 	<TransitionRoot as="template" :show="smbpasswd.showModal">
 		<Dialog as="div" class="fixed z-10 inset-0 overflow-y-auto">
@@ -104,7 +107,7 @@
 import { Dialog, DialogOverlay, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { ExclamationCircleIcon } from '@heroicons/vue/solid';
 import { reactive, watch, inject, ref } from 'vue';
-import useSpawn from "../hooks/useSpawn";
+import { useSpawn, errorString } from "../hooks/useSpawn";
 export default {
 	props: {
 		user: Object,
@@ -134,7 +137,7 @@ export default {
 				await state.promise();
 				setTimeout(() => Object.assign(smbpasswd, { isSet: true, pass1: "", pass2: "" }), 500); // to avoid seeing changes before modal hides
 			} catch (state) {
-				alert("Failed to set smbpasswd: " + state?.stderr ?? state.message ?? state);
+				alert("Failed to set smbpasswd: " + errorString(state));
 				checkIfSmbpasswdSet();
 			}
 			smbpasswd.showModal = false;
@@ -147,7 +150,7 @@ export default {
 				await useSpawn(['smbpasswd', '-x', props.user.user], { superuser: 'try' }).promise();
 				smbpasswd.isSet = false;
 			} catch (state) {
-				alert("Failed to set smbpasswd: " + state?.stderr ?? state.message ?? state);
+				alert("Failed to set smbpasswd: " + errorString(state));
 				checkIfSmbpasswdSet();
 			}
 			smbpasswd.showModal = false;
@@ -159,8 +162,6 @@ export default {
 			smbpasswd.showModal = true;
 		};
 
-		checkIfSmbpasswdSet();
-
 		watch(smbpasswd, () => {
 			if (!smbpasswd.pass1 || !smbpasswd.pass2)
 				feedback.smbpasswd = "Password required.";
@@ -169,6 +170,10 @@ export default {
 			else
 				delete feedback.smbpasswd;
 		})
+
+		watch(props.user, () => {
+			checkIfSmbpasswdSet();
+		}, { immediate: true });
 
 		return {
 			smbpasswd,
