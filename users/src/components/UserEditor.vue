@@ -219,6 +219,7 @@ export default {
 		let groups = groupsRef.value.map(groupObj => groupObj.group); // get just plain group names
 		const nonMemberGroups = ref(groups.filter(group => !(user.groups?.includes(group))));
 		const addGroupSelectorValue = ref("");
+		let applyHooks = () => {};
 
 		const cancel = () => {
 			Object.assign(user, props.modelValue);
@@ -226,6 +227,7 @@ export default {
 		};
 
 		const apply = () => {
+			applyHooks();
 			emit('update:modelValue', user);
 		};
 
@@ -298,7 +300,15 @@ export default {
 		watch(groupsRef, () => { groups = groupsRef.value.map(groupObj => groupObj.group) }, { immediate: true });
 
 		if (props.createNew) {
-
+			applyHooks = () => {
+				
+			}
+			watch(() => user.user, () => {
+				if (!user.user && /^\/home\//.test(user.home))
+					user.home = "";
+				else if (!user.home || /^\/home\//.test(user.home))
+					user.home = `/home/${user.user}`;
+			});
 		}
 
 		return {
