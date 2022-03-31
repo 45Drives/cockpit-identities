@@ -15,7 +15,6 @@
 
 <script>
 import { UsersIcon, UserGroupIcon } from "@heroicons/vue/solid";
-import UserManagement from "../components/UserManagement.vue";
 export default {
 	setup() {
 		const open = (path) => {
@@ -27,7 +26,6 @@ export default {
 		}
 	},
 	components: {
-		UserManagement,
 		UsersIcon,
 		UserGroupIcon,
 	}
