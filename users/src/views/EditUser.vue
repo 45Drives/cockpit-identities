@@ -22,7 +22,7 @@
 			</div>
 			<div class="card-body space-y-5">
 				<SambaPassword :user="user" />
-				<SSHKeys :user="user" />
+				<SSHAuthorizedKeys :user="user" />
 			</div>
 		</div>
 		<div class="card divide-y divide-gray-100 dark:divide-gray-700 overflow-visible">
@@ -44,7 +44,7 @@ import { useSpawn, errorString } from "../hooks/useSpawn";
 import UserEditor from "../components/UserEditor.vue";
 import SambaPassword from "../components/SambaPassword.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
-import SSHKeys from "../components/SSHKeys.vue";
+import SSHAuthorizedKeys from "../components/SSHAuthorizedKeys.vue";
 import UserActivity from "../components/UserActivity.vue";
 
 export default {
@@ -151,7 +151,7 @@ export default {
 		UserEditor,
 		SambaPassword,
 		LoadingSpinner,
-		SSHKeys,
+		SSHAuthorizedKeys,
 		UserActivity,
 	}
 }
