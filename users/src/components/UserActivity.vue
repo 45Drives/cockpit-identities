@@ -2,9 +2,7 @@
 	<div class="mt-1 flex flex-col">
 		<div class="-my-2 -mx-4 sm:-mx-6 lg:-mx-8">
 			<div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-				<div
-					class="shadow ring-1 ring-black ring-opacity-5 dark:ring-gray-700 md:rounded-lg"
-				>
+				<div class="shadow ring-1 ring-black ring-opacity-5 dark:ring-gray-700 md:rounded-lg">
 					<div class="flex flex-row justify-between bg-neutral-50 dark:bg-neutral-800">
 						<div
 							class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
@@ -12,7 +10,7 @@
 						<div
 							class="flex space-x-2 justify-end py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8 grow"
 						>
-							<Datepicker v-model="range" range placeholder="Date Range" :dark="darkMode" class="w-auto"/>
+							<Datepicker v-model="range" range placeholder="Date Range" :dark="darkMode" class="w-auto" />
 						</div>
 					</div>
 					<table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
@@ -34,12 +32,15 @@
 									scope="col"
 									class="sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
 								>IP Address</th>
-								<th scope="col" class="sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8">TTY</th>
+								<th
+									scope="col"
+									class="sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+								>TTY</th>
 							</tr>
 						</thead>
 						<tbody class="dark:bg-neutral-800">
 							<tr
-								v-for="(entry, index) in history"
+								v-for="(entry, index) in historyReactive"
 								:class="index % 2 === 0 ? undefined : 'bg-neutral-50 dark:bg-neutral-700'"
 								:title="`${entry.tty}`"
 							>
@@ -73,7 +74,7 @@
 </template>
 
 <script>
-import { ref, reactive, watch, inject, onMounted } from 'vue';
+import { ref, reactive, watch, inject, onMounted, computed } from 'vue';
 import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { useSpawn, errorString } from '../hooks/useSpawn';
@@ -87,14 +88,35 @@ function formatDateForLast(date) {
 	return `${year}-${month}-${day} ${hour}:${minute}`;
 }
 
-function sessionTimeToSentance(sessionTime) {
-	const fields = sessionTime.split(/[+:]/);
-	let result = "";
-	let itr = 0;
-	if (fields.length === 3)
-		result += `${fields[itr++]} Days,`
-	result += `${fields[itr++]} Hours, ${fields[itr++]} Minutes`;
-	return result;
+function sessionTimeToSentence(sessionTime) {
+	const matchGroups = sessionTime.match(/^(?:(\d+)\+)?(\d{2}):(\d{2})$/)?.slice(1).map(num => num === null ? num : parseInt(num)) ?? null;
+	if (!matchGroups)
+		return sessionTime;
+	return (matchGroups[0] ? `${matchGroups[0]} Day${matchGroups[0] === 1 ? '' : 's'}, ` : "")
+		+ (matchGroups[1] !== 0 ? `${matchGroups[1]} Hour${matchGroups[1] === 1 ? '' : 's'}, ` : "")
+		+ `${matchGroups[2]} Minute${matchGroups[2] === 1 ? '' : 's'}`;
+}
+
+function formatDate(date) {
+	const useBrowserLocale = [];
+	try {
+		return new Intl.DateTimeFormat(useBrowserLocale, { dateStyle: "short", timeStyle: "short" }).format(new Date(date));
+	} catch (error) {
+		console.error("Error formatting date: " + JSON.stringify(date) + error.message);
+		return date;
+	}
+}
+
+function timeSince(start) {
+	const diff = new Date() - new Date(start); // milliseconds
+	let minutes = Math.floor(diff / 1000 / 60);
+	let hours = Math.floor(minutes / 60);
+	let days = Math.floor(hours / 24);
+	minutes %= 60;
+	hours %= 24;
+	return (days ? `${days} Day${days === 1 ? '' : 's'}, ` : "")
+		+ (hours !== 0 ? `${hours} Hour${hours === 1 ? '' : 's'}, ` : "")
+		+ `${minutes} Minute${minutes === 1 ? '' : 's'}`;
 }
 
 export default {
@@ -104,6 +126,7 @@ export default {
 	setup(props) {
 		const range = ref();
 		const history = ref([]);
+		const historyReactive = reactive(history);
 		const processing = inject('processing');
 		const darkMode = inject('darkMode');
 
@@ -127,13 +150,23 @@ export default {
 						const match = line.match(/^(\S+)\s+(\S+(?: \S+)*)\s+(\d{1,3}(?:.\d{1,3}){3})\s+(\S+)(?: - (\S+)\s+\(([^\)]+)\)|\s+(\S+(?: \S+)*))/)?.slice(1);
 						if (!match)
 							return null;
-						return {
-							user: match[0],
-							tty: match[1],
-							ip: match[2],
-							sessionStart: match[3],
-							sessionEnd: match[4] ?? match[6], // end time or "still logged in" (or something else?)
-							sessionTime: match[5] ?? null,
+						try {
+							const obj = reactive({
+								user: match[0],
+								tty: match[1],
+								ip: match[2],
+								sessionStart: formatDate(match[3]),
+								sessionEnd: match[4] ? formatDate(match[4]) : match[6], // end time or "still logged in" (or something else?)
+								sessionTime: match[5] ? sessionTimeToSentence(match[5]) : null,
+							});
+							if (obj.sessionTime === null) {
+								// live update time
+								setInterval(() => obj.sessionTime = timeSince(match[3]), 60*1000);
+								obj.sessionTime = timeSince(match[3])
+							}
+							return obj;
+						} catch (error) {
+							throw new Error(error.message + `, trigger: ${line}`);
 						}
 					}).filter(entry => entry !== null);
 			} catch (state) {
@@ -155,6 +188,7 @@ export default {
 		return {
 			range,
 			history,
+			historyReactive,
 			processing,
 			darkMode,
 		}
