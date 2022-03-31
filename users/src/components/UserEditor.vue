@@ -7,7 +7,7 @@
 					type="text"
 					class="shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
 					placeholder="Valid format: [a-z_][a-z0-9_-]*[$a-z0-9_-]"
-					v-model="user.user"
+					v-model="tmpUser.user"
 				/>
 			</div>
 			<div
@@ -25,7 +25,7 @@
 					type="text"
 					class="shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
 					placeholder="Full Name"
-					v-model="user.name"
+					v-model="tmpUser.name"
 				/>
 			</div>
 		</div>
@@ -36,7 +36,7 @@
 					type="text"
 					class="shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
 					placeholder="Path to Working Directory at login"
-					v-model="user.home"
+					v-model="tmpUser.home"
 				/>
 			</div>
 			<div
@@ -47,15 +47,15 @@
 				<span>{{ feedback.home }}</span>
 			</div>
 		</div>
-		<Listbox as="div" v-model="user.shell" v-if="user.shell" class="overflow-visible">
+		<Listbox as="div" v-model="tmpUser.shell" v-if="tmpUser.shell" class="overflow-visible">
 			<ListboxLabel class="block text-sm font-medium">Login Shell</ListboxLabel>
 			<div class="mt-1 relative overflow-visible">
 				<ListboxButton
 					class="relative w-full bg-white dark:bg-neutral-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-0 sm:text-sm"
 				>
 					<span class="w-full inline-flex truncate">
-						<span class="truncate">{{ user.shell.name }}</span>
-						<span class="ml-2 truncate text-gray-500">{{ user.shell.path }}</span>
+						<span class="truncate">{{ tmpUser.shell.name }}</span>
+						<span class="ml-2 truncate text-gray-500">{{ tmpUser.shell.path }}</span>
 					</span>
 					<span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
 						<SelectorIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -111,7 +111,7 @@
 									<th
 										scope="col"
 										class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-									>{{ user.name === "" ? user.user : user.name }}'s Groups</th>
+									>{{ tmpUser.name === "" ? tmpUser.user : tmpUser.name }}'s Groups</th>
 									<th
 										scope="col"
 										class="sr-only py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
@@ -161,7 +161,7 @@
 							</thead>
 							<tbody class="dark:bg-neutral-800">
 								<tr
-									v-for="(group, index) in user.groups"
+									v-for="(group, index) in tmpUser.groups"
 									:class="index % 2 === 0 ? undefined : 'bg-neutral-50 dark:bg-neutral-700'"
 								>
 									<td
@@ -169,12 +169,13 @@
 									>{{ group }}</td>
 									<td class="flex flex-row justify-end whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium">
 										<MinusIcon
+											v-if="group !== tmpUser.user"
 											@click="removeGroup(group)"
 											class="uppercase text-red-600 hover:text-red-900 cursor-pointer w-5 h-5"
 										/>
 									</td>
 								</tr>
-								<tr v-if="user.groups.length === 0">
+								<tr v-if="tmpUser.groups.length === 0">
 									<td
 										class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6 lg:pl-8"
 									>No groups. Click "+" to add one.</td>
@@ -201,7 +202,12 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 
 export default {
 	props: {
-		modelValue: Object,
+		user: Object,
+		applyHooks: {
+			type: Function,
+			required: false,
+			default: () => { },
+		},
 		createNew: {
 			type: Boolean,
 			required: false,
@@ -209,7 +215,8 @@ export default {
 		}
 	},
 	setup(props, { emit }) {
-		const user = reactive({ ...props.modelValue });
+		const tmpUser = reactive({ ...props.user });
+		console.log(props.user);
 		const changesMade = ref(false);
 		const inputsValid = ref(true);
 		const feedback = reactive({});
@@ -217,80 +224,80 @@ export default {
 		const shells = inject('shells');
 		const groupsRef = inject('groups');
 		let groups = groupsRef.value.map(groupObj => groupObj.group); // get just plain group names
-		const nonMemberGroups = ref(groups.filter(group => !(user.groups?.includes(group))));
+		const nonMemberGroups = ref(groups.filter(group => !(tmpUser.groups?.includes(group))));
 		const addGroupSelectorValue = ref("");
-		let applyHooks = () => {};
 
 		const cancel = () => {
-			Object.assign(user, props.modelValue);
+			Object.assign(tmpUser, props.user);
 			emit('cancel');
 		};
 
 		const apply = () => {
-			applyHooks();
-			emit('update:modelValue', user);
+			props.applyHooks(tmpUser, props.user);
+			emit('applyChanges', tmpUser);
 		};
 
 		const addGroup = (group) => {
 			if (!group)
 				return;
-			user.groups = [group, ...user.groups];
-			user.groups.sort();
+			tmpUser.groups = [group, ...tmpUser.groups];
+			tmpUser.groups.sort();
 		};
 
 		const removeGroup = (groupToRemove) => {
-			user.groups = user.groups.filter(group => group !== groupToRemove);
+			tmpUser.groups = tmpUser.groups.filter(group => group !== groupToRemove);
 		}
 
 		const validateInputs = async () => {
 			let result = true;
 			feedback.home = feedback.user = "";
 
-			if (user.home && !/^\//.test(user.home)) {
+			if (tmpUser.home && !/^\//.test(tmpUser.home)) {
 				feedback.home = "Home path must be absolute.";
 				result = false;
 			}
 
-			if (!user.user) {
+			if (!tmpUser.user) {
 				feedback.user = (feedback.user ?? "") + "Username required.\n";
 				result = false;
 			}
-			if (!/^[a-z_][a-z0-9_-]*[\$a-z0-9_-]?$/.test(user.user)) {
-				const invalidCharacters = [...(user.user.match(/(?:^[^a-z_]|(?<=.+)[^a-z0-9_-](?=.+)|[^\$a-z0-9_-]$)/g) ?? [])];
+			if (!/^[a-z_][a-z0-9_-]*[\$a-z0-9_-]?$/.test(tmpUser.user)) {
+				const invalidCharacters = [...(tmpUser.user.match(/(?:^[^a-z_]|(?<=.+)[^a-z0-9_-](?=.+)|[^\$a-z0-9_-]$)/g) ?? [])];
 				feedback.user = (feedback.user ?? "")
 					+ `Invalid character${invalidCharacters.length > 1 ? 's' : ''}: `
 					+ invalidCharacters.map(char => `"${char}"`).join(', ') + '\n';
 				result = false;
 			}
-			if (user.user.length > 32) {
+			if (tmpUser.user.length > 32) {
 				feedback.user = (feedback.user ?? "") + "Username too long.\n";
 				result = false;
 			}
-			
+
 			inputsValid.value = result;
-			console.log(JSON.stringify(feedback));
 		};
 
 		const checkIfChanged = async () => {
 			let changes = false;
-			for (let key of Object.keys(props.modelValue)) {
-				if (Array.isArray(user[key])) {
-					if (user[key].sort().join(',') !== props.modelValue[key].sort().join(','))
+			for (let key of Object.keys(props.user)) {
+				if (Array.isArray(tmpUser[key])) {
+					if (tmpUser[key].sort().join(',') !== props.user[key].sort().join(','))
 						changes = true
-				} else if (user[key] !== props.modelValue[key])
+				} else if (tmpUser[key] !== props.user[key])
 					changes = true;
 			}
-			nonMemberGroups.value = groups.filter(group => !(user.groups?.includes(group)));
+			nonMemberGroups.value = groups.filter(group => !(tmpUser.groups?.includes(group)));
 			await validateInputs(); // validate first to avoid split second where apply is not disabled while invalid
 			changesMade.value = changes;
 		};
 
-		watch(() => ({ ...user }), checkIfChanged);
+		watch(tmpUser, checkIfChanged); // deep watch for nested mutations
 
-		watch(props.modelValue, () => {
-			Object.assign(user, props.modelValue);
+		watch(() => props.user, () => { // deep watch for nested mutations
+			Object.assign(tmpUser, props.user);
+			// the Object.assign should trigger the deep watch on tmpUser that calls checkIfChanged,
+			// but for some reason it just won't trigger it. Running manually until it's figured out
 			checkIfChanged();
-		});
+		}, { deep: true });
 
 		watch(addGroupSelectorValue, (group) => {
 			addGroup(group);
@@ -301,18 +308,18 @@ export default {
 
 		if (props.createNew) {
 			applyHooks = () => {
-				
+
 			}
-			watch(() => user.user, () => {
-				if (!user.user && /^\/home\//.test(user.home))
-					user.home = "";
-				else if (!user.home || /^\/home\//.test(user.home))
-					user.home = `/home/${user.user}`;
+			watch(() => tmpUser.user, () => {
+				if (!tmpUser.user && /^\/home\//.test(tmpUser.home))
+					tmpUser.home = "";
+				else if (!tmpUser.home || /^\/home\//.test(tmpUser.home))
+					tmpUser.home = `/home/${tmpUser.user}`;
 			});
 		}
 
 		return {
-			user,
+			tmpUser,
 			changesMade,
 			inputsValid,
 			feedback,
@@ -340,7 +347,7 @@ export default {
 		ExclamationCircleIcon,
 	},
 	emits: [
-		'update:modelValue',
+		'applyChanges',
 		'cancel',
 	],
 }

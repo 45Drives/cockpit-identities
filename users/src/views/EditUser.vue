@@ -1,53 +1,63 @@
 <template>
 	<div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8 py-8 overflow-visible">
-		<div class="card divide-y divide-y-gray-100 overflow-visible">
+		<div class="card divide-y divide-gray-100 dark:divide-gray-700 overflow-visible">
 			<div class="card-header flex flex-row space-x-2">
 				<h3>
 					{{ user.name === "" ? user.user : user.name }}
 					<span class="text-gray-500 font-mono text-sm">
-						<span v-if="user.name">(login={{ user.user }}, </span>
+						<span v-if="user.name">(login={{ user.user }},</span>
 						<span v-else>(</span>
-						<span>uid={{ user.uid }}, </span>
+						<span>uid={{ user.uid }},</span>
 						<span>gid={{ user.gid }})</span>
 					</span>
 				</h3>
 				<LoadingSpinner class="w-6 h-6" v-if="processing" />
 			</div>
-			<UserEditor v-model="userProxy">
+			<UserEditor :user="user" @applyChanges="applyChanges" />
+		</div>
+		<div class="card divide-y divide-gray-100 dark:divide-gray-700 overflow-visible">
+			<div class="card-header flex flex-row space-x-2">
+				<h3>Credentials</h3>
+				<LoadingSpinner class="w-6 h-6" v-if="processing" />
+			</div>
+			<div class="card-body space-y-5">
 				<SambaPassword :user="user" />
 				<SSHKeys :user="user" />
-			</UserEditor>
+			</div>
+		</div>
+		<div class="card divide-y divide-gray-100 dark:divide-gray-700 overflow-visible">
+			<div class="card-header flex flex-row space-x-2">
+				<h3>Activity</h3>
+				<LoadingSpinner class="w-6 h-6" v-if="processing" />
+			</div>
+			<div class="card-body space-y-5">
+				<UserActivity :user="user" />
+			</div>
 		</div>
 	</div>
 </template>
 
 <script>
 import { useRoute } from "vue-router";
-import { ref, watch, computed, reactive, inject } from "vue";
+import { ref, watch, computed, reactive, inject, onUnmounted } from "vue";
 import { useSpawn, errorString } from "../hooks/useSpawn";
 import UserEditor from "../components/UserEditor.vue";
 import SambaPassword from "../components/SambaPassword.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import SSHKeys from "../components/SSHKeys.vue";
+import UserActivity from "../components/UserActivity.vue";
 
 export default {
 	setup() {
 		const route = useRoute();
 		const user = reactive({ groups: [] });
-		const userProxy = computed({
-			get() {
-				return user;
-			},
-			set(newUser) {
-				Object.assign(user, newUser);
-			}
-		});
-		let pauseUserWatch = false;
 		const processing = inject('processing');
 		const shells = inject('shells');
 
-		const getUserInfo = async () => {
+		const getUserInfo = async (newUserLogin = null) => {
 			processing.value++;
+			if (newUserLogin !== null)
+				user.user = newUserLogin;
 			let tmpUser = {};
 			try {
 				const fields = (await useSpawn(['getent', 'passwd'], { superuser: 'try' }).promise()).stdout
@@ -78,25 +88,23 @@ export default {
 				cockpit.location.go("/users");
 				return;
 			}
-			userProxy.value = tmpUser;
+			Object.assign(user, tmpUser);
 			processing.value--;
 		}
 
-		const applyChanges = async (newUser, oldUser) => {
-			if (pauseUserWatch)
-				return;
+		const applyChanges = async (newUser) => {
 			processing.value++;
 			const procs = [];
 			let errors = false;
-			if (newUser.name !== oldUser.name)
+			if (newUser.name !== user.name)
 				procs.push(useSpawn(['chfn', '-f', newUser.name, newUser.user], { superuser: 'try' }).promise());
-			if (newUser.home !== oldUser.home)
+			if (newUser.home !== user.home)
 				procs.push(useSpawn(['usermod', '-m', '-d', newUser.home, newUser.user], { superuser: 'try' }).promise());
-			if (newUser.shell.path !== oldUser.shell.path)
+			if (newUser.shell.path !== user.shell.path)
 				procs.push(useSpawn(['chsh', '-s', newUser.shell.path, newUser.user], { superuser: 'try' }).promise());
 
-			const groupsToAdd = newUser.groups.filter(group => !oldUser.groups.includes(group));
-			const groupsToRemove = oldUser.groups.filter(group => !newUser.groups.includes(group));
+			const groupsToAdd = newUser.groups.filter(group => !user.groups.includes(group));
+			const groupsToRemove = user.groups.filter(group => !newUser.groups.includes(group));
 
 			if (groupsToAdd.length)
 				procs.push(useSpawn(['usermod', '-aG', groupsToAdd.join(','), newUser.user], { superuser: 'try' }).promise());
@@ -112,41 +120,39 @@ export default {
 					errors = true;
 				}
 			}
-			pauseUserWatch = true; // avoid retriggering applyChanges during getUserInfo
 			if (errors) {
-				await getUserInfo(); // reset values
+				// reset values (could be partially changed, that's why no simple rollback to user)
+				await getUserInfo();
 			} else {
-				userProxy.value = newUser;
+				// all good, update user object reflecting changes
+				// this also triggers a watch in UserEditor to synchronize it's internal tmpUser with user
+				Object.assign(user, newUser);
 			}
-			pauseUserWatch = false;
 			processing.value--;
 		}
 
-		watch(route, async () => {
+		watch(() => route.path, async () => {
 			if (!/^\/users\/.*$/.test(route.path)) {
+				// watch is triggered when navigating away from page,
+				// this check prevents getUserInfo to be called when the URL
+				// is no longer a user editor
 				return;
 			}
-			user.user = route.params.username;
-
-			pauseUserWatch = true;
-			await getUserInfo();
-			pauseUserWatch = false;
-
+			await getUserInfo(route.params.username);
 		}, { immediate: true });
-
-		watch(() => ({ ...user }), applyChanges, { deep: true });
 
 		return {
 			user,
-			userProxy,
 			processing,
+			applyChanges,
 		}
 	},
 	components: {
-    UserEditor,
-    SambaPassword,
-    LoadingSpinner,
-    SSHKeys
-}
+		UserEditor,
+		SambaPassword,
+		LoadingSpinner,
+		SSHKeys,
+		UserActivity,
+	}
 }
 </script>
