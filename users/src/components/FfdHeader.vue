@@ -52,7 +52,7 @@ import "@fontsource/red-hat-text/700.css";
 import "@fontsource/red-hat-text/400.css";
 import "source-sans-pro/source-sans-pro.css";
 import { SunIcon, MoonIcon } from "@heroicons/vue/solid";
-import { ref, watch } from "vue";
+import { ref, watch, inject } from "vue";
 
 export default {
 	props: {
@@ -60,7 +60,7 @@ export default {
 		centerName: Boolean
 	},
 	setup(props) {
-		const darkMode = ref(true);
+		const darkMode = inject('darkMode') ?? ref(true);
 		function getTheme() {
 			let prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
 			let theme = localStorage.getItem("color-theme");

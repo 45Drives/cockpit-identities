@@ -15,6 +15,9 @@ import { ref, provide } from 'vue';
 import shellObj from './hooks/shellObj';
 import { useSpawn, errorString } from './hooks/useSpawn';
 
+const darkMode = ref(false);
+provide('darkMode', darkMode);
+
 const processing = ref(0);
 provide('processing', processing);
 
