@@ -38,7 +38,7 @@
 		 @apply bg-neutral-300 dark:bg-neutral-700 hover:bg-neutral-300 text-gray-100 dark:text-gray-500 cursor-not-allowed
 	 }
 	 .card {
-		 @apply bg-white dark:bg-neutral-800 overflow-hidden shadow;
+		 @apply bg-white dark:bg-neutral-800 shadow;
 	 }
 	 .card-header {
 		 @apply px-4 py-5 sm:px-6;
