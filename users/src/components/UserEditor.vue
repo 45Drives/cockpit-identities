@@ -111,7 +111,7 @@
 							>{{ user.name === "" ? user.user : user.name }}'s Groups</div>
 							<div class="overflow-visible">
 								<Listbox as="div" class="overflow-visible" v-model="addGroupSelectorValue">
-									<div class="mt-1 overflow-visible">
+									<div class="mt-1 overflow-visible relative">
 										<ListboxButton>
 											<PlusIcon class="w-5 h-5 mr-7 cursor-pointer text-gray-500" />
 										</ListboxButton>
@@ -122,7 +122,7 @@
 											leave-to-class="opacity-0"
 										>
 											<ListboxOptions
-												class="absolute z-10 mt-1 right-0 top-10 bg-white dark:bg-neutral-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+												class="absolute z-10 mt-1 right-3 top-8 bg-white dark:bg-neutral-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
 											>
 												<ListboxOption
 													as="template"
