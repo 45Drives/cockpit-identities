@@ -105,83 +105,92 @@
 					<div
 						class="overflow-visible shadow ring-1 ring-black ring-opacity-5 dark:ring-gray-700 md:rounded-lg"
 					>
-						<table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700 overflow-visible">
-							<thead class="bg-neutral-50 dark:bg-neutral-800 overflow-visible">
-								<tr class="overflow-visible">
-									<th
-										scope="col"
-										class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-									>{{ tmpUser.name === "" ? tmpUser.user : tmpUser.name }}'s Groups</th>
-									<th
-										scope="col"
-										class="sr-only py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-									>Remove</th>
-									<div class="overflow-visible">
-										<Listbox as="div" class="overflow-visible" v-model="addGroupSelectorValue">
-											<div class="mt-1 relative overflow-visible">
-												<ListboxButton>
-													<PlusIcon class="w-5 h-5 absolute right-3 top-3.5 cursor-pointer text-gray-500" />
-												</ListboxButton>
+						<div class="flex flex-row justify-between items-center bg-neutral-50 dark:bg-neutral-800">
+							<div
+								class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+							>{{ user.name === "" ? user.user : user.name }}'s Groups</div>
+							<div class="overflow-visible">
+								<Listbox as="div" class="overflow-visible" v-model="addGroupSelectorValue">
+									<div class="mt-1 overflow-visible">
+										<ListboxButton>
+											<PlusIcon class="w-5 h-5 mr-7 cursor-pointer text-gray-500" />
+										</ListboxButton>
 
-												<transition
-													leave-active-class="transition ease-in duration-100"
-													leave-from-class="opacity-100"
-													leave-to-class="opacity-0"
+										<transition
+											leave-active-class="transition ease-in duration-100"
+											leave-from-class="opacity-100"
+											leave-to-class="opacity-0"
+										>
+											<ListboxOptions
+												class="absolute z-10 mt-1 right-0 top-10 bg-white dark:bg-neutral-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+											>
+												<ListboxOption
+													as="template"
+													v-for="group in nonMemberGroups"
+													:value="group"
+													v-slot="{ active, selected }"
 												>
-													<ListboxOptions
-														class="absolute z-10 mt-1 right-0 top-10 bg-white dark:bg-neutral-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+													<li
+														:class="[active ? 'text-white bg-red-500 dark:bg-red-600' : '', 'cursor-default select-none relative py-2 pl-3 pr-9']"
 													>
-														<ListboxOption
-															as="template"
-															v-for="group in nonMemberGroups"
-															:value="group"
-															v-slot="{ active, selected }"
-														>
-															<li
-																:class="[active ? 'text-white bg-red-500 dark:bg-red-600' : '', 'cursor-default select-none relative py-2 pl-3 pr-9']"
-															>
-																<div class="flex">
-																	<span :class="[selected ? 'font-semibold' : 'font-normal', 'truncate']">{{ group }}</span>
-																</div>
+														<div class="flex">
+															<span :class="[selected ? 'font-semibold' : 'font-normal', 'truncate']">{{ group }}</span>
+														</div>
 
-																<span
-																	v-if="selected"
-																	:class="[active ? 'text-white' : 'text-red-600', 'absolute inset-y-0 right-0 flex items-center pr-4']"
-																>
-																	<CheckIcon class="h-5 w-5" aria-hidden="true" />
-																</span>
-															</li>
-														</ListboxOption>
-													</ListboxOptions>
-												</transition>
-											</div>
-										</Listbox>
+														<span
+															v-if="selected"
+															:class="[active ? 'text-white' : 'text-red-600', 'absolute inset-y-0 right-0 flex items-center pr-4']"
+														>
+															<CheckIcon class="h-5 w-5" aria-hidden="true" />
+														</span>
+													</li>
+												</ListboxOption>
+											</ListboxOptions>
+										</transition>
 									</div>
-								</tr>
-							</thead>
-							<tbody class="dark:bg-neutral-800">
-								<tr
-									v-for="(group, index) in tmpUser.groups"
-									:class="index % 2 === 0 ? undefined : 'bg-neutral-50 dark:bg-neutral-700'"
-								>
-									<td
-										class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
-									>{{ group }}</td>
-									<td class="flex flex-row justify-end whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium">
-										<MinusIcon
-											v-if="group !== tmpUser.user"
-											@click="removeGroup(group)"
-											class="uppercase text-red-600 hover:text-red-900 cursor-pointer w-5 h-5"
-										/>
-									</td>
-								</tr>
-								<tr v-if="tmpUser.groups.length === 0">
-									<td
-										class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6 lg:pl-8"
-									>No groups. Click "+" to add one.</td>
-								</tr>
-							</tbody>
-						</table>
+								</Listbox>
+							</div>
+						</div>
+						<div class="flex flex-col overflow-y-auto max-h-80">
+							<table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+								<thead class="bg-neutral-50 dark:bg-neutral-800">
+									<tr>
+										<th
+											scope="col"
+											class="sr-only py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+										>{{ tmpUser.name === "" ? tmpUser.user : tmpUser.name }}'s Groups</th>
+										<th
+											scope="col"
+											class="sr-only py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+										>Remove</th>
+									</tr>
+								</thead>
+								<tbody class="dark:bg-neutral-800">
+									<tr
+										v-for="(group, index) in tmpUser.groups"
+										:class="index % 2 === 0 ? undefined : 'bg-neutral-50 dark:bg-neutral-700'"
+									>
+										<td
+											class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
+										>{{ group }}</td>
+										<td
+											class="flex flex-row justify-end whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium"
+										>
+											<MinusIcon
+												v-if="group !== tmpUser.user"
+												@click="removeGroup(group)"
+												class="uppercase text-red-600 hover:text-red-900 cursor-pointer w-5 h-5"
+											/>
+										</td>
+									</tr>
+									<tr v-if="tmpUser.groups.length === 0">
+										<td
+											class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6 lg:pl-8"
+										>No groups. Click "+" to add one.</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
 					</div>
 				</div>
 			</div>
