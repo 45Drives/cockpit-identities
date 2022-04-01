@@ -5,7 +5,7 @@
 				<h3>
 					New User
 				</h3>
-				<LoadingSpinner class="w-6 h-6" v-if="processing" />
+				<LoadingSpinner class="w-5 h-5" v-if="processing" />
 			</div>
 			<UserEditor v-model="userProxy" createNew />
 		</div>

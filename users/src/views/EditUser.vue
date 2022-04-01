@@ -11,14 +11,14 @@
 						<span>gid={{ user.gid }})</span>
 					</span>
 				</h3>
-				<LoadingSpinner class="w-6 h-6" v-if="processing" />
+				<LoadingSpinner class="w-5 h-5" v-if="processing" />
 			</div>
 			<UserEditor :user="user" @applyChanges="applyChanges" />
 		</div>
 		<div class="card divide-y divide-gray-100 dark:divide-gray-700 overflow-visible">
 			<div class="card-header flex flex-row space-x-2">
 				<h3>Credentials</h3>
-				<LoadingSpinner class="w-6 h-6" v-if="processing" />
+				<LoadingSpinner class="w-5 h-5" v-if="processing" />
 			</div>
 			<div class="card-body space-y-5">
 				<SambaPassword :user="user" />
@@ -28,10 +28,10 @@
 		<div class="card divide-y divide-gray-100 dark:divide-gray-700 mb-8">
 			<div class="card-header flex flex-row space-x-2">
 				<h3>Activity</h3>
-				<LoadingSpinner class="w-6 h-6" v-if="processing" />
+				<LoadingSpinner class="w-5 h-5" v-if="processing" />
 			</div>
 			<div class="card-body space-y-5 mb-8">
-				<UserActivity :user="user" />
+				<UserActivity :user="user" v-if="user.user !== undefined" />
 			</div>
 		</div>
 	</div>
