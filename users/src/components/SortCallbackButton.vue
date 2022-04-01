@@ -28,6 +28,7 @@ export default {
 				emit('update:modelValue', (a, b) => props.compareFunc(b, a));
 			else
 				emit('update:modelValue', (a, b) => props.compareFunc(a, b));
+			// timeout to not overwrite change with self-triggered watch from emit
 			setTimeout(() => funcIsMine.value = true, 100);
 		};
 
