@@ -13,60 +13,62 @@
 							<Datepicker v-model="range" range placeholder="Date Range" :dark="darkMode" class="w-auto" />
 						</div>
 					</div>
-					<table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
-						<thead class="bg-neutral-50 dark:bg-neutral-800">
-							<tr>
-								<th
-									scope="col"
-									class="sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-								>Session Start</th>
-								<th
-									scope="col"
-									class="sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-								>Session End</th>
-								<th
-									scope="col"
-									class="sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-								>Time Logged In</th>
-								<th
-									scope="col"
-									class="sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-								>IP Address</th>
-								<th
-									scope="col"
-									class="sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-								>TTY</th>
-							</tr>
-						</thead>
-						<tbody class="dark:bg-neutral-800">
-							<tr
-								v-for="(entry, index) in historyReactive"
-								:class="index % 2 === 0 ? undefined : 'bg-neutral-50 dark:bg-neutral-700'"
-								:title="`${entry.tty}`"
-							>
-								<td
-									class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
-								>{{ entry.sessionStart }}</td>
-								<td
-									class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
-								>{{ entry.sessionEnd }}</td>
-								<td
-									class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
-								>{{ entry.sessionTime ?? "" }}</td>
-								<td
-									class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
-								>{{ entry.ip }}</td>
-								<td
-									class="whitespace-nowrap py-4 pl-4 pr\-3 text-sm font-medium sm:pl-6 lg:pl-8"
-								>{{ entry.tty }}</td>
-							</tr>
-							<tr v-if="history.length === 0">
-								<td
-									class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6 lg:pl-8"
-								>Nothing to show.</td>
-							</tr>
-						</tbody>
-					</table>
+					<div class="flex flex-col overflow-y-auto max-h-80">
+						<table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+							<thead class="bg-neutral-50 dark:bg-neutral-800">
+								<tr>
+									<th
+										scope="col"
+										class="border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+									>Session Start</th>
+									<th
+										scope="col"
+										class="border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+									>Session End</th>
+									<th
+										scope="col"
+										class="border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+									>Time Logged In</th>
+									<th
+										scope="col"
+										class="border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+									>IP Address</th>
+									<th
+										scope="col"
+										class="border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+									>TTY</th>
+								</tr>
+							</thead>
+							<tbody class="dark:bg-neutral-800">
+								<tr
+									v-for="(entry, index) in historyReactive"
+									:class="index % 2 === 0 ? undefined : 'bg-neutral-50 dark:bg-neutral-700'"
+									:title="`${entry.tty}`"
+								>
+									<td
+										class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
+									>{{ entry.sessionStart }}</td>
+									<td
+										class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
+									>{{ entry.sessionEnd }}</td>
+									<td
+										class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
+									>{{ entry.sessionTime ?? "" }}</td>
+									<td
+										class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
+									>{{ entry.ip }}</td>
+									<td
+										class="whitespace-nowrap py-4 pl-4 pr\-3 text-sm font-medium sm:pl-6 lg:pl-8"
+									>{{ entry.tty }}</td>
+								</tr>
+								<tr v-if="history.length === 0">
+									<td
+										class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6 lg:pl-8"
+									>Nothing to show.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -160,9 +162,11 @@ export default {
 								sessionTime: match[5] ? sessionTimeToSentence(match[5]) : null,
 							});
 							if (obj.sessionTime === null) {
-								// live update time
-								setInterval(() => obj.sessionTime = timeSince(match[3]), 60*1000);
-								obj.sessionTime = timeSince(match[3])
+								if (obj.sessionEnd === "still logged in") {
+									// live update time
+									setInterval(() => obj.sessionTime = timeSince(match[3]), 60 * 1000);
+									obj.sessionTime = timeSince(match[3])
+								}
 							}
 							return obj;
 						} catch (error) {
@@ -180,6 +184,8 @@ export default {
 		onMounted(() => {
 			const to = new Date();
 			const from = new Date(new Date().setDate(to.getDate() - 7));
+			to.setHours(23, 59, 59);
+			from.setHours(0, 0, 0);
 			range.value = [from, to];
 			watch(props.user, getHistory, { onMounted: true });
 			watch(range, getHistory);
