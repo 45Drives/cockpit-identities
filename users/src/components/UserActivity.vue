@@ -1,17 +1,13 @@
 <template>
 	<div class="mt-1 flex flex-col">
 		<div class="-my-2 -mx-4 sm:-mx-6 lg:-mx-8">
-			<div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-				<div class="shadow ring-1 ring-black ring-opacity-5 dark:ring-gray-700 md:rounded-lg">
-					<div class="flex flex-row justify-between bg-neutral-50 dark:bg-neutral-800">
+			<div class="min-w-full py-2 align-middle md:px-6 lg:px-8 flex flex-col overflow-x-auto">
+				<div class="shadow ring-1 ring-black ring-opacity-5 dark:ring-gray-700 md:rounded-lg inline-flex flex-col items-stretch overflow-x-visible">
+					<div class="self-stretch flex flex-row flex-nowrap justify-between items-baseline bg-neutral-50 dark:bg-neutral-800">
 						<div
-							class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+							class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8 whitespace-nowrap"
 						>{{ user.name === "" ? user.user : user.name }}'s Login History</div>
-						<div
-							class="flex space-x-2 justify-end py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8 grow"
-						>
 							<Datepicker v-model="range" range placeholder="Date Range" :dark="darkMode" class="w-auto" />
-						</div>
 					</div>
 					<div class="flex flex-col overflow-y-auto max-h-80">
 						<table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
@@ -19,24 +15,40 @@
 								<tr>
 									<th
 										scope="col"
-										class="border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+										class="whitespace-nowrap border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
 									>Session Start</th>
 									<th
 										scope="col"
-										class="border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+										class="whitespace-nowrap border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
 									>Session End</th>
 									<th
 										scope="col"
-										class="border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+										class="whitespace-nowrap border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
 									>Time Logged In</th>
 									<th
 										scope="col"
-										class="border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-									>IP Address</th>
+										class="whitespace-nowrap border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+									>
+										<div class="flex flex-row flex-nowrap justify-between space-x-5">
+											<span>IP Address</span>
+											<FilterIcon class="w-5 h-5 text-gray-500 cursor-pointer" />
+											<div class="relative">
+												<div class="absolute">
+													
+												</div>
+											</div>
+
+										</div>
+									</th>
 									<th
 										scope="col"
-										class="border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-									>TTY</th>
+										class="whitespace-nowrap border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
+									>
+										<div class="flex flex-row flex-nowrap justify-between space-x-5">
+											<span>TTY</span>
+											<FilterIcon class="w-5 h-5 text-gray-500 cursor-pointer" />
+										</div>
+									</th>
 								</tr>
 							</thead>
 							<tbody class="dark:bg-neutral-800">
@@ -80,6 +92,7 @@ import { ref, reactive, watch, inject, onMounted, computed } from 'vue';
 import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { useSpawn, errorString } from '../hooks/useSpawn';
+import { FilterIcon } from '@heroicons/vue/solid';
 
 function formatDateForLast(date) {
 	const year = date.getFullYear().toString().padStart(4, '0');
@@ -201,6 +214,7 @@ export default {
 	},
 	components: {
 		Datepicker,
+		FilterIcon,
 	}
 }
 </script>
