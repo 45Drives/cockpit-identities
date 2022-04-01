@@ -1,20 +1,34 @@
 <template>
-	<div class="grid grid-cols-2 gap-8 p-8 h-1/2">
-		<div class="card grow flex flex-col place-content-center items-center cursor-pointer"
-		@click="open('users')">
-			<UsersIcon class="text-gray-500 w-40 h-40" />
-			<div>Users</div>
+	<div class="flex flex-col items-stretch p-8 space-y-8">
+		<div class="flex flex-row items-stretch space-x-8 grow">
+			<div
+				class="card grow flex flex-col place-content-center items-center cursor-pointer"
+				@click="open('users')"
+			>
+				<UsersIcon class="text-gray-500 w-40 h-40" />
+				<div>Users</div>
+			</div>
+			<div
+				class="card grow flex flex-col place-content-center items-center cursor-pointer"
+				@click="open('groups')"
+			>
+				<UserGroupIcon class="text-gray-500 w-40 h-40" />
+				<div>Groups</div>
+			</div>
 		</div>
-		<div class="card grow flex flex-col place-content-center items-center cursor-pointer"
-		@click="open('groups')">
-			<UserGroupIcon class="text-gray-500 w-40 h-40" />
-			<div>Groups</div>
+		<div class="flex flex-row items-stretch">
+			<div class="card grow flex flex-col items-stretch place-content-center">
+				<div class="card-body grow">
+					<UserActivity :initialRangeDays="0" />
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
 
 <script>
 import { UsersIcon, UserGroupIcon } from "@heroicons/vue/solid";
+import UserActivity from "../components/UserActivity.vue";
 export default {
 	setup() {
 		const open = (path) => {
@@ -28,6 +42,7 @@ export default {
 	components: {
 		UsersIcon,
 		UserGroupIcon,
+		UserActivity,
 	}
 }
 </script>
