@@ -25,7 +25,7 @@
 				<SSHAuthorizedKeys :user="user" />
 			</div>
 		</div>
-		<div class="card divide-y divide-gray-100 dark:divide-gray-700 overflow-visible mb-8">
+		<div class="card divide-y divide-gray-100 dark:divide-gray-700 mb-8">
 			<div class="card-header flex flex-row space-x-2">
 				<h3>Activity</h3>
 				<LoadingSpinner class="w-6 h-6" v-if="processing" />
