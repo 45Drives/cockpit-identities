@@ -15,7 +15,7 @@
 				v-if="feedback.user"
 			>
 				<ExclamationCircleIcon class="w-5 h-5 inline" />
-				<span>{{ feedback.user }}</span>
+				<span v-html="feedback.user"></span>
 			</div>
 		</div>
 		<div>
@@ -47,7 +47,7 @@
 				<span>{{ feedback.home }}</span>
 			</div>
 		</div>
-		<Listbox as="div" v-model="tmpUser.shell" v-if="tmpUser.shell" class="overflow-visible">
+		<Listbox as="div" v-model="tmpUser.shell" class="overflow-visible">
 			<ListboxLabel class="block text-sm font-medium">Login Shell</ListboxLabel>
 			<div class="mt-1 relative overflow-visible">
 				<ListboxButton
@@ -212,10 +212,10 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 export default {
 	props: {
 		user: Object,
-		applyHooks: {
-			type: Function,
+		hooks: {
+			type: Object,
 			required: false,
-			default: () => { },
+			default: {},
 		},
 		createNew: {
 			type: Boolean,
@@ -225,7 +225,6 @@ export default {
 	},
 	setup(props, { emit }) {
 		const tmpUser = reactive({ ...props.user });
-		console.log(props.user);
 		const changesMade = ref(false);
 		const inputsValid = ref(true);
 		const feedback = reactive({});
@@ -242,7 +241,8 @@ export default {
 		};
 
 		const apply = () => {
-			props.applyHooks(tmpUser, props.user);
+			if (typeof props.hooks.preApply === 'function')
+				props.hooks.preApply(tmpUser);
 			emit('applyChanges', tmpUser);
 		};
 
@@ -282,6 +282,15 @@ export default {
 				result = false;
 			}
 
+			if (typeof props.hooks.validateInputs === 'function') {
+				const hookRes = props.hooks.validateInputs(tmpUser);
+				Object.keys(hookRes)
+					.filter(key => Object.keys(feedback).includes(key))
+					.map(key => feedback[key] = hookRes[key]);
+				if (hookRes.errors === true)
+					result = false;
+			}
+
 			inputsValid.value = result;
 		};
 
@@ -315,16 +324,8 @@ export default {
 
 		watch(groupsRef, () => { groups = groupsRef.value.map(groupObj => groupObj.group) }, { immediate: true });
 
-		if (props.createNew) {
-			applyHooks = () => {
-
-			}
-			watch(() => tmpUser.user, () => {
-				if (!tmpUser.user && /^\/home\//.test(tmpUser.home))
-					tmpUser.home = "";
-				else if (!tmpUser.home || /^\/home\//.test(tmpUser.home))
-					tmpUser.home = `/home/${tmpUser.user}`;
-			});
+		if (typeof props.hooks.onInput === 'function') {
+			watch(() => ({ ...tmpUser }), (newUser, oldUser) => props.hooks.onInput(tmpUser, oldUser));
 		}
 
 		return {
