@@ -41,7 +41,11 @@
 										>
 											<div class="flex flex-row flex-nowrap justify-end space-x-2">
 												<div class="grow">User</div>
-												<SortCallbackButton v-model="sortCallback" :compareFunc="compareFuncs.user" />
+												<SortCallbackButton
+													v-model="sortCallback"
+													:compareFunc="compareFuncs.user"
+													:initialFuncIsMine="true"
+												/>
 												<SimpleFilter
 													:noRelative="true"
 													:set="filters.users.set"
@@ -61,7 +65,12 @@
 										<th
 											scope="col"
 											class="whitespace-nowrap border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-										>Session End</th>
+										>
+											<div class="flex flex-row flex-nowrap justify-end space-x-2">
+												<div class="grow">Session End</div>
+												<SortCallbackButton v-model="sortCallback" :compareFunc="compareFuncs.sessionEnd" />
+											</div>
+										</th>
 										<th
 											scope="col"
 											class="whitespace-nowrap border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
@@ -108,9 +117,10 @@
 										<td
 											class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
 										>{{ formatDate(entry.sessionStart) }}</td>
-										<td
-											class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
-										>{{ formatDate(entry.sessionEnd) }}</td>
+										<td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8">
+											<span v-if="entry.stillLoggedIn">Still Logged In</span>
+											<span v-else>{{ formatDate(entry.sessionEnd) }}</span>
+										</td>
 										<td
 											class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
 										>{{ entry.sessionTime ?? "" }}</td>
@@ -145,6 +155,7 @@ import { FilterIcon } from '@heroicons/vue/solid';
 import SimpleFilter from './SimpleFilter.vue';
 import LoadingSpinner from './LoadingSpinner.vue';
 import SortCallbackButton from './SortCallbackButton.vue';
+import moment from 'moment';
 
 function formatDateForLast(date) {
 	const year = date.getFullYear().toString().padStart(4, '0');
@@ -162,6 +173,17 @@ function sessionTimeToSentence(sessionTime) {
 	return (matchGroups[0] ? `${matchGroups[0]} Day${matchGroups[0] === 1 ? '' : 's'}, ` : "")
 		+ (matchGroups[1] !== 0 ? `${matchGroups[1]} Hour${matchGroups[1] === 1 ? '' : 's'}, ` : "")
 		+ `${matchGroups[2]} Minute${matchGroups[2] === 1 ? '' : 's'}`;
+}
+
+function sessionTimeToObj(sessionTime) {
+	const matchGroups = sessionTime?.match(/^(?:(\d+)\+)?(\d{2}):(\d{2})$/)?.slice(1).map(num => num === null ? num : parseInt(num)) ?? null;
+	if (!matchGroups)
+		return { days: 0, hours: 0, minutes: 0 };
+	return {
+		days: isNaN(matchGroups[0]) ? 0 : matchGroups[0],
+		hours: matchGroups[1],
+		minutes: matchGroups[2],
+	};
 }
 
 function timeSince(start) {
@@ -185,7 +207,7 @@ function sameDay(a, b) {
 function tryDate(date) {
 	const dateObj = new Date(date);
 	if (isNaN(dateObj.getTime()))
-		return date;
+		return null;
 	return dateObj;
 }
 
@@ -222,10 +244,10 @@ export default {
 				callback: () => true,
 			},
 		});
-
 		const compareFuncs = reactive({
 			user: (entry1, entry2) => entry1.user.localeCompare(entry2.user),
 			sessionStart: (entry1, entry2) => entry1.sessionStart - entry2.sessionStart,
+			sessionEnd: (entry1, entry2) => entry1.sessionEnd - entry2.sessionEnd,
 			sessionTime: (entry1, entry2) => {
 				const match1 = entry1.sessionTime.match(/^(?:(\d+) Days?, )?(?:(\d+) Hours?, )?(\d+) Minutes?$/).slice(1);
 				const match2 = entry2.sessionTime.match(/^(?:(\d+) Days?, )?(?:(\d+) Hours?, )?(\d+) Minutes?$/).slice(1);
@@ -264,16 +286,29 @@ export default {
 								tty: match[1],
 								ip: match[2],
 								sessionStart: tryDate(match[3]),
-								sessionEnd: match[4] ? tryDate(match[4]) : match[6], // end time or "still logged in" (or something else?)
+								sessionEnd: null, // end time or "still logged in" (or something else?)
 								sessionTime: match[5] ? sessionTimeToSentence(match[5]) : "0 Minutes",
+								stillLoggedIn: false,
 							});
-							if (obj.sessionTime === null) {
-								if (obj.sessionEnd === "still logged in") {
-									// live update time
-									setInterval(() => obj.sessionTime = timeSince(match[3]), 60 * 1000);
-									obj.sessionTime = timeSince(match[3])
-								}
+							if (match[6] === "still logged in") {
+								// live update time
+								setInterval(() => {
+									obj.sessionTime = timeSince(match[3]);
+									obj.sessionEnd = new Date();
+								}, 60 * 1000);
+								obj.sessionTime = timeSince(match[3])
+								obj.stillLoggedIn = true;
 							}
+							const sessionTimeObj = sessionTimeToObj(match[5]);
+							obj.sessionEnd = tryDate(match[4])
+								?? ((!match[5])
+									? new Date()
+									: moment(obj.sessionStart)
+										.add(sessionTimeObj.days, "days")
+										.add(sessionTimeObj.hours, "hours")
+										.add(sessionTimeObj.minutes, "minutes")
+										.toDate()
+								);
 							filters.users.set.add(obj.user);
 							filters.ips.set.add(obj.ip);
 							filters.ttys.set.add(obj.tty);
@@ -321,7 +356,11 @@ export default {
 			range.value = [from, to];
 			watch(() => props.user, getHistory, { immediate: true, deep: true });
 			watch(range, getHistory);
-			watch(sortCallback, () => history.value.sort(sortCallback.value));
+			watch(sortCallback, () => {
+				processing.value++;
+				history.value.sort(sortCallback.value);
+				processing.value--;
+			});
 		});
 
 		return {

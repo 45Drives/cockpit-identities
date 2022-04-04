@@ -46,7 +46,7 @@ export default {
 			type: Boolean,
 			required: false,
 			default: false,
-		}
+		},
 	},
 	setup(props, { emit }) {
 		const selected = ref(new Set([]));
@@ -72,7 +72,12 @@ export default {
 
 		onMounted(() => emit('update:modelValue', () => true));
 
-		watch(() => props.set, () => { masterSet.value = [...(props.set)]; clearSelected() }, { deep: true });
+		watch(() => props.set, () => {
+			masterSet.value = [...(props.set)];
+			clearSelected();
+			// TODO: do it right
+			//selected.value = new Set([...selected.value].filter(x => masterSet.value.includes(x)));
+		}, { deep: true });
 
 		return {
 			selected,

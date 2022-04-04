@@ -14,10 +14,15 @@ export default {
 	props: {
 		modelValue: Function,
 		compareFunc: Function,
+		initialFuncIsMine: {
+			type: Boolean,
+			required: false,
+			default: false,
+		}
 	},
 	setup(props, { emit }) {
 		const reverse = ref(false);
-		const funcIsMine = ref(false);
+		const funcIsMine = ref(props.initialFuncIsMine);
 		const iconComponent = ref(SortAscendingIcon);
 
 		const updateModel = () => {
