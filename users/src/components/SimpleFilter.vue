@@ -1,6 +1,6 @@
 <template>
 	<div v-click-outside="() => showMenu = false" :class="[noRelative ? '' : 'relative']">
-		<FilterIcon class="w-5 h-5 text-gray-500 cursor-pointer" @click="showMenu = !showMenu" />
+		<FilterIcon :class="[selected.size > 0 ? 'text-red-600' : '', 'w-5 h-5 text-gray-500 cursor-pointer']" @click="showMenu = !showMenu" />
 		<transition
 			leave-active-class="transition ease-in duration-100"
 			leave-from-class="opacity-100"
