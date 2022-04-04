@@ -49,4 +49,7 @@
 	 .card-footer {
 		 @apply px-4 py-4 sm:px-6;
 	 }
+	 a {
+		 @apply underline cursor-pointer;
+	 }
  }
