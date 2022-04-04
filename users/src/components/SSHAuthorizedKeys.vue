@@ -8,7 +8,8 @@
 					<div class="flex flex-row justify-between items-center bg-neutral-50 dark:bg-neutral-800">
 						<div
 							class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-						>{{ user.name === "" ? user.user : user.name }}'s Authorized Public SSH Keys</div>
+						>Authorized SSH Access Keys</div>
+						<!-- TODO: reword or add tooltip to clarify that these are other machines' keys -->
 						<PlusIcon
 							@click="showModal('add')"
 							class="w-5 h-5 mr-7 cursor-pointer text-gray-500"
