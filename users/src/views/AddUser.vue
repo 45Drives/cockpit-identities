@@ -2,49 +2,95 @@
 	<div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8 py-8 overflow-visible">
 		<div class="card divide-y divide-y-gray-100 overflow-visible">
 			<div class="card-header flex flex-row space-x-2">
-				<h3>
-					New User
-				</h3>
+				<h3>New User</h3>
 				<LoadingSpinner class="w-5 h-5" v-if="processing" />
 			</div>
-			<UserEditor v-model="userProxy" createNew />
+			<UserEditor :user="user" createNew :hooks="editorHooks" @applyChanges="createUser" />
 		</div>
 	</div>
+	<UserPassword modalOnly :user="user.user" ref="userPasswordRef" />
 </template>
 
 <script>
 import { ref, watch, computed, reactive, inject } from "vue";
 import { useSpawn, errorString } from "../hooks/useSpawn";
+import shellObj from "../hooks/shellObj";
 import UserEditor from "../components/UserEditor.vue";
-import SambaPassword from "../components/SambaPassword.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
+import UserPassword from "../components/UserPassword.vue";
 
 export default {
 	setup() {
+		const userPasswordRef = ref();
+		const shells = inject('shells');
 		const user = reactive({
 			user: "",
 			name: "",
 			home: "",
-			shell: "",
+			shell: shells.value.find(shell => /bash/.test(shell)) ?? shellObj('/bin/bash'),
 			groups: [],
 		});
-		const userProxy = computed({
-			get() {
-				return user;
-			},
-			set(newUser) {
-				Object.assign(user, newUser);
-			}
-		});
+		let existingUsers = [];
 		const processing = inject('processing');
 
-		const applyChanges = async (newUser, oldUser) => {
-			if (pauseUserWatch)
-				return;
+		const editorHooks = reactive({
+			onInput: (newUser, oldUser) => {
+				if (newUser.user !== oldUser.user) {
+					if (!newUser.user && /^\/home\//.test(newUser.home))
+						newUser.home = "";
+					else if (!newUser.home || /^\/home\//.test(newUser.home))
+						newUser.home = `/home/${newUser.user}`;
+					const primaryGroupInd = newUser.groups.indexOf(oldUser.user);
+					if (primaryGroupInd !== -1)
+						newUser.groups[primaryGroupInd] = newUser.user;
+					else
+						newUser.groups = [newUser.user, ...newUser.groups];
+				}
+			},
+			validateInputs: (user) => {
+				let errors = false;
+				const feedback = {};
+				if (existingUsers.includes(user.user)) {
+					feedback.user = `User exists. <a href='#/users/${user.user}'>Go to user editor for ${user.user}</a>`;
+					errors = true;
+				}
+				return {
+					errors: errors,
+					...feedback,
+				};
+			}
+		});
+
+		const getExistingUsers = async () => {
+			try {
+				const passwdDB = (await useSpawn(['getent', 'passwd'], { superuser: 'try' }).promise()).stdout;
+				existingUsers = passwdDB.split('\n')
+					.map(record => {
+						if (/^\s*$/.test(record))
+							return null;
+						return record.split(':')[0];
+					})
+					.filter(user => user !== null);
+			} catch (state) {
+				alert("Failed to get exiting users: " + errorString(state));
+			}
+		}
+		getExistingUsers();
+
+		const createUser = async (newUser, oldUser) => {
 			processing.value++;
 			const procs = [];
 			let errors = false;
 
+			const argv = ['useradd', '-m'];
+
+			if (newUser.home)
+				argv.push('-d', newUser.home);
+
+			if (newUser.groups?.length)
+				argv.push('-G', newUser.groups.join(','));
+
+			console.log(argv);
 			// if (newUser.name !== oldUser.name)
 			// 	procs.push(useSpawn(['chfn', '-f', newUser.name, newUser.user], { superuser: 'try' }).promise());
 			// if (newUser.home)
@@ -69,28 +115,27 @@ export default {
 					errors = true;
 				}
 			}
-			pauseUserWatch = true; // avoid retriggering applyChanges during getUserInfo
 			if (errors) {
-				
+
 			} else {
-				userProxy.value = newUser;
+				Object.assign(user, newUser);
+				await userPasswordRef.value.setPassword();
 			}
-			pauseUserWatch = false;
 			processing.value--;
 		}
 
-		watch(() => ({ ...user }), applyChanges, { deep: true });
-
 		return {
+			userPasswordRef,
 			user,
-			userProxy,
 			processing,
+			editorHooks,
+			createUser,
 		}
 	},
 	components: {
 		UserEditor,
-		SambaPassword,
 		LoadingSpinner,
+		UserPassword
 	}
 }
 </script>
