@@ -47,7 +47,7 @@
 				<span>{{ feedback.home }}</span>
 			</div>
 		</div>
-		<Listbox as="div" v-model="tmpUser.shell" class="overflow-visible">
+		<Listbox as="div" v-if="tmpUser.shell" v-model="tmpUser.shell" class="overflow-visible">
 			<ListboxLabel class="block text-sm font-medium">Login Shell</ListboxLabel>
 			<div class="mt-1 relative overflow-visible">
 				<ListboxButton
@@ -78,7 +78,7 @@
 							v-slot="{ active, selected }"
 						>
 							<li
-								:class="[active ? 'text-white bg-red-500 dark:bg-red-600' : '', 'cursor-default select-none relative py-2 pl-3 pr-9']"
+								:class="[active ? 'text-white bg-red-600' : '', 'cursor-default select-none relative py-2 pl-3 pr-9']"
 							>
 								<div class="flex">
 									<span :class="[selected ? 'font-semibold' : 'font-normal', 'truncate']">{{ shell.name }}</span>
@@ -87,6 +87,33 @@
 									>{{ shell.path }}</span>
 								</div>
 
+								<span
+									v-if="selected"
+									:class="[active ? 'text-white' : 'text-red-600', 'absolute inset-y-0 right-0 flex items-center pr-4']"
+								>
+									<CheckIcon class="h-5 w-5" aria-hidden="true" />
+								</span>
+							</li>
+						</ListboxOption>
+						<ListboxOption as="template" :value="customShell" v-slot="{ active, selected }">
+							<li
+								:class="[active ? 'bg-red-600' : '', 'cursor-default select-none relative py-2 pl-3 pr-9']"
+							>
+								<div class="flex items-baseline space-x-2">
+									<span
+										:class="[selected ? 'font-semibold' : 'font-normal', 'truncate', active ? 'text-white' : '']"
+									>Custom Shell</span>
+									<input
+										@click.stop
+										@keydown.stop="e => { if (e.code === 'Enter') $emit('keydown', e) }"
+										@keypress.stop="e => { if (e.code === 'Enter') $emit('keypress', e) }"
+										@change="tmpUser.shell = customShell"
+										v-model="customShell.path"
+										type="text"
+										placeholder="/path/to/custom/shell"
+										class="shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
+									/>
+								</div>
 								<span
 									v-if="selected"
 									:class="[active ? 'text-white' : 'text-red-600', 'absolute inset-y-0 right-0 flex items-center pr-4']"
@@ -131,7 +158,7 @@
 													v-slot="{ active, selected }"
 												>
 													<li
-														:class="[active ? 'text-white bg-red-500 dark:bg-red-600' : '', 'cursor-default select-none relative py-2 pl-3 pr-9']"
+														:class="[active ? 'text-white bg-red-600' : '', 'cursor-default select-none relative py-2 pl-3 pr-9']"
 													>
 														<div class="flex">
 															<span :class="[selected ? 'font-semibold' : 'font-normal', 'truncate']">{{ group }}</span>
@@ -208,6 +235,9 @@ import { ref, watch, reactive, inject } from "vue";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue';
 import { CheckIcon, SelectorIcon, PlusIcon, MinusIcon, ExclamationCircleIcon } from '@heroicons/vue/solid';
 import LoadingSpinner from "../components/LoadingSpinner.vue";
+import { shellsInjectionKey, groupsInjectionKey, processingInjectionKey } from "../keys";
+import shellObj from "../hooks/shellObj";
+import ModalPopup from './ModalPopup.vue';
 
 export default {
 	props: {
@@ -228,12 +258,14 @@ export default {
 		const changesMade = ref(false);
 		const inputsValid = ref(true);
 		const feedback = reactive({});
-		const processing = inject('processing');
-		const shells = inject('shells');
-		const groupsRef = inject('groups');
+		const processing = inject(processingInjectionKey);
+		const shells = inject(shellsInjectionKey);
+		const groupsRef = inject(groupsInjectionKey);
 		let groups = groupsRef.value.map(groupObj => groupObj.group); // get just plain group names
 		const nonMemberGroups = ref(groups.filter(group => !(tmpUser.groups?.includes(group))));
 		const addGroupSelectorValue = ref("");
+		const showCustomShellModal = ref(false);
+		const customShell = reactive(shellObj(""));
 
 		const cancel = () => {
 			Object.assign(tmpUser, props.user);
@@ -308,6 +340,8 @@ export default {
 			changesMade.value = changes;
 		};
 
+		const setCustomShell = (shellPath) => tmpUser.shell = shellObj(shellPath);
+
 		watch(tmpUser, checkIfChanged); // deep watch for nested mutations
 
 		watch(() => props.user, () => { // deep watch for nested mutations
@@ -324,6 +358,8 @@ export default {
 
 		watch(groupsRef, () => { groups = groupsRef.value.map(groupObj => groupObj.group) }, { immediate: true });
 
+		watch(() => customShell.path, () => Object.assign(customShell, shellObj(customShell.path)));
+
 		if (typeof props.hooks.onInput === 'function') {
 			watch(() => ({ ...tmpUser }), (newUser, oldUser) => props.hooks.onInput(tmpUser, oldUser));
 		}
@@ -336,11 +372,14 @@ export default {
 			processing,
 			shells,
 			nonMemberGroups,
+			showCustomShellModal,
+			customShell,
 			addGroupSelectorValue,
 			cancel,
 			apply,
 			addGroup,
 			removeGroup,
+			setCustomShell,
 		}
 	},
 	components: {
@@ -355,6 +394,7 @@ export default {
 		PlusIcon,
 		MinusIcon,
 		ExclamationCircleIcon,
+		ModalPopup,
 	},
 	emits: [
 		'applyChanges',
