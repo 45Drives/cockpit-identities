@@ -74,7 +74,7 @@ export default {
 				if (!tmpUser.shell) {
 					notifications.constructNotification(
 						`${fields[6]} not in /etc/shells`,
-						"If you modify this user's shell, you will need to use the command line to set it back.",
+						"If you modify this user's shell, you will need to use 'Custom Shell' in the dropdown to set it back.",
 						'warning'
 					);
 					tmpUser.shell = shellObj(fields[6]);
