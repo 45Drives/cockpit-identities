@@ -66,7 +66,7 @@ const authorizedKeysSyntax = {
 			.filter(line => !/^(\s*|\s*#.*)$/.test(line)) // remove empty lines and comments
 			.map(line => line.replace(/\s*#.*$/, '')) // remove end-of-line comments
 			.map(async (line) => {
-				const obj = { pubkey: line };
+				const obj = { pubKey: line };
 				let tmpFile;
 				try {
 					tmpFile = (await useSpawn(['mktemp'], { superuser: 'try' }).promise()).stdout.trim();
