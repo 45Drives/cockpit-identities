@@ -3,23 +3,35 @@
 		class="h-full flex flex-col text-gray-900 dark:text-gray-100 bg-neutral-100 dark:bg-neutral-900"
 	>
 		<FfdHeader moduleName="Users and Groups" centerName />
-		<div class="h-full overflow-y-auto">
+		<div v-if="gotInitialData" class="h-full overflow-y-auto">
 			<router-view class="grow h-full" />
 		</div>
 	</div>
+	<Notifications :notificationFIFO="notificationFIFO" ref="notifications" />
 </template>
 
 <script setup>
 import FfdHeader from './components/FfdHeader.vue';
-import { ref, provide } from 'vue';
+import { ref, provide, watch } from 'vue';
 import shellObj from './hooks/shellObj';
 import { useSpawn, errorString } from './hooks/useSpawn';
+import Notifications from './components/Notifications.vue';
+import FIFO from './classes/FIFO';
+import { notificationsInjectionKey, darkModeInjectionKey, processingInjectionKey, shellsInjectionKey, groupsInjectionKey } from './keys';
+
+const props = defineProps({notificationFIFO: FIFO});
+
+const gotInitialData = ref(false);
+
+const notifications = ref();
+provide(notificationsInjectionKey, notifications);
 
 const darkMode = ref(false);
-provide('darkMode', darkMode);
+provide(darkModeInjectionKey, darkMode);
 
 const processing = ref(0);
-provide('processing', processing);
+provide(processingInjectionKey, processing);
+watch(processing, () => console.log("processing:", processing.value));
 
 const shells = ref([]);
 const getShells = async () => {
@@ -35,21 +47,17 @@ const getShells = async () => {
 		return;
 	}
 
-	shells.value.push(
-		shellObj("/usr/bin/nologin"),
-		shellObj("/bin/nologin"),
-		shellObj("/usr/sbin/nologin"),
-		shellObj("/sbin/nologin"),
-	);
+	shells.value.push(shellObj("/bin/nologin"));
 
 	shells.value.sort((a, b) => {
 		if (a.name === b.name)
 			return a.path.localeCompare(b.path);
 		return a.name.localeCompare(b.name);
 	});
+	
 	processing.value--;
 }
-provide('shells', shells);
+provide(shellsInjectionKey, shells);
 
 const groups = ref([]);
 const getGroups = async () => {
@@ -70,11 +78,12 @@ const getGroups = async () => {
 	}
 	processing.value--;
 }
-provide('groups', groups);
+provide(groupsInjectionKey, groups);
 
 const init = async () => {
 	await getShells();
 	await getGroups();
+	gotInitialData.value = true;
 }
 
 init();

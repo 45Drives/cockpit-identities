@@ -28,12 +28,15 @@
 					leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
 				>
 					<div
-						class="relative inline-block align-bottom bg-white dark:bg-neutral-900 px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6"
+						class="relative inline-block align-bottom bg-white dark:bg-neutral-900 px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 divide-y divide-gray-200 dark:divide-gray-700"
 					>
-						<div class="sm:flex sm:items-start mb-2">
+						<div class="pb-4">
+							<h3 class="text-lg font-semibold">{{ headerText }}</h3>
+						</div>
+						<div class="sm:flex sm:items-start mb-2 py-2">
 							<slot />
 						</div>
-						<div class="flex flex-row space-x-3 justify-end">
+						<div class="flex flex-row space-x-3 justify-end pt-4">
 							<button
 								v-if="!noCancel"
 								type="button"
@@ -65,6 +68,7 @@ export default {
 			required: false,
 			default: false,
 		},
+		headerText: String,
 		cancelText: {
 			type: String,
 			required: false,

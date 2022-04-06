@@ -41,11 +41,7 @@
 										>
 											<div class="flex flex-row flex-nowrap justify-end space-x-2">
 												<div class="grow">User</div>
-												<SortCallbackButton
-													v-model="sortCallback"
-													:compareFunc="compareFuncs.user"
-													:initialFuncIsMine="true"
-												/>
+												<SortCallbackButton v-model="sortCallback" :compareFunc="compareFuncs.user" />
 												<SimpleFilter
 													:noRelative="true"
 													:set="filters.users.set"
@@ -59,7 +55,11 @@
 										>
 											<div class="flex flex-row flex-nowrap justify-end space-x-2">
 												<div class="grow">Session Start</div>
-												<SortCallbackButton v-model="sortCallback" :compareFunc="compareFuncs.sessionStart" />
+												<SortCallbackButton
+													v-model="sortCallback"
+													:compareFunc="compareFuncs.sessionStart"
+													:initialFuncIsMine="true"
+												/>
 											</div>
 										</th>
 										<th
@@ -156,6 +156,7 @@ import SimpleFilter from './SimpleFilter.vue';
 import LoadingSpinner from './LoadingSpinner.vue';
 import SortCallbackButton from './SortCallbackButton.vue';
 import moment from 'moment';
+import { darkModeInjectionKey, processingInjectionKey } from '../keys';
 
 function formatDateForLast(date) {
 	const year = date.getFullYear().toString().padStart(4, '0');
@@ -228,8 +229,8 @@ export default {
 		const range = ref();
 		const history = ref([]);
 		const historyReactive = reactive(history);
-		const processing = inject('processing');
-		const darkMode = inject('darkMode');
+		const processing = inject(processingInjectionKey);
+		const darkMode = inject(darkModeInjectionKey);
 		const filters = reactive({
 			users: {
 				set: new Set([]),
@@ -255,7 +256,7 @@ export default {
 					- ((match2[0] ? parseInt(match2[0]) * 1440 : 0) + (match2[1] ? parseInt(match2[1]) * 60 : 0) + (match2[2]));
 			},
 		});
-		const sortCallback = ref(compareFuncs.user);
+		const sortCallback = ref(compareFuncs.sessionStart);
 
 		const getHistory = async () => {
 			processing.value++;

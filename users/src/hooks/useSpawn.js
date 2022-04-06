@@ -51,6 +51,8 @@ if (import.meta.env.DEV && typeof cockpit === 'undefined') {
  * @property {string} stderr - Anything printed to stderr
  * @property {Object} proc - The object returned from cockpit.spawn()
  * @property {function} promise - Returns a promise that resolves when the process finishes
+ * @property {function} argvPretty - Returns string form of argv with conditionally quoted tokens
+ * @property {function} errorStringHTML - Returns HTML formatted error message
  */
 
 /** Wrapper for using cockpit.spawn()
@@ -62,7 +64,7 @@ if (import.meta.env.DEV && typeof cockpit === 'undefined') {
  * @param {string} opts.directory
  * @param {boolean} opts.binary
  * @param {'out'|'err'} stderr - where to pipe stderr of proc
- * @returns {SpawnState} state - the process state object
+ * @returns {SpawnState} {@link SpawnState} - the process state object
  */
 function useSpawn(argv = [], opts = {}, stderr = 'message') {
 	const state = reactive({
@@ -83,6 +85,16 @@ function useSpawn(argv = [], opts = {}, stderr = 'message') {
 					}
 				}, { lazy: false });
 			})
+		},
+		argvPretty: () => {
+			return argv.map(token => /\s/.match(token) ? `"${token}"` : token).join(' ');
+		},
+		errorStringHTML(fullArgv = false) {
+			return '<span class="font-mono text-sm whitespace-pre">'
+				+ `<span class="font-semibold">${this.argv[0]}: </span>`
+				+ `<span>${errorString(this)} </span>`
+				+ (fullArgv ? `<span class="text-gray-500 font-mono text-sm">${this.argvPretty()}</span>` : '')
+				+ '</span>'
 		}
 	});
 
@@ -113,7 +125,7 @@ function useSpawn(argv = [], opts = {}, stderr = 'message') {
 }
 
 /** To be used in the catch of a try...catch where useSpawn is called.
- * Allows for easily getting a string out of either a SpawnState, and Error,
+ * Allows for easily getting a string out of either a SpawnState, an Error,
  * or just a String.
  * 
  * @param {SpawnState|Error|String} state 
@@ -125,7 +137,21 @@ function errorString(state) {
 	return (state?.stderr ?? state?.message ?? JSON.stringify(state));
 }
 
+/** To be used in the catch of a try...catch where useSpawn is called.
+ * Allows for easily getting a string out of either a SpawnState, an Error,
+ * or just a String.
+ * 
+ * @param {SpawnState|Error|String} state 
+ * @returns Error message Formatted as HTML for use in Notifications body
+ */
+function errorStringHTML(state) {
+	if (typeof state === "string")
+		return `<pre>${state}</pre>`;
+	return (state.errorStringHTML?.() ?? (`<pre>${state?.stderr ?? state?.message ?? JSON.stringify(state)}</pre>`));
+}
+
 export {
 	useSpawn,
 	errorString,
+	errorStringHTML,
 }

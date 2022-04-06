@@ -108,6 +108,8 @@ import { Dialog, DialogOverlay, DialogTitle, TransitionChild, TransitionRoot } f
 import { ExclamationCircleIcon } from '@heroicons/vue/solid';
 import { reactive, watch, inject, ref } from 'vue';
 import { useSpawn, errorString } from "../hooks/useSpawn";
+import { processingInjectionKey } from '../keys';
+
 export default {
 	props: {
 		user: Object,
@@ -115,7 +117,7 @@ export default {
 	setup(props) {
 		const smbpasswd = reactive({ pass1: "", pass2: "", showModal: false, isSet: false });
 		const feedback = reactive({});
-		const processing = inject('processing');
+		const processing = inject(processingInjectionKey);
 		const state = ref("set"); // set or remove
 
 		const checkIfSmbpasswdSet = async () => {

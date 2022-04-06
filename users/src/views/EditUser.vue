@@ -40,19 +40,22 @@
 <script>
 import { useRoute } from "vue-router";
 import { ref, watch, computed, reactive, inject, onUnmounted } from "vue";
-import { useSpawn, errorString } from "../hooks/useSpawn";
+import { useSpawn, errorString, errorStringHTML } from "../hooks/useSpawn";
 import UserEditor from "../components/UserEditor.vue";
 import SambaPassword from "../components/SambaPassword.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import SSHAuthorizedKeys from "../components/SSHAuthorizedKeys.vue";
 import UserActivity from "../components/UserActivity.vue";
+import { shellsInjectionKey, processingInjectionKey, notificationsInjectionKey } from "../keys";
+import shellObj from "../hooks/shellObj";
 
 export default {
 	setup() {
 		const route = useRoute();
 		const user = reactive({ groups: [] });
-		const processing = inject('processing');
-		const shells = inject('shells');
+		const processing = inject(processingInjectionKey);
+		const shells = inject(shellsInjectionKey);
+		const notifications = inject(notificationsInjectionKey).value;
 
 		const getUserInfo = async (newUserLogin = null) => {
 			processing.value++;
@@ -60,30 +63,38 @@ export default {
 				user.user = newUserLogin;
 			let tmpUser = {};
 			try {
-				const fields = (await useSpawn(['getent', 'passwd'], { superuser: 'try' }).promise()).stdout
-					.split('\n')
-					.find(record => record.substring(0, user.user?.length) === user.user)
-					?.split(':');
-				if (!fields) {
-					alert("User not found: " + user.user);
-					processing.value--;
-					cockpit.location.go("/users");
-					return;
-				}
+				const fields = (await useSpawn(['getent', 'passwd', user.user], { superuser: 'try' }).promise()).stdout
+					.trim()
+					.split(':');
 				tmpUser.uid = fields[2];
 				tmpUser.gid = fields[3];
 				tmpUser.name = fields[4];
 				tmpUser.home = fields[5];
 				tmpUser.shell = shells.value.find(shell => shell.path === fields[6]);
-				if (!tmpUser.shell)
-					throw new Error("Invalid shell: " + fields[6] + " (not in /etc/shells)");
+				if (!tmpUser.shell) {
+					notifications.constructNotification(
+						`${fields[6]} not in /etc/shells`,
+						"If you modify this user's shell, you will need to use the command line to set it back.",
+						'warning'
+					);
+					tmpUser.shell = shellObj(fields[6]);
+				}
 				tmpUser.groups = (await useSpawn(['groups', user.user]).promise()).stdout
 					.replace(/^[^:]+:\s*/, '') // remove "user: " prefix present in some distributions
 					.split(/\s+/g)
 					.filter(line => !/^\s*$/.test(line)) // remove empty lines
 					.sort();
 			} catch (state) {
-				alert("Failed to query user: " + errorString(state));
+				let message;
+				if (state?.status === 2)
+					message = `User '${user.user}' not found.`;
+				else
+					message = errorStringHTML(state);
+				notifications.constructNotification(
+					"Failed to query user",
+					message,
+					'error'
+				)
 				processing.value--;
 				cockpit.location.go("/users");
 				return;

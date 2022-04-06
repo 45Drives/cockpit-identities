@@ -27,12 +27,12 @@
 	</div>
 	<ModalPopup
 		:showModal="userPassword.showModal"
+		:headerText="`Set Password for ${user}`"
 		:disableContinue="!userPassword.valid"
 		:onApply="userPassword.applyCallback"
-		noCancel
+		:onCancel="userPassword.cancelCallback"
 	>
 		<div class="my-2 space-y-4">
-			<h3 class="text-lg font-semibold">Set Password for {{user}}</h3>
 			<input
 				type="text"
 				autocomplete="new-password"
@@ -75,7 +75,8 @@
 import ModalPopup from "./ModalPopup.vue";
 import { ExclamationCircleIcon, CheckIcon, XIcon } from '@heroicons/vue/solid';
 import { ref, reactive, watch, inject } from 'vue';
-import { useSpawn, errorString } from '../hooks/useSpawn';
+import { useSpawn, errorString, errorStringHTML } from '../hooks/useSpawn';
+import { notificationsInjectionKey, processingInjectionKey } from "../keys";
 
 export default {
 	props: {
@@ -122,7 +123,7 @@ export default {
 					satisfied: false,
 					check: /^.{8,}$/,
 				},
-				
+
 			]
 		});
 		const userPasswordRequirementNotSameAsUser = {
@@ -133,30 +134,54 @@ export default {
 		console.log(userPasswordRequirementNotSameAsUser);
 		userPassword.requirements.push(userPasswordRequirementNotSameAsUser);
 		const showRemovePasswordModal = ref(false);
-		const processing = inject('processing');
+		const processing = inject(processingInjectionKey);
+		const notifications = inject(notificationsInjectionKey).value;
 
 		const setPassword = async () => {
-			if (await new Promise((resolve, reject) => {
-				userPassword.applyCallback = () => {
-					if (userPassword.allRequirementsSatisfied) {
-						resolve(true);
-					} else {
-						userPassword.feedback = "Password does not satisfy all strength requirements. Click apply again to apply anyway.";
-						userPassword.applyCallback = () => resolve(true);
-					}
-				};
-				userPassword.showModal = true;
-			})) {
+			let watchStopHandle = null;
+			const applyCallback = (resolve) => {
+				if (userPassword.allRequirementsSatisfied) {
+					resolve(true);
+				} else {
+					userPassword.feedback = "Password does not satisfy all strength requirements. Click apply again to proceed anyway.";
+					userPassword.applyCallback = () => resolve(true);
+				}
+			};
+			const cancelCallback = (resolve) => {
+				if (userPassword.isSet) {
+					resolve(false);
+				} else {
+					userPassword.feedback = `Warning: ${props.user} will have no password. Click cancel again to proceed anyway.`;
+					userPassword.cancelCallback = () => resolve(false);
+				}
+			};
+			const waitForPassword = () => new Promise(
+				(resolve, reject) => {
+					watchStopHandle = watch([() => userPassword.pass1, () => userPassword.pass2], () => {
+						// reset callbacks on input
+						userPassword.applyCallback = () => applyCallback(resolve);
+						userPassword.cancelCallback = () => cancelCallback(resolve);
+					}, { immediate: true });
+					userPassword.showModal = true;
+				}
+			);
+			if (await waitForPassword()) {
 				processing.value++;
 				try {
 					const state = useSpawn(['passwd', props.user], { superuser: 'try' });
 					state.proc.input(`${userPassword.pass1}\n${userPassword.pass2}\n`);
-					await proc.promise();
+					await state.promise();
 				} catch (state) {
-					throw new Error("Error setting password: " + errorString(state));
+					notifications.constructNotification(
+						"Error setting password",
+						errorStringHTML(state),
+						'error'
+					);
 				}
 				processing.value--;
 			}
+			if (watchStopHandle)
+				watchStopHandle();
 			userPassword.showModal = false;
 		};
 
@@ -166,10 +191,15 @@ export default {
 
 		const checkIfSet = async () => {
 			try {
-				const passwdStatus = (await useSpawn(['passwd', '--status', props.user], { superuser: 'try' }).promise()).stdout.trim();
+				const passwdStatus = (await useSpawn(['passwde', '--status', props.user], { superuser: 'try' }).promise()).stdout.trim();
 				userPassword.isSet = (passwdStatus.split(' ')[1] === 'P');
 			} catch (state) {
-				throw new Error("Error checking if password is set: " + errorString(state));
+				notifications.constructNotification(
+					"Failed to check if password is already set",
+					`${errorStringHTML(state)}\nPretending it is set.`,
+					'warning'
+				);
+				userPassword.isSet = true;
 			}
 		}
 
@@ -191,7 +221,10 @@ export default {
 			watch(() => props.user, checkIfSet);
 		}
 
-		watch(() => props.user, () => userPasswordRequirementNotSameAsUser.check = new RegExp(`^(?!${props.user}$).*$`));
+		watch(() => props.user, () => {
+			userPasswordRequirementNotSameAsUser.check = new RegExp(`^(?!${props.user}$).*$`);
+			checkIfSet();
+		}, { immediate: true });
 
 		return {
 			userPassword,

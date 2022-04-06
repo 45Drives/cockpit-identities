@@ -13,16 +13,20 @@
 
 <script>
 import { ref, watch, computed, reactive, inject } from "vue";
-import { useSpawn, errorString } from "../hooks/useSpawn";
+import { useSpawn, errorString, errorStringHTML } from "../hooks/useSpawn";
 import shellObj from "../hooks/shellObj";
 import UserEditor from "../components/UserEditor.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import UserPassword from "../components/UserPassword.vue";
+import { shellsInjectionKey, processingInjectionKey, notificationsInjectionKey } from "../keys";
 
 export default {
 	setup() {
 		const userPasswordRef = ref();
-		const shells = inject('shells');
+		const shells = inject(shellsInjectionKey);
+		const notifications = inject(notificationsInjectionKey).value;
+		for (let i = 0; i < 20; i++)
+			notifications.constructNotification("test", "test");
 		const user = reactive({
 			user: "",
 			name: "",
@@ -31,7 +35,7 @@ export default {
 			groups: [],
 		});
 		let existingUsers = [];
-		const processing = inject('processing');
+		const processing = inject(processingInjectionKey);
 
 		const editorHooks = reactive({
 			onInput: (newUser, oldUser) => {
@@ -72,7 +76,11 @@ export default {
 					})
 					.filter(user => user !== null);
 			} catch (state) {
-				alert("Failed to get exiting users: " + errorString(state));
+				notifications.constructNotification(
+					"Failed to get exiting users",
+					`${errorStringHTML(state)}\nBe careful not to create an existing user.`,
+					'warning'
+				);
 			}
 		}
 		getExistingUsers();
@@ -80,7 +88,7 @@ export default {
 		const createUser = async (newUser, oldUser) => {
 			processing.value++;
 			const procs = [];
-			let errors = false;
+			const errors = [];
 
 			const argv = ['useradd', '-m'];
 
@@ -111,15 +119,19 @@ export default {
 				try {
 					await proc;
 				} catch (state) {
-					alert("Error creating user:\n" + state.argv.join(' ') + ":\n" + errorString(state));
-					errors = true;
+					errors.push(state.errorStringHTML());
 				}
 			}
-			if (errors) {
-
+			if (errors.length) {
+				notifications.constructNotification("Error creating user", `<pre>${errors.join('\n')}</pre>`, 'error');
 			} else {
 				Object.assign(user, newUser);
 				await userPasswordRef.value.setPassword();
+				notifications.constructNotification("Created user", `${newUser.name ?? newUser.user} was created successfully.`, 'success');
+				cockpit.location.go(`/users/${newUser.user}`);
+				notifications
+					.constructNotification("Redirected", "You were taken to the user editor after creation.", 'info')
+					.addAction('Back to users list', () => cockpit.location.go('/users'));
 			}
 			processing.value--;
 		}

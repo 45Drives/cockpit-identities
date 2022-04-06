@@ -49,7 +49,7 @@ export default {
 		}
 
 		const openUser = (username) => {
-			cockpit.location.go(`users/${username}`);
+			cockpit.location.go(`/users/${username}`);
 		};
 
 		getUsers();
