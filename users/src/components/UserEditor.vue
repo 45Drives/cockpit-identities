@@ -332,7 +332,7 @@ export default {
 					await useSpawn(['stat', tmpUser.shell.path], { superuser: 'try' }).promise();
 					try {
 						let argv = ['test', '-x', tmpUser.shell.path];
-						if (!props.newUser)
+						if (!props.createNew)
 							argv = ['sudo', '-u', tmpUser.user, ...argv];
 						await useSpawn(argv, { superuser: 'try' }).promise();
 						try {
@@ -341,7 +341,7 @@ export default {
 							result = false;
 						} catch { }
 					} catch (state) {
-						feedback.shell = `${tmpUser.shell.path} cannot be executed${props.newUser ? "" : ` by ${tmpUser.user}`}.`;
+						feedback.shell = `${tmpUser.shell.path} cannot be executed${props.createNew ? "" : ` by ${tmpUser.user}`}.`;
 						result = false;
 					}
 				} catch {
