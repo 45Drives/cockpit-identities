@@ -29,7 +29,7 @@ export default {
 			user: "",
 			name: "",
 			home: "",
-			shell: shells.value.find(shell => /bash/.test(shell)) ?? shellObj('/bin/bash'),
+			shell: shells.value.find(shell => /bash/.test(shell.path)) ?? shellObj('/bin/bash'),
 			groups: [],
 		});
 		let existingUsers = [];
