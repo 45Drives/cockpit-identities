@@ -34,7 +34,7 @@ const processing = ref(0);
 provide(processingInjectionKey, processing);
 watch(processing, () => console.log("processing:", processing.value));
 const route = useRoute();
-watch(() => route.path, () => processing.value = 0); // reset on any view change
+// watch(() => route.path, () => processing.value = 0); // reset on any view change
 
 const shells = ref([]);
 const getShells = async () => {
