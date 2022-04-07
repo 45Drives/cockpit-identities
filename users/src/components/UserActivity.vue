@@ -58,7 +58,8 @@
 												<SortCallbackButton
 													v-model="sortCallback"
 													:compareFunc="compareFuncs.sessionStart"
-													:initialFuncIsMine="true"
+													initialFuncIsMine
+													startReversed
 												/>
 											</div>
 										</th>
@@ -256,7 +257,7 @@ export default {
 					- ((match2[0] ? parseInt(match2[0]) * 1440 : 0) + (match2[1] ? parseInt(match2[1]) * 60 : 0) + (match2[2]));
 			},
 		});
-		const sortCallback = ref(compareFuncs.sessionStart);
+		const sortCallback = ref(() => 0);
 
 		const getHistory = async () => {
 			processing.value++;
