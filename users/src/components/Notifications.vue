@@ -137,6 +137,10 @@ export default {
 			notificationObj.show = true;
 			notificationObj.id = uniqueIDGenerator.get();
 			notificationList.value = [notificationObj, ...notificationList.value];
+			if (notificationObj.level === 'error') {
+				console.error(notificationObj.title);
+				console.error(notificationObj.body);
+			}
 			if (notificationObj.timeout > 0) {
 				setTimeout(
 					() => notificationObj.show = false,
