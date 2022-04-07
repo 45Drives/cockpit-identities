@@ -13,6 +13,7 @@
 <script setup>
 import FfdHeader from './components/FfdHeader.vue';
 import { ref, provide, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import shellObj from './hooks/shellObj';
 import { useSpawn, errorString } from './hooks/useSpawn';
 import Notifications from './components/Notifications.vue';
@@ -32,6 +33,8 @@ provide(darkModeInjectionKey, darkMode);
 const processing = ref(0);
 provide(processingInjectionKey, processing);
 watch(processing, () => console.log("processing:", processing.value));
+const route = useRoute();
+watch(() => route.path, () => processing.value = 0); // reset on any view change
 
 const shells = ref([]);
 const getShells = async () => {
