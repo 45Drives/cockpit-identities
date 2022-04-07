@@ -51,7 +51,17 @@
 	>
 		<div class="flex items-center">
 			<ExclamationCircleIcon class="w-8 h-8 text-red-600" />
-			<div class="ml-2">{{ deleteConfirmationModal.bodyText }}</div>
+			<div class="ml-2 flex flex-col space-y-2">
+				<div>{{ deleteConfirmationModal.bodyText }}</div>
+				<div class="flex space-x-2 items-center">
+					<label class="text-sm font-medium">Remove {{ user.user }}'s files</label>
+					<input
+						class="focus:ring-offset-0 dark:bg-neutral-800 dark:border-gray-700 dark:checked:bg-red-600 focus:ring-0 focus:outline-none h-4 w-4 text-red-600 border-gray-300 rounded"
+						type="checkbox"
+						v-model="deleteConfirmationModal.removeFiles"
+					/>
+				</div>
+			</div>
 		</div>
 	</ModalPopup>
 </template>
@@ -81,14 +91,15 @@ export default {
 			deleteConfirmationModal.bodyText = "Are you really sure?";
 			deleteConfirmationModal.applyText = "Yes I am really sure";
 			deleteConfirmationModal.applyCallback = () => {
-				deleteConfirmationModal.show = false;
 				deleteUser();
+				deleteConfirmationModal.applyCallback = defaultShowDeleteConfirmationModalApplyCallback;
 			};
 		};
 		const deleteConfirmationModal = reactive({
 			show: false,
 			bodyText: "This cannot be undone. Are you sure?",
 			applyText: "Yes",
+			removeFiles: false,
 			applyCallback: defaultShowDeleteConfirmationModalApplyCallback,
 			cancelCallback: () => {
 				deleteConfirmationModal.show = false;
@@ -184,7 +195,17 @@ export default {
 		}
 
 		const deleteUser = async () => {
-			console.log("Deleting user");
+			const argv = ['userdel'];
+			if (deleteConfirmationModal.removeFiles)
+				argv.push('--remove');
+			argv.push(user.user);
+			try {
+				await useSpawn(argv, { superuser: 'try' }).promise();
+				notifications.constructNotification("Deleted user", `${user.user} was deleted successfully.`, 'success');
+				cockpit.location.go("/users");
+			} catch (state) {
+				notifications.constructNotification("Error deleting user", errorStringHTML(state), 'error');
+			}
 		}
 
 		watch(() => route.path, async () => {
