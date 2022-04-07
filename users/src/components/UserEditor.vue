@@ -222,10 +222,11 @@
 				</div>
 			</div>
 		</div>
-		<slot />
-		<div class="flex flex-row space-x-3 justify-end">
-			<button class="btn btn-secondary" v-if="changesMade" @click="cancel()">Cancel</button>
-			<button class="btn btn-primary" :disabled="!(changesMade && inputsValid)" @click="apply()">Apply</button>
+		<div class="flex flex-row space-x-3">
+			<slot />
+			<div class="grow"/>
+			<button class="btn btn-secondary justify-self-end" v-if="changesMade" @click="cancel()">Cancel</button>
+			<button class="btn btn-primary justify-self-end" :disabled="!(changesMade && inputsValid)" @click="apply()">Apply</button>
 		</div>
 	</div>
 </template>
