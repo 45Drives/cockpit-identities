@@ -8,7 +8,7 @@
 			<UserEditor :user="user" createNew :hooks="editorHooks" @applyChanges="createUser" />
 		</div>
 	</div>
-	<UserPassword modalOnly :user="user.user" ref="userPasswordRef" />
+	<UserPassword modalOnly newUser :user="user.user" ref="userPasswordRef" />
 </template>
 
 <script>
@@ -25,8 +25,6 @@ export default {
 		const userPasswordRef = ref();
 		const shells = inject(shellsInjectionKey);
 		const notifications = inject(notificationsInjectionKey).value;
-		for (let i = 0; i < 20; i++)
-			notifications.constructNotification("test", "test");
 		const user = reactive({
 			user: "",
 			name: "",
