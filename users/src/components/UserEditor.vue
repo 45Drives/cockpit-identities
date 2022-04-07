@@ -108,7 +108,7 @@
 										@keydown.stop="e => { if (e.code === 'Enter') $emit('keydown', e) }"
 										@keypress.stop="e => { if (e.code === 'Enter') $emit('keypress', e) }"
 										@change="tmpUser.shell = customShell"
-										v-model="customShell.path"
+										v-model.lazy="customShell.path"
 										type="text"
 										placeholder="/path/to/custom/shell"
 										class="shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
@@ -126,6 +126,13 @@
 				</transition>
 			</div>
 		</Listbox>
+		<div
+			class="mt-2 text-sm text-red-600 flex flex-row justify-start items-center space-x-1"
+			v-if="feedback.shell"
+		>
+			<ExclamationCircleIcon class="w-5 h-5 inline" />
+			<span v-html="feedback.shell"></span>
+		</div>
 		<div class="mt-8 flex flex-col overflow-visible">
 			<div class="-my-2 -mx-4 sm:-mx-6 lg:-mx-8 overflow-visible">
 				<div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8 overflow-visible">
@@ -224,9 +231,14 @@
 		</div>
 		<div class="flex flex-row space-x-3">
 			<slot />
-			<div class="grow"/>
+			<div class="grow" />
 			<button class="btn btn-secondary justify-self-end" v-if="changesMade" @click="cancel()">Cancel</button>
-			<button class="btn btn-primary justify-self-end" :disabled="!(changesMade && inputsValid)" @click="apply()">Apply</button>
+			<button
+				class="btn btn-primary justify-self-end"
+				:disabled="!(changesMade && inputsValid)"
+				:title="!changesMade ? 'No changes to apply.' : (!inputsValid ? 'Cannot continue with errors.' : '')"
+				@click="apply()"
+			>Apply</button>
 		</div>
 	</div>
 </template>
@@ -239,6 +251,7 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 import { shellsInjectionKey, groupsInjectionKey, processingInjectionKey } from "../keys";
 import shellObj from "../hooks/shellObj";
 import ModalPopup from './ModalPopup.vue';
+import { useSpawn } from "../hooks/useSpawn";
 
 export default {
 	props: {
@@ -266,7 +279,7 @@ export default {
 		const nonMemberGroups = ref(groups.filter(group => !(tmpUser.groups?.includes(group))));
 		const addGroupSelectorValue = ref("");
 		const showCustomShellModal = ref(false);
-		const customShell = reactive(shellObj(""));
+		const customShell = reactive({ ...shellObj(""), isCustom: true });
 
 		const cancel = () => {
 			Object.assign(tmpUser, props.user);
@@ -292,7 +305,7 @@ export default {
 
 		const validateInputs = async () => {
 			let result = true;
-			feedback.home = feedback.user = "";
+			feedback.home = feedback.user = feedback.shell = "";
 
 			if (tmpUser.home && !/^\//.test(tmpUser.home)) {
 				feedback.home = "Home path must be absolute.";
@@ -314,8 +327,31 @@ export default {
 				result = false;
 			}
 
+			if (tmpUser.shell === customShell) {
+				try {
+					await useSpawn(['stat', tmpUser.shell.path], { superuser: 'try' }).promise();
+					try {
+						let argv = ['test', '-x', tmpUser.shell.path];
+						if (!props.newUser)
+							argv = ['sudo', '-u', tmpUser.user, ...argv];
+						await useSpawn(argv, { superuser: 'try' }).promise();
+						try {
+							await useSpawn(['test', '-d', tmpUser.shell.path], { superuser: 'try' }).promise();
+							feedback.shell = `${tmpUser.shell.path} is a directory.`;
+							result = false;
+						} catch { }
+					} catch (state) {
+						feedback.shell = `${tmpUser.shell.path} cannot be executed${props.newUser ? "" : ` by ${tmpUser.user}`}.`;
+						result = false;
+					}
+				} catch {
+					feedback.shell = `${tmpUser.shell.path} does not exist. (stat failed)`;
+					result = false;
+				}
+			}
+
 			if (typeof props.hooks.validateInputs === 'function') {
-				const hookRes = props.hooks.validateInputs(tmpUser);
+				const hookRes = await props.hooks.validateInputs(tmpUser);
 				Object.keys(hookRes)
 					.filter(key => Object.keys(feedback).includes(key))
 					.map(key => feedback[key] = hookRes[key]);
@@ -332,24 +368,31 @@ export default {
 				if (Array.isArray(tmpUser[key])) {
 					if (tmpUser[key].sort().join(',') !== props.user[key].sort().join(','))
 						changes = true
-				} else if (tmpUser[key] !== props.user[key])
+				} else if (tmpUser[key].isShellObj && (tmpUser[key].path !== props.user[key].path)) {
+					changes = true; // special check for shell
+				} else if (!tmpUser[key].isShellObj && tmpUser[key] !== props.user[key])
 					changes = true;
 			}
-			nonMemberGroups.value = groups.filter(group => !(tmpUser.groups?.includes(group)));
 			await validateInputs(); // validate first to avoid split second where apply is not disabled while invalid
 			changesMade.value = changes;
 		};
 
-		const setCustomShell = (shellPath) => tmpUser.shell = shellObj(shellPath);
-
 		watch(tmpUser, checkIfChanged); // deep watch for nested mutations
+
+		watch(() => tmpUser.groups, () => {
+			nonMemberGroups.value = groups.filter(group => !(tmpUser.groups?.includes(group))).sort();
+		});
 
 		watch(() => props.user, () => { // deep watch for nested mutations
 			Object.assign(tmpUser, props.user);
+			if (!shells.value.includes(tmpUser.shell)) {
+				Object.assign(customShell, tmpUser.shell);
+				tmpUser.shell = customShell;
+			}
 			// the Object.assign should trigger the deep watch on tmpUser that calls checkIfChanged,
 			// but for some reason it just won't trigger it. Running manually until it's figured out
 			checkIfChanged();
-		}, { deep: true });
+		}, { deep: true, immediate: true });
 
 		watch(addGroupSelectorValue, (group) => {
 			addGroup(group);
@@ -379,7 +422,6 @@ export default {
 			apply,
 			addGroup,
 			removeGroup,
-			setCustomShell,
 		}
 	},
 	components: {
