@@ -13,7 +13,14 @@
 				</h3>
 				<LoadingSpinner class="w-5 h-5" v-if="processing" />
 			</div>
-			<UserEditor :user="user" @applyChanges="applyChanges" />
+			<UserEditor :user="user" @applyChanges="applyChanges">
+				<button class="btn btn-danger" @click="deleteConfirmationModal.show = true">
+					<div class="flex flex-row items-center">
+						<span class="mr-2">Delete User</span>
+						<TrashIcon class="w-5 h-5" />
+					</div>
+				</button>
+			</UserEditor>
 		</div>
 		<div class="card divide-y divide-gray-100 dark:divide-gray-700 overflow-visible">
 			<div class="card-header flex flex-row space-x-2">
@@ -35,6 +42,18 @@
 			</div>
 		</div>
 	</div>
+	<ModalPopup
+		:showModal="deleteConfirmationModal.show"
+		:onApply="deleteConfirmationModal.applyCallback"
+		:onCancel="deleteConfirmationModal.cancelCallback"
+		:headerText="`Delete user ${user.user}?`"
+		:applyText="deleteConfirmationModal.applyText"
+	>
+		<div class="flex items-center">
+			<ExclamationCircleIcon class="w-8 h-8 text-red-600" />
+			<div class="ml-2">{{ deleteConfirmationModal.bodyText }}</div>
+		</div>
+	</ModalPopup>
 </template>
 
 <script>
@@ -48,6 +67,8 @@ import SSHAuthorizedKeys from "../components/SSHAuthorizedKeys.vue";
 import UserActivity from "../components/UserActivity.vue";
 import { shellsInjectionKey, processingInjectionKey, notificationsInjectionKey } from "../keys";
 import shellObj from "../hooks/shellObj";
+import { TrashIcon, ExclamationCircleIcon } from "@heroicons/vue/solid";
+import ModalPopup from "../components/ModalPopup.vue";
 
 export default {
 	setup() {
@@ -56,6 +77,26 @@ export default {
 		const processing = inject(processingInjectionKey);
 		const shells = inject(shellsInjectionKey);
 		const notifications = inject(notificationsInjectionKey).value;
+		const defaultShowDeleteConfirmationModalApplyCallback = () => {
+			deleteConfirmationModal.bodyText = "Are you really sure?";
+			deleteConfirmationModal.applyText = "Yes I am really sure";
+			deleteConfirmationModal.applyCallback = () => {
+				deleteConfirmationModal.show = false;
+				deleteUser();
+			};
+		};
+		const deleteConfirmationModal = reactive({
+			show: false,
+			bodyText: "This cannot be undone. Are you sure?",
+			applyText: "Yes",
+			applyCallback: defaultShowDeleteConfirmationModalApplyCallback,
+			cancelCallback: () => {
+				deleteConfirmationModal.show = false;
+				deleteConfirmationModal.bodyText = "This cannot be undone. Are you sure?";
+				deleteConfirmationModal.applyText = "Yes";
+				deleteConfirmationModal.applyCallback = defaultShowDeleteConfirmationModalApplyCallback;
+			}
+		});
 
 		const getUserInfo = async (newUserLogin = null) => {
 			processing.value++;
@@ -142,6 +183,10 @@ export default {
 			processing.value--;
 		}
 
+		const deleteUser = async () => {
+			console.log("Deleting user");
+		}
+
 		watch(() => route.path, async () => {
 			if (!/^\/users\/.*$/.test(route.path)) {
 				// watch is triggered when navigating away from page,
@@ -155,7 +200,9 @@ export default {
 		return {
 			user,
 			processing,
+			deleteConfirmationModal,
 			applyChanges,
+			deleteUser
 		}
 	},
 	components: {
@@ -164,6 +211,9 @@ export default {
 		LoadingSpinner,
 		SSHAuthorizedKeys,
 		UserActivity,
+		TrashIcon,
+		ExclamationCircleIcon,
+		ModalPopup,
 	}
 }
 </script>
