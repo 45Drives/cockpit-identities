@@ -90,28 +90,23 @@ export default {
 
 			const argv = ['useradd', '-m'];
 
+			if (newUser.name)
+				argv.push('--comment', newUser.name);
+
 			if (newUser.home)
-				argv.push('-d', newUser.home);
+				argv.push('--home', newUser.home);
 
-			if (newUser.groups?.length)
-				argv.push('-G', newUser.groups.join(','));
+			argv.push('--user-group');
+			const secondaryGroups = newUser.groups.filter(group => group !== newUser.user)
+			if (secondaryGroups.length)
+				argv.push('--groups', secondaryGroups.join(','));
+			
+			if (newUser.shell.path)
+				argv.push('-s', newUser.shell.path);
+			
+			argv.push(newUser.user);
 
-			console.log(argv);
-			// if (newUser.name !== oldUser.name)
-			// 	procs.push(useSpawn(['chfn', '-f', newUser.name, newUser.user], { superuser: 'try' }).promise());
-			// if (newUser.home)
-			// 	procs.push(useSpawn(['usermod', '-m', '-d', newUser.home, newUser.user], { superuser: 'try' }).promise());
-			// if (newUser.shell.path !== oldUser.shell.path)
-			// 	procs.push(useSpawn(['chsh', '-s', newUser.shell.path, newUser.user], { superuser: 'try' }).promise());
-
-			// const groupsToAdd = newUser.groups.filter(group => !oldUser.groups.includes(group));
-			// const groupsToRemove = oldUser.groups.filter(group => !newUser.groups.includes(group));
-
-			// if (groupsToAdd.length)
-			// 	procs.push(useSpawn(['usermod', '-aG', groupsToAdd.join(','), newUser.user], { superuser: 'try' }).promise());
-			// if (groupsToRemove.length)
-			// 	for (const group of groupsToRemove)
-			// 		procs.push(useSpawn(['gpasswd', '-d', newUser.user, group]));
+			procs.push(useSpawn(argv, { superuser: 'try' }).promise());
 
 			for (const proc of procs) {
 				try {
@@ -121,11 +116,11 @@ export default {
 				}
 			}
 			if (errors.length) {
-				notifications.constructNotification("Error creating user", `<pre>${errors.join('\n')}</pre>`, 'error');
+				notifications.constructNotification("Error creating user", `<span class="text-gray-500 font-mono text-sm whitespace-pre-wrap">${errors.join('\n')}</span>`, 'error');
 			} else {
 				Object.assign(user, newUser);
-				await userPasswordRef.value.setPassword();
 				notifications.constructNotification("Created user", `${newUser.name ?? newUser.user} was created successfully.`, 'success');
+				await userPasswordRef.value.setPassword();
 				cockpit.location.go(`/users/${newUser.user}`);
 				notifications
 					.constructNotification("Redirected", "You were taken to the user editor after creation.", 'info')
