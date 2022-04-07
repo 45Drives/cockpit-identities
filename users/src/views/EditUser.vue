@@ -162,7 +162,7 @@ export default {
 				procs.push(useSpawn(['usermod', '-aG', groupsToAdd.join(','), newUser.user], { superuser: 'try' }).promise());
 			if (groupsToRemove.length)
 				for (const group of groupsToRemove)
-					procs.push(useSpawn(['gpasswd', '-d', newUser.user, group]));
+					procs.push(useSpawn(['gpasswd', '-d', newUser.user, group]).promise());
 
 			for (const proc of procs) {
 				try {
