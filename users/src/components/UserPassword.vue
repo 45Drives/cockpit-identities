@@ -175,6 +175,7 @@ export default {
 					const state = useSpawn(['passwd', props.user], { superuser: 'try' });
 					state.proc.input(`${userPassword.pass1}\n${userPassword.pass2}\n`);
 					await state.promise();
+					notifications.constructNotification(`Set password for ${props.user}`, "Password was set successfully.", 'success');
 				} catch (state) {
 					notifications.constructNotification(
 						"Error setting password",
@@ -183,6 +184,8 @@ export default {
 					);
 				}
 				processing.value--;
+			} else {
+				notifications.constructNotification(`${props.user} has no password`, "Set the password in the user editor to be able to log in.", 'warning');
 			}
 			if (watchStopHandle)
 				watchStopHandle();
