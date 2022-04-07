@@ -28,6 +28,7 @@
 				<LoadingSpinner class="w-5 h-5" v-if="processing" />
 			</div>
 			<div class="card-body space-y-5">
+				<UserPassword :user="user.user" />
 				<SambaPassword :user="user" />
 				<SSHAuthorizedKeys :user="user" />
 			</div>
@@ -79,6 +80,7 @@ import { shellsInjectionKey, processingInjectionKey, notificationsInjectionKey }
 import shellObj from "../hooks/shellObj";
 import { TrashIcon, ExclamationCircleIcon } from "@heroicons/vue/solid";
 import ModalPopup from "../components/ModalPopup.vue";
+import UserPassword from "../components/UserPassword.vue";
 
 export default {
 	setup() {
@@ -235,6 +237,7 @@ export default {
 		TrashIcon,
 		ExclamationCircleIcon,
 		ModalPopup,
+		UserPassword,
 	}
 }
 </script>
