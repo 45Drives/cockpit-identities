@@ -81,6 +81,11 @@ import { notificationsInjectionKey, processingInjectionKey } from "../keys";
 export default {
 	props: {
 		user: String, // just the username
+		newUser: {
+			type: Boolean, // whether or not to check if set immediately
+			required: false,
+			default: false,
+		},
 		modalOnly: {
 			type: Boolean,
 			required: false,
@@ -131,7 +136,6 @@ export default {
 			satisfied: false,
 			check: new RegExp(`^(?!${props.user}$).*$`),
 		};
-		console.log(userPasswordRequirementNotSameAsUser);
 		userPassword.requirements.push(userPasswordRequirementNotSameAsUser);
 		const showRemovePasswordModal = ref(false);
 		const processing = inject(processingInjectionKey);
@@ -191,15 +195,15 @@ export default {
 
 		const checkIfSet = async () => {
 			try {
-				const passwdStatus = (await useSpawn(['passwde', '--status', props.user], { superuser: 'try' }).promise()).stdout.trim();
+				const passwdStatus = (await useSpawn(['passwd', '--status', props.user], { superuser: 'try' }).promise()).stdout.trim();
 				userPassword.isSet = (passwdStatus.split(' ')[1] === 'P');
 			} catch (state) {
 				notifications.constructNotification(
 					"Failed to check if password is already set",
-					`${errorStringHTML(state)}\nPretending it is set.`,
+					`${errorStringHTML(state)}\nPretending it is not set.`,
 					'warning'
 				);
-				userPassword.isSet = true;
+				userPassword.isSet = false;
 			}
 		}
 
@@ -216,15 +220,10 @@ export default {
 			userPassword.allRequirementsSatisfied = !userPassword.requirements.map(req => req.satisfied = req.check.test(userPassword.pass1)).includes(false);
 		});
 
-		if (!props.modalOnly) {
-			checkIfSet();
-			watch(() => props.user, checkIfSet);
-		}
-
 		watch(() => props.user, () => {
 			userPasswordRequirementNotSameAsUser.check = new RegExp(`^(?!${props.user}$).*$`);
 			checkIfSet();
-		}, { immediate: true });
+		}, { immediate: !props.newUser });
 
 		return {
 			userPassword,
