@@ -90,7 +90,7 @@ function useSpawn(argv = [], opts = {}, stderr = 'message') {
 			return argv.map(token => /\s/.match(token) ? `"${token}"` : token).join(' ');
 		},
 		errorStringHTML(fullArgv = false) {
-			return '<span class="font-mono text-sm whitespace-pre">'
+			return '<span class="font-mono text-sm whitespace-prewrap">'
 				+ `<span class="font-semibold">${this.argv[0]}: </span>`
 				+ `<span>${errorString(this)} </span>`
 				+ (fullArgv ? `<span class="text-gray-500 font-mono text-sm">${this.argvPretty()}</span>` : '')
