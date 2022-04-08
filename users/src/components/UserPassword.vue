@@ -35,55 +35,21 @@
 			</div>
 		</ModalPopup>
 	</div>
-	<ModalPopup
-		:showModal="userPassword.showModal"
-		:headerText="`Set Password for ${user}`"
-		:disableContinue="!userPassword.valid"
-		:onApply="userPassword.applyCallback"
-		:onCancel="userPassword.cancelCallback"
-	>
-		<div class="my-2 space-y-4">
-			<input
-				type="text"
-				autocomplete="new-password"
-				class="shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
-				placeholder="Type Password"
-				v-model="userPassword.pass1"
-			/>
-			<input
-				type="text"
-				autocomplete="new-password"
-				class="shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
-				placeholder="Repeat Password"
-				v-model="userPassword.pass2"
-			/>
-			<div>
-				The password should satisfy the following requirements:
-				<div class="inline-flex flex-col items-stretch">
-					<div
-						v-for="requirement in userPassword.requirements"
-						class="flex flex-row text-sm items-center"
-					>
-						<span class="grow">{{ requirement.title }}</span>
-						<CheckIcon v-if="requirement.satisfied" class="w-4 h-4 ml-2 text-green-600" />
-						<XIcon v-else class="w-4 h-4 ml-2 text-red-600" />
-					</div>
-				</div>
-			</div>
-			<div
-				class="mt-2 text-sm text-red-600 flex flex-row justify-start items-center space-x-1"
-				v-if="userPassword.feedback"
-			>
-				<ExclamationCircleIcon class="w-5 h-5 inline" />
-				<span>{{ userPassword.feedback }}</span>
-			</div>
-		</div>
-	</ModalPopup>
+	<PasswordModal
+		v-if="userPassword.showModal"
+		:user="user"
+		:headerText="`${userPassword.isSet ? 'Change' : 'Set'} password for ${user}`"
+		:warnCancel="!userPassword.isSet"
+		@apply="userPassword.applyCallback"
+		@cancel="userPassword.cancelCallback"
+		requireDifferentFromUser
+	/>
 </template>
 
 <script>
 import ModalPopup from "./ModalPopup.vue";
-import { ExclamationCircleIcon, CheckIcon, XIcon, LockClosedIcon, LockOpenIcon } from '@heroicons/vue/solid';
+import PasswordModal from "./PasswordModal.vue";
+import { ExclamationCircleIcon, LockClosedIcon, LockOpenIcon } from '@heroicons/vue/solid';
 import { ref, reactive, watch, inject } from 'vue';
 import { useSpawn, errorString, errorStringHTML } from '../hooks/useSpawn';
 import { notificationsInjectionKey, processingInjectionKey } from "../keys";
@@ -104,9 +70,6 @@ export default {
 	},
 	setup(props) {
 		const userPassword = reactive({
-			pass1: "",
-			pass2: "",
-			feedback: "",
 			showModal: false,
 			applyCallback: () => userPassword.showModal = false,
 			cancelCallback: () => userPassword.showModal = false,
@@ -114,42 +77,7 @@ export default {
 			isLocked: false,
 			expires: 'never',
 			isExpired: false,
-			allRequirementsSatisfied: false,
-			requirements: [
-				{
-					title: 'one lowercase letter',
-					satisfied: false,
-					check: /[a-z]/,
-				},
-				{
-					title: 'one uppercase letter',
-					satisfied: false,
-					check: /[A-Z]/,
-				},
-				{
-					title: 'one number',
-					satisfied: false,
-					check: /[0-9]/,
-				},
-				{
-					title: 'one special character',
-					satisfied: false,
-					check: /\W/,
-				},
-				{
-					title: '8 characters long',
-					satisfied: false,
-					check: /^.{8,}$/,
-				},
-
-			]
 		});
-		const userPasswordRequirementNotSameAsUser = {
-			title: 'different from user name',
-			satisfied: false,
-			check: new RegExp(`^(?!${props.user}$).*$`),
-		};
-		userPassword.requirements.push(userPasswordRequirementNotSameAsUser);
 		const showExpirePasswordModal = ref(false);
 		const processing = inject(processingInjectionKey);
 		const notifications = inject(notificationsInjectionKey).value;
@@ -194,38 +122,19 @@ export default {
 		};
 
 		const setPassword = async () => {
-			let watchStopHandle = null;
-			const applyCallback = (resolve) => {
-				if (userPassword.allRequirementsSatisfied) {
-					resolve(true);
-				} else {
-					userPassword.feedback = "Password does not satisfy all strength requirements. Click apply again to proceed anyway.";
-					userPassword.applyCallback = () => resolve(true);
-				}
-			};
-			const cancelCallback = (resolve) => {
-				if (userPassword.isSet) {
-					resolve(false);
-				} else {
-					userPassword.feedback = `Warning: ${props.user} will have no password. Click cancel again to proceed anyway.`;
-					userPassword.cancelCallback = () => resolve(false);
-				}
-			};
 			const waitForPassword = () => new Promise(
 				(resolve, reject) => {
-					watchStopHandle = watch([() => userPassword.pass1, () => userPassword.pass2], () => {
-						// reset callbacks on input
-						userPassword.applyCallback = () => applyCallback(resolve);
-						userPassword.cancelCallback = () => cancelCallback(resolve);
-					}, { immediate: true });
+					userPassword.applyCallback = (password) => resolve(password);
+					userPassword.cancelCallback = () => resolve(null);
 					userPassword.showModal = true;
 				}
 			);
-			if (await waitForPassword()) {
+			let password = null;
+			if (password = await waitForPassword()) {
 				processing.value++;
 				try {
 					const state = useSpawn(['passwd', props.user], { superuser: 'try' });
-					state.proc.input(`${userPassword.pass1}\n${userPassword.pass2}\n`);
+					state.proc.input(`${password}\n${password}\n`);
 					await state.promise();
 					notifications.constructNotification(`Set password for ${props.user}`, "Password was set successfully.", 'success');
 					await checkPasswdStatus();
@@ -237,11 +146,9 @@ export default {
 					);
 				}
 				processing.value--;
-			} else {
+			} else if (!userPassword.isSet) {
 				notifications.constructNotification(`${props.user} has no password`, "Set the password in the user editor to be able to log in.", 'warning');
 			}
-			if (watchStopHandle)
-				watchStopHandle();
 			userPassword.showModal = false;
 		};
 
@@ -279,21 +186,7 @@ export default {
 			}
 		};
 
-		watch([() => userPassword.pass1, () => userPassword.pass2], () => {
-			userPassword.valid = false;
-			if (userPassword.pass1 !== userPassword.pass2)
-				userPassword.feedback = "Passwords do not match.";
-			else if (!userPassword.pass1 || !userPassword.pass2)
-				userPassword.feedback = "Password required.";
-			else {
-				userPassword.feedback = "";
-				userPassword.valid = true;
-			}
-			userPassword.allRequirementsSatisfied = !userPassword.requirements.map(req => req.satisfied = req.check.test(userPassword.pass1)).includes(false);
-		});
-
 		watch(() => props.user, async () => {
-			userPasswordRequirementNotSameAsUser.check = new RegExp(`^(?!${props.user}$).*$`);
 			await checkPasswdStatus();
 		}, { immediate: !props.newUser });
 
@@ -307,9 +200,8 @@ export default {
 	},
 	components: {
 		ModalPopup,
+		PasswordModal,
 		ExclamationCircleIcon,
-		CheckIcon,
-		XIcon,
 		LockClosedIcon,
 		LockOpenIcon,
 	},
