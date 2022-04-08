@@ -29,7 +29,7 @@
 			</div>
 			<div class="card-body space-y-5">
 				<UserPassword :user="user.user" />
-				<SambaPassword :user="user" />
+				<SambaPassword :user="user.user" />
 				<SSHAuthorizedKeys :user="user" />
 			</div>
 		</div>
