@@ -50,10 +50,17 @@
 				</div>
 			</div>
 			<div
+				class="mt-2 text-sm text-amber-500 flex flex-row justify-start items-center space-x-1"
+				v-if="warning"
+			>
+				<ExclamationCircleIcon class="w-5 h-5 inline shrink-0" />
+				<span>{{ warning }}</span>
+			</div>
+			<div
 				class="mt-2 text-sm text-red-600 flex flex-row justify-start items-center space-x-1"
 				v-if="feedback"
 			>
-				<ExclamationCircleIcon class="w-5 h-5 inline" />
+				<ExclamationCircleIcon class="w-5 h-5 inline shrink-0" />
 				<span>{{ feedback }}</span>
 			</div>
 		</div>
@@ -64,6 +71,7 @@
 import ModalPopup from "./ModalPopup.vue";
 import { ExclamationCircleIcon, CheckIcon, XIcon, EyeIcon, EyeOffIcon, LockClosedIcon } from '@heroicons/vue/solid';
 import { ref, watch } from 'vue';
+import { Warning } from "postcss";
 
 export default {
 	props: {
@@ -109,6 +117,11 @@ export default {
 			required: false,
 			default: false,
 		},
+		allowEmpty: {
+			type: Boolean,
+			required: false,
+			default: false,
+		},
 		headerText: {
 			type: String,
 			required: false,
@@ -118,7 +131,7 @@ export default {
 			type: String,
 			required: false,
 			default: null,
-		}
+		},
 	},
 	setup(props, { emit }) {
 		const password1 = ref("");
@@ -127,6 +140,7 @@ export default {
 		const allRequirementsSatisfied = ref(false);
 		const passwordValid = ref(false);
 		const feedback = ref("");
+		const warning = ref("");
 		const hidden = ref(true);
 
 		const defaultApplyCallback = () => {
@@ -167,16 +181,21 @@ export default {
 			passwordValid.value = false;
 			if (password1.value !== password2.value)
 				feedback.value = "Passwords do not match.";
-			else if (!password1.value || !password2.value)
+			else if (!props.allowEmpty && (!password1.value || !password2.value))
 				feedback.value = "Password required.";
 			else {
 				feedback.value = "";
 				passwordValid.value = true;
 			}
 			allRequirementsSatisfied.value = !allRequirements.value.map(req => req.satisfied = req.check.test(password1.value)).includes(false);
+			warning.value = "";
+			if (props.allowEmpty && (!password1.value || !password2.value)) {
+				warning.value = "Password is empty.";
+				allRequirementsSatisfied.value = false;
+			}
 			applyCallback.value = defaultApplyCallback;
 			cancelCallback.value = defaultCancelCallback;
-		});
+		}, { immediate: true });
 
 		return {
 			password1,
@@ -185,6 +204,7 @@ export default {
 			allRequirementsSatisfied,
 			passwordValid,
 			feedback,
+			warning,
 			hidden,
 			applyCallback,
 			cancelCallback,
