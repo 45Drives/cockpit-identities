@@ -7,27 +7,42 @@
 		:onCancel="cancelCallback"
 	>
 		<div class="my-2 space-y-4">
-			<input
-				type="text"
-				autocomplete="new-password"
-				class="shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
-				placeholder="Type Password"
-				v-model="password1"
-			/>
-			<input
-				type="text"
-				autocomplete="new-password"
-				class="shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
-				placeholder="Repeat Password"
-				v-model="password2"
-			/>
+			<div class="mt-1 relative rounded-md shadow-sm">
+				<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+					<LockClosedIcon class="h-5 w-5 text-gray-500" aria-hidden="true" />
+				</div>
+				<input
+					:type="hidden ? 'password' : 'text'"
+					autocomplete="new-password"
+					class="focus:border-gray-500 focus:ring-0 focus:outline-none block w-full px-10 sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
+					placeholder="Type Password"
+					v-model="password1"
+				/>
+				<div @click="hidden = !hidden" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+					<EyeOffIcon v-if="hidden" class="h-5 w-5 text-gray-500" aria-hidden="true" />
+					<EyeIcon v-else class="h-5 w-5 text-gray-500" aria-hidden="true" />
+				</div>
+			</div>
+			<div class="mt-1 relative rounded-md shadow-sm">
+				<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+					<LockClosedIcon class="h-5 w-5 text-gray-500" aria-hidden="true" />
+				</div>
+				<input
+					:type="hidden ? 'password' : 'text'"
+					autocomplete="new-password"
+					class="focus:border-gray-500 focus:ring-0 focus:outline-none block w-full px-10 sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
+					placeholder="Repeat Password"
+					v-model="password2"
+				/>
+				<div @click="hidden = !hidden" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+					<EyeOffIcon v-if="hidden" class="h-5 w-5 text-gray-500" aria-hidden="true" />
+					<EyeIcon v-else class="h-5 w-5 text-gray-500" aria-hidden="true" />
+				</div>
+			</div>
 			<div v-if="allRequirements.length">
 				The password should satisfy the following requirements:
 				<div class="inline-flex flex-col items-stretch">
-					<div
-						v-for="requirement in allRequirements"
-						class="flex flex-row text-sm items-center"
-					>
+					<div v-for="requirement in allRequirements" class="flex flex-row text-sm items-center">
 						<span class="grow">{{ requirement.title }}</span>
 						<CheckIcon v-if="requirement.satisfied" class="w-4 h-4 ml-2 text-green-600" />
 						<XIcon v-else class="w-4 h-4 ml-2 text-red-600" />
@@ -47,7 +62,7 @@
 
 <script>
 import ModalPopup from "./ModalPopup.vue";
-import { ExclamationCircleIcon, CheckIcon, XIcon } from '@heroicons/vue/solid';
+import { ExclamationCircleIcon, CheckIcon, XIcon, EyeIcon, EyeOffIcon, LockClosedIcon } from '@heroicons/vue/solid';
 import { ref, watch } from 'vue';
 
 export default {
@@ -112,6 +127,7 @@ export default {
 		const allRequirementsSatisfied = ref(false);
 		const passwordValid = ref(false);
 		const feedback = ref("");
+		const hidden = ref(true);
 
 		const defaultApplyCallback = () => {
 			if (allRequirementsSatisfied.value) {
@@ -169,6 +185,7 @@ export default {
 			allRequirementsSatisfied,
 			passwordValid,
 			feedback,
+			hidden,
 			applyCallback,
 			cancelCallback,
 		}
@@ -178,6 +195,9 @@ export default {
 		ExclamationCircleIcon,
 		CheckIcon,
 		XIcon,
+		EyeIcon,
+		EyeOffIcon,
+		LockClosedIcon,
 	},
 	emits: [
 		'apply',
