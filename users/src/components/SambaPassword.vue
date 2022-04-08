@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<label class="block text-sm font-medium">Samba Credentials</label>
+		<label class="block text-sm font-medium">Samba</label>
 		<div class="flex flex-row space-x-3 mt-1">
 			<button
 				class="btn btn-primary"
@@ -20,6 +20,7 @@
 		@apply="setSambaPassword"
 		@cancel="sambaPassword.showModal = false"
 		requireDifferentFromUser
+		allowEmpty
 	/>
 	<ModalPopup
 		:showModal="sambaPassword.showRemoveModal"
