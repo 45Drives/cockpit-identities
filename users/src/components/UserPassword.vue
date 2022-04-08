@@ -1,7 +1,7 @@
 <template>
 	<div v-if="!modalOnly">
 		<label class="block text-sm font-medium">User Login</label>
-		<div class="flex flex-row space-x-3 mt-1 items-baseline">
+		<div class="flex flex-row flex-wrap gap-3 mt-1 items-center">
 			<button
 				class="btn btn-primary"
 				@click="setPassword"
@@ -84,7 +84,6 @@
 <script>
 import ModalPopup from "./ModalPopup.vue";
 import { ExclamationCircleIcon, CheckIcon, XIcon, LockClosedIcon, LockOpenIcon } from '@heroicons/vue/solid';
-// import { LockClosedIcon, LockOpenIcon } from "@heroicons/vue/outline";
 import { ref, reactive, watch, inject } from 'vue';
 import { useSpawn, errorString, errorStringHTML } from '../hooks/useSpawn';
 import { notificationsInjectionKey, processingInjectionKey } from "../keys";

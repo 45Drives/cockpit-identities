@@ -6,16 +6,16 @@
 					class="shadow ring-1 ring-black ring-opacity-5 dark:ring-gray-700 md:rounded-lg inline-flex flex-col items-stretch overflow-x-visible"
 				>
 					<div
-						class="self-stretch flex flex-row flex-nowrap justify-between items-baseline bg-neutral-50 dark:bg-neutral-800"
+						class="self-stretch flex flex-row flex-wrap gap-3 px-4 sm:px-6 lg:px-8 pt-4 justify-between items-baseline bg-neutral-50 dark:bg-neutral-800"
 					>
 						<div class="flex flex-row space-x-2 items-center">
 							<div
 								v-if="user !== null"
-								class="py-3.5 pl-4 text-left text-sm font-semibold sm:pl-6 lg:pl-8 whitespace-nowrap"
+								class="text-left text-sm font-semibold whitespace-nowrap"
 							>{{ user.name === "" ? user.user : user.name }}'s Login History</div>
 							<div
 								v-else
-								class="py-3.5 pl-4 text-left text-sm font-semibold sm:pl-6 lg:pl-8 whitespace-nowrap"
+								class="text-left text-sm font-semibold whitespace-nowrap"
 							>User Login History</div>
 							<LoadingSpinner v-if="processing" class="w-5 h-5" />
 						</div>
@@ -25,7 +25,7 @@
 							:partialRange="false"
 							placeholder="Date Range"
 							:dark="darkMode"
-							class="w-auto mr-4"
+							class="w-auto shrink-0"
 							:format="rangePreviewFormatter"
 						/>
 					</div>
