@@ -15,12 +15,47 @@
 			</button>
 			<button
 				class="btn btn-primary"
-				@click="showExpirePasswordModal = true"
+				@click="showPasswordExpiryModal = true"
 				v-if="userPassword.isSet"
-				:disabled="userPassword.isExpired"
-			>Force Expire Account Password</button>
-			<div v-if="userPassword.isSet" class="text-gray-500">{{ userPassword.expires }}</div>
+			>Edit Password Expiry</button>
 		</div>
+		<div v-if="userPassword.isSet" class="flex gap-1 items-center">
+			<InformationCircleIcon class="text-gray-500 w-5 h-5" />
+			<div class="text-gray-500">{{ userPassword.expires }}</div>
+		</div>
+		<ModalPopup
+			:showModal="showPasswordExpiryModal"
+			:onApply="() => showPasswordExpiryModal = false"
+			:headerText="`Password expiry settings for ${user}`"
+			applyText="Done"
+			noCancel
+		>
+			<div class="flex flex-col gap-4 items-start">
+				<div class="flex gap-1 items-baseline flex-wrap justify-start">
+					<span>Expire password every</span>
+					<input
+						v-model.lazy.number="userPassword.expireDays"
+						type="number"
+						placeholder="∞"
+						min="1"
+						max="9999"
+						class="w-20 grow-0 shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
+					/>
+					<span>days</span>
+				</div>
+				<button
+					class="btn btn-primary"
+					@click="showExpirePasswordModal = true"
+					v-if="userPassword.isSet"
+					:disabled="userPassword.isExpired"
+					:title="userPassword.isExpired ? 'Password already expired.' : 'Force user to change password on next login.'"
+				>Force Expire Account Password</button>
+				<div class="flex gap-1 items-center">
+					<InformationCircleIcon class="text-gray-500 w-5 h-5" />
+					<div class="text-gray-500">{{ userPassword.expires }}</div>
+				</div>
+			</div>
+		</ModalPopup>
 		<ModalPopup
 			:showModal="showExpirePasswordModal"
 			:onApply="expirePassword"
@@ -38,7 +73,7 @@
 	<PasswordModal
 		v-if="userPassword.showModal"
 		:user="user"
-		:headerText="`${userPassword.isSet ? 'Change' : 'Set'} password for ${user}`"
+		:headerText="`${userPassword.isSet ? 'Change' : 'Set'} login password for ${user}`"
 		:warnCancel="!userPassword.isSet"
 		@apply="userPassword.applyCallback"
 		@cancel="userPassword.cancelCallback"
@@ -49,7 +84,7 @@
 <script>
 import ModalPopup from "./ModalPopup.vue";
 import PasswordModal from "./PasswordModal.vue";
-import { ExclamationCircleIcon, LockClosedIcon, LockOpenIcon } from '@heroicons/vue/solid';
+import { ExclamationCircleIcon, LockClosedIcon, LockOpenIcon, InformationCircleIcon } from '@heroicons/vue/solid';
 import { ref, reactive, watch, inject } from 'vue';
 import { useSpawn, errorString, errorStringHTML } from '../hooks/useSpawn';
 import { notificationsInjectionKey, processingInjectionKey } from "../keys";
@@ -77,8 +112,10 @@ export default {
 			isLocked: false,
 			expires: 'never',
 			isExpired: false,
+			expireDays: null,
 		});
 		const showExpirePasswordModal = ref(false);
+		const showPasswordExpiryModal = ref(false);
 		const processing = inject(processingInjectionKey);
 		const notifications = inject(notificationsInjectionKey).value;
 
@@ -103,7 +140,6 @@ export default {
 				}
 				const chageLines = (await useSpawn(['chage', '-l', props.user], { superuser: 'try' }).promise()).stdout
 					.split('\n'); // split lines
-				console.log(chageLines);
 				const chageExpires = chageLines.find(line => /^Password expires/.test(line))
 					.split(':')[1]
 					.trim();
@@ -190,9 +226,16 @@ export default {
 			await checkPasswdStatus();
 		}, { immediate: !props.newUser });
 
+		if (!props.modalOnly) {
+			watch(() => userPassword.expireDays, () => {
+				console.log(userPassword.expireDays);
+			})
+		}
+
 		return {
 			userPassword,
 			showExpirePasswordModal,
+			showPasswordExpiryModal,
 			setPassword,
 			expirePassword,
 			togglePasswordLock,
@@ -204,6 +247,7 @@ export default {
 		ExclamationCircleIcon,
 		LockClosedIcon,
 		LockOpenIcon,
+		InformationCircleIcon,
 	},
 }
 </script>
