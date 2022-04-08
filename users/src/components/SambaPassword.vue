@@ -39,8 +39,8 @@
 <script>
 import { ExclamationCircleIcon } from '@heroicons/vue/solid';
 import { reactive, watch, inject, ref } from 'vue';
-import { useSpawn, errorString } from "../hooks/useSpawn";
-import { processingInjectionKey } from '../keys';
+import { useSpawn, errorStringHTML } from "../hooks/useSpawn";
+import { notificationsInjectionKey, processingInjectionKey } from '../keys';
 import ModalPopup from './ModalPopup.vue';
 import PasswordModal from './PasswordModal.vue';
 
@@ -51,6 +51,7 @@ export default {
 	setup(props) {
 		const sambaPassword = reactive({ showModal: false, showRemoveModal: false, isSet: false });
 		const processing = inject(processingInjectionKey);
+		const notifications = inject(notificationsInjectionKey).value;
 
 		const checkIfSmbpasswdSet = async () => {
 			processing.value++;
@@ -70,8 +71,9 @@ export default {
 				state.proc.input(`${password}\n${password}\n`);
 				await state.promise();
 				sambaPassword.isSet = true;
+				notifications.constructNotification("Set Samba password", `Samba password for ${props.user} was set successfully.`, 'success');
 			} catch (state) {
-				alert("Failed to set smbpasswd: " + errorString(state));
+				notifications.constructNotification(`Failed to set Samba password for ${props.user}`, errorStringHTML(state), 'error');
 				checkIfSmbpasswdSet();
 			}
 			sambaPassword.showModal = false;
@@ -83,8 +85,9 @@ export default {
 			try {
 				await useSpawn(['smbpasswd', '-x', props.user], { superuser: 'try' }).promise();
 				sambaPassword.isSet = false;
+				notifications.constructNotification("Removed Samba password", `Samba password for ${props.user} was removed successfully.`, 'success');
 			} catch (state) {
-				alert("Failed to set smbpasswd: " + errorString(state));
+				notifications.constructNotification(`Failed to remove Samba password for ${props.user}`, errorStringHTML(state), 'error');
 				checkIfSmbpasswdSet();
 			}
 			sambaPassword.showRemoveModal = false;
