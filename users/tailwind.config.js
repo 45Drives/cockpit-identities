@@ -5,6 +5,9 @@ module.exports = {
 	],
 	theme: {
 		extend: {},
+		fontFamily: {
+			redhat: ['Red Hat Text', 'open-sans', 'sans-serif'],
+		},
 	},
 	plugins: [
 		require('@tailwindcss/forms'),
