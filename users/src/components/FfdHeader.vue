@@ -17,7 +17,7 @@ If not, see <https://www.gnu.org/licenses/>.
 
 <template>
 	<div
-		class="p-2 flex items-baseline justify-between bg-neutral-50 dark:bg-neutral-900 border-b border-gray-200 dark:border-gray-700"
+		class="p-2 flex items-baseline justify-between bg-neutral-50 dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-700"
 		:style="{ 'font-family': 'Red Hat Text', position: 'relative' }"
 	>
 		<div class="flex flex-row items-baseline">
