@@ -1,5 +1,6 @@
 <!--
-Copyright (C) 2022 Josh Boudreau <jboudreau@45drives.com>
+Copyright (C) 2022 Mark Hooper <mhooper@45drives.com>
+                   Josh Boudreau <jboudreau@45drives.com>
 
 This file is part of Cockpit File Sharing.
 
@@ -16,34 +17,35 @@ If not, see <https://www.gnu.org/licenses/>.
 -->
 
 <template>
-	<div
-		class="p-2 flex items-baseline justify-between bg-neutral-50 dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-700"
-		:style="{ 'font-family': 'Red Hat Text', position: 'relative' }"
-	>
-		<div class="flex flex-row items-baseline">
+	<div class="p-5 flex items-center bg-plugin-header font-redhat shadow-sm">
+		<div class="flex flex-row items-baseline basis-32 grow shrink-0">
 			<img
-				class="w-6 h-6 text-gray-50 mr-0.5 self-center"
+				class="w-6 h-6 mr-0.5 self-center"
 				:src="darkMode ? './assets/images/45d-fan-dark.svg' : './assets/images/45d-fan-light.svg'"
 			/>
 			<h1 class="text-2xl">
 				<span
-					class="text-red-800 dark:text-white font-bold"
-					:style="{ 'font-family': 'Source Sans Pro', 'font-size': '1.6rem' }"
+					class="text-red-800 dark:text-white font-bold font-source-sans-pro"
+					:style="{ 'font-size': '1.6rem' }"
 				>45</span>
 				<span class="text-gray-800 dark:text-red-600">Drives</span>
 			</h1>
-			<h1 v-if="!centerName" class="ml-5 text-red-800 dark:text-white text-2xl">{{ moduleName }}</h1>
 		</div>
-		<h1 v-if="centerName" class="text-red-800 dark:text-white text-2xl cursor-pointer" @click="home" :style="{position: 'absolute', left: '50%', top: '50%', transform: 'translateX(-50%) translateY(-50%)'}">{{ moduleName }}</h1>
-		<button
-			@click="darkMode = !darkMode"
-			id="theme-toggle"
-			type="button"
-			class="text-gray-500 dark:text-gray-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 focus:outline-none rounded-lg text-sm p-2.5 justify-self-end w-10 h-10"
-		>
-			<SunIcon v-if="darkMode" />
-			<MoonIcon v-else />
-		</button>
+		<h1
+			class="text-red-800 dark:text-white text-2xl cursor-pointer grow-0 text-center"
+			@click="home"
+		>{{ moduleName }}</h1>
+		<div class="flex basis-32 justify-end grow shrink-0">
+			<button
+				@click="darkMode = !darkMode"
+				id="theme-toggle"
+				type="button"
+				class="text-muted focus:outline-none"
+			>
+				<SunIcon v-if="darkMode" class="size-icon-lg" />
+				<MoonIcon v-else class="size-icon-lg" />
+			</button>
+		</div>
 	</div>
 </template>
 
@@ -58,7 +60,6 @@ import { darkModeInjectionKey } from "../keys";
 export default {
 	props: {
 		moduleName: String,
-		centerName: Boolean
 	},
 	setup(props) {
 		const darkMode = inject(darkModeInjectionKey) ?? ref(true);

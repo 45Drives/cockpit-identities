@@ -1,9 +1,8 @@
 <template>
-	<component
-		:class="[funcIsMine ? 'text-red-600' : '', 'w-5 h-5 text-gray-500 cursor-pointer']"
-		:is="iconComponent"
-		@click="updateModel()"
-	/>
+	<button @click="updateModel()">
+		<SortDescendingIcon v-if="reverse" :class="[funcIsMine ? 'icon-45d' : 'icon-default', 'size-icon']" />
+		<SortAscendingIcon v-else :class="[funcIsMine ? 'icon-45d' : 'icon-default', 'size-icon']" />
+	</button>
 </template>
 
 <script>
@@ -47,11 +46,6 @@ export default {
 				reverse.value = !reverse.value;
 			emitFunc();
 		};
-
-
-		watch(reverse, () => {
-			iconComponent.value = reverse.value ? SortDescendingIcon : SortAscendingIcon;
-		}, { immediate: true });
 
 		watch(() => props.modelValue, () => {
 			funcIsMine.value = false;

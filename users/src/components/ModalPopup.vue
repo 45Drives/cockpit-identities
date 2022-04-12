@@ -2,7 +2,7 @@
 	<TransitionRoot as="template" :show="showModal">
 		<Dialog as="div" class="fixed z-10 inset-0 overflow-y-auto">
 			<div
-				class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+				class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0 text-default"
 			>
 				<TransitionChild
 					as="template"
@@ -28,15 +28,18 @@
 					leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
 				>
 					<div
-						class="relative inline-block align-bottom bg-white dark:bg-neutral-900 px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 divide-y divide-gray-200 dark:divide-gray-700"
+						class="relative inline-block align-bottom overflow-hidden transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full text-left card divide-y divide-default"
 					>
-						<div class="pb-4">
-							<h3 class="text-lg font-semibold">{{ headerText }}</h3>
+						<div class="card-header">
+							<h3 class="text-header">{{ headerText }}</h3>
 						</div>
-						<div class="sm:flex sm:items-start mb-2 py-2">
-							<slot />
+						<div class="card-body flex flex-row items-center gap-2">
+							<slot name="icon" />
+							<div>
+								<slot />
+							</div>
 						</div>
-						<div class="flex flex-row space-x-3 justify-end pt-4">
+						<div class="card-footer button-group-row w-full justify-end">
 							<button
 								v-if="!noCancel"
 								type="button"
@@ -45,7 +48,7 @@
 							>{{ cancelText }}</button>
 							<button
 								type="button"
-								:class="['btn', 'btn-primary']"
+								:class="['btn', applyDangerous ? 'btn-danger' : 'btn-primary']"
 								@click="onApply"
 								:disabled="disableContinue"
 							>{{ applyText }}</button>
@@ -79,6 +82,7 @@ export default {
 			required: false,
 			default: "Apply",
 		},
+		applyDangerous: Boolean,
 		disableContinue: Boolean,
 		onApply: Function,
 		onCancel: Function,

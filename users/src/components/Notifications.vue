@@ -4,7 +4,7 @@
 		aria-live="assertive"
 		class="fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start z-20 h-screen overflow-y-auto"
 	>
-		<div class="w-full flex flex-col items-center space-y-4 sm:items-end">
+		<div class="w-full flex flex-col items-center sm:items-end space-y-content">
 			<!-- Notification panel, dynamically insert this into the live region when it needs to be displayed -->
 			<transition
 				v-for="notification in notificationList"
@@ -19,47 +19,53 @@
 			>
 				<div
 					v-if="notification.show"
-					class="max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden"
+					class="max-w-sm w-full shadow-lg rounded-lg pointer-events-auto overflow-hidden bg-default text-default"
 				>
 					<div class="p-4">
 						<div class="flex items-start">
-							<div class="flex-shrink-0">
+							<div class="flex-shrink-0" aria-hidden="true">
 								<ExclamationCircleIcon
 									v-if="notification.level === 'error'"
-									class="h-6 w-6 text-red-600"
+									class="icon-error size-icon-lg"
 									aria-hidden="true"
 								/>
 								<ExclamationCircleIcon
 									v-else-if="notification.level === 'warning'"
-									class="h-6 w-6 text-yellow-400"
+									class="icon-warning size-icon-lg"
 									aria-hidden="true"
 								/>
 								<CheckCircleIcon
 									v-else-if="notification.level === 'success'"
-									class="h-6 w-6 text-green-500"
+									class="icon-success size-icon-lg"
 									aria-hidden="true"
 								/>
-								<InformationCircleIcon v-else class="h-6 w-6 text-blue-500" aria-hidden="true" />
+								<InformationCircleIcon v-else class="icon-info size-icon-lg" />
 							</div>
 							<div class="ml-3 w-0 flex-1 pt-0.5">
-								<p class="text-sm font-medium text-gray-900">{{ notification.title }}</p>
-								<p class="mt-1 text-sm text-gray-500 whitespace-pre-wrap" v-html="notification.body"></p>
+								<p class="text-sm font-medium">{{ notification.title }}</p>
+								<p class="mt-1 text-sm text-muted whitespace-pre-wrap" v-html="notification.body"></p>
 								<div v-if="notification.actions?.length" class="mt-3 flex space-x-7">
-									<button v-for="action in notification.actions" @click="action.callback">{{ action.text }}</button>
+									<button
+										v-for="action in notification.actions"
+										@click="action.callback"
+										class="rounded-md text-sm font-medium text-primary focus:outline-none focus:ring-0 focus:ring-offset-0"
+									>
+										{{ action.text }}
+									</button>
 									<button
 										@click="notification.show = false"
 										type="button"
-										class="bg-white rounded-md text-sm font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:ring-0 focus:ring-offset-0"
+										class="rounded-md text-sm font-medium text-secondary focus:outline-none focus:ring-0 focus:ring-offset-0"
 									>Dismiss</button>
 								</div>
 							</div>
 							<div class="ml-4 flex-shrink-0 flex">
 								<button
 									@click="notification.show = false"
-									class="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-0 focus:ring-offset-0"
+									class="icon-default focus:outline-none focus:ring-0 focus:ring-offset-0"
 								>
 									<span class="sr-only">Close</span>
-									<XIcon class="h-5 w-5" aria-hidden="true" />
+									<XIcon class="size-icon" aria-hidden="true" />
 								</button>
 							</div>
 						</div>

@@ -1,64 +1,45 @@
 <template>
-	<div class="card-body space-y-5 overflow-visible">
+	<div class="card-body space-y-content overflow-visible">
 		<div v-if="createNew">
-			<label class="block text-sm font-medium">Username</label>
-			<div class="mt-1">
+			<label class="block text-label">Username</label>
 				<input
 					type="text"
-					class="shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
+					class="w-full input-textlike"
 					placeholder="Valid format: [a-z_][a-z0-9_-]*[$a-z0-9_-]"
 					v-model="tmpUser.user"
 				/>
-			</div>
-			<div
-				class="mt-2 text-sm text-red-600 flex flex-row justify-start items-center space-x-1"
-				v-if="feedback.user"
-			>
-				<ExclamationCircleIcon class="w-5 h-5 inline" />
-				<span v-html="feedback.user"></span>
+			<div class="feedback-group" v-if="feedback.user">
+				<ExclamationCircleIcon class="size-icon icon-error" />
+				<span v-html="feedback.user" class="text-feedback text-error"></span>
 			</div>
 		</div>
 		<div>
-			<label class="block text-sm font-medium">Full Name/Description</label>
-			<div class="mt-1">
-				<input
-					type="text"
-					class="shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
-					placeholder="Full Name"
-					v-model="tmpUser.name"
-				/>
-			</div>
+			<label class="block text-label">Full Name/Description</label>
+				<input type="text" class="w-full input-textlike" placeholder="Full Name" v-model="tmpUser.name" />
 		</div>
 		<div>
-			<label class="block text-sm font-medium">Home Directory</label>
-			<div class="mt-1">
+			<label class="block text-label">Home Directory</label>
 				<input
 					type="text"
-					class="shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
+					class="w-full input-textlike"
 					placeholder="Path to Working Directory at login"
 					v-model="tmpUser.home"
 				/>
-			</div>
-			<div
-				class="mt-2 text-sm text-red-600 flex flex-row justify-start items-center space-x-1"
-				v-if="feedback.home"
-			>
-				<ExclamationCircleIcon class="w-5 h-5 inline" />
-				<span>{{ feedback.home }}</span>
+			<div class="feedback-group" v-if="feedback.home">
+				<ExclamationCircleIcon class="size-icon icon-error" />
+				<span class="text-feedback text-error">{{ feedback.home }}</span>
 			</div>
 		</div>
 		<Listbox as="div" v-if="tmpUser.shell" v-model="tmpUser.shell" class="overflow-visible">
-			<ListboxLabel class="block text-sm font-medium">Login Shell</ListboxLabel>
-			<div class="mt-1 relative overflow-visible">
-				<ListboxButton
-					class="relative w-full bg-white dark:bg-neutral-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-0 sm:text-sm"
-				>
+			<ListboxLabel class="block text-label">Login Shell</ListboxLabel>
+			<div class="relative overflow-visible">
+				<ListboxButton class="relative w-full border pl-3 pr-10 py-2 input-textlike">
 					<span class="w-full inline-flex truncate">
 						<span class="truncate">{{ tmpUser.shell.name }}</span>
-						<span class="ml-2 truncate text-gray-500">{{ tmpUser.shell.path }}</span>
+						<span class="ml-2 truncate text-muted">{{ tmpUser.shell.path }}</span>
 					</span>
 					<span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-						<SelectorIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
+						<SelectorIcon class="size-icon icon-default" aria-hidden="true" />
 					</span>
 				</ListboxButton>
 
@@ -68,7 +49,7 @@
 					leave-to-class="opacity-0"
 				>
 					<ListboxOptions
-						class="absolute z-10 mt-1 w-full bg-white dark:bg-neutral-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+						class="absolute z-10 mt-1 w-full bg-accent shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
 					>
 						<ListboxOption
 							as="template"
@@ -111,7 +92,7 @@
 										v-model.lazy="customShell.path"
 										type="text"
 										placeholder="/path/to/custom/shell"
-										class="shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
+										class="input-textlike"
 									/>
 								</div>
 								<span
@@ -126,110 +107,76 @@
 				</transition>
 			</div>
 		</Listbox>
-		<div
-			class="mt-2 text-sm text-red-600 flex flex-row justify-start items-center space-x-1"
-			v-if="feedback.shell"
-		>
-			<ExclamationCircleIcon class="w-5 h-5 inline" />
-			<span v-html="feedback.shell"></span>
+		<div class="feedback-group" v-if="feedback.shell">
+			<ExclamationCircleIcon class="size-icon icon-error" />
+			<span v-html="feedback.shell" class="text-feedback text-error"></span>
 		</div>
-		<div class="mt-8 flex flex-col overflow-visible">
-			<div class="-my-2 -mx-4 sm:-mx-6 lg:-mx-8 overflow-visible">
-				<div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8 overflow-visible">
-					<div
-						class="overflow-visible shadow ring-1 ring-black ring-opacity-5 dark:ring-gray-700 md:rounded-lg"
-					>
-						<div class="flex flex-row justify-between items-center bg-neutral-50 dark:bg-neutral-800">
-							<div
-								class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-							>{{ user.name === "" ? user.user : user.name }}'s Groups</div>
-							<div class="overflow-visible">
-								<Listbox as="div" class="overflow-visible" v-model="addGroupSelectorValue">
-									<div class="mt-1 overflow-visible relative">
-										<ListboxButton>
-											<PlusIcon class="w-5 h-5 mr-7 cursor-pointer text-gray-500" />
-										</ListboxButton>
+		<Table class="relative" emptyText="No groups. Click '+' to add one.">
+			<template #header>
+				<div class="flex flex-row justify-between items-center">
+					<div>{{ user.name === "" ? user.user : user.name }}'s Groups</div>
+					<Listbox as="template" v-model="addGroupSelectorValue">
+						<ListboxButton class="size-icon cursor-pointer">
+							<PlusIcon class="size-icon icon-default" />
+						</ListboxButton>
 
-										<transition
-											leave-active-class="transition ease-in duration-100"
-											leave-from-class="opacity-100"
-											leave-to-class="opacity-0"
-										>
-											<ListboxOptions
-												class="absolute z-10 mt-1 right-3 top-8 bg-white dark:bg-neutral-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
-											>
-												<ListboxOption
-													as="template"
-													v-for="group in nonMemberGroups"
-													:value="group"
-													v-slot="{ active, selected }"
-												>
-													<li
-														:class="[active ? 'text-white bg-red-600' : '', 'cursor-default select-none relative py-2 pl-3 pr-9']"
-													>
-														<div class="flex">
-															<span :class="[selected ? 'font-semibold' : 'font-normal', 'truncate']">{{ group }}</span>
-														</div>
-
-														<span
-															v-if="selected"
-															:class="[active ? 'text-white' : 'text-red-600', 'absolute inset-y-0 right-0 flex items-center pr-4']"
-														>
-															<CheckIcon class="h-5 w-5" aria-hidden="true" />
-														</span>
-													</li>
-												</ListboxOption>
-											</ListboxOptions>
-										</transition>
-									</div>
-								</Listbox>
-							</div>
-						</div>
-						<div class="flex flex-col overflow-y-auto max-h-80">
-							<table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
-								<thead class="bg-neutral-50 dark:bg-neutral-800">
-									<tr>
-										<th
-											scope="col"
-											class="sr-only py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-										>{{ tmpUser.name === "" ? tmpUser.user : tmpUser.name }}'s Groups</th>
-										<th
-											scope="col"
-											class="sr-only py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-										>Remove</th>
-									</tr>
-								</thead>
-								<tbody class="dark:bg-neutral-800">
-									<tr
-										v-for="(group, index) in tmpUser.groups"
-										:class="index % 2 === 0 ? undefined : 'bg-neutral-50 dark:bg-neutral-700'"
+						<transition
+							leave-active-class="transition ease-in duration-100"
+							leave-from-class="opacity-100"
+							leave-to-class="opacity-0"
+						>
+							<ListboxOptions
+								class="absolute z-10 right-3 top-8 bg-default shadow-lg max-h-60 rounded-md text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+							>
+								<ListboxOption
+									as="template"
+									v-for="group in nonMemberGroups"
+									:value="group"
+									v-slot="{ active, selected }"
+								>
+									<li
+										:class="[active ? 'text-white bg-red-600' : '', 'cursor-default select-none relative py-2 pl-3 pr-9']"
 									>
-										<td
-											class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
-										>{{ group }}</td>
-										<td
-											class="flex flex-row justify-end whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium"
+										<div class="flex">
+											<span :class="[selected ? 'font-semibold' : 'font-normal', 'truncate']">{{ group }}</span>
+										</div>
+
+										<span
+											v-if="selected"
+											:class="[active ? 'text-white' : 'text-red-600', 'absolute inset-y-0 right-0 flex items-center pr-4']"
 										>
-											<MinusIcon
-												v-if="group !== tmpUser.user"
-												@click="removeGroup(group)"
-												class="uppercase text-red-600 hover:text-red-900 cursor-pointer w-5 h-5"
-											/>
-										</td>
-									</tr>
-									<tr v-if="tmpUser.groups.length === 0">
-										<td
-											class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6 lg:pl-8"
-										>No groups. Click "+" to add one.</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
-					</div>
+											<CheckIcon class="h-5 w-5" aria-hidden="true" />
+										</span>
+									</li>
+								</ListboxOption>
+							</ListboxOptions>
+						</transition>
+					</Listbox>
 				</div>
-			</div>
-		</div>
-		<div class="flex flex-row space-x-3">
+			</template>
+			<template #thead>
+				<tr>
+					<th
+						scope="col"
+						class="sr-only"
+					>{{ tmpUser.name === "" ? tmpUser.user : tmpUser.name }}'s Groups</th>
+					<th scope="col" class="sr-only">Remove</th>
+				</tr>
+			</template>
+			<template #tbody>
+				<tr v-for="(group, index) in tmpUser.groups">
+					<td>{{ group }}</td>
+					<td class="flex flex-row justify-end">
+						<button @click="removeGroup(group)">
+							<MinusIcon v-if="group !== tmpUser.user" class="uppercase icon-danger size-icon" />
+						</button>
+					</td>
+				</tr>
+			</template>
+		</Table>
+	</div>
+	<div class="card-footer">
+		<div class="button-group-row">
 			<slot />
 			<div class="grow" />
 			<button class="btn btn-secondary justify-self-end" v-if="changesMade" @click="cancel()">Cancel</button>
@@ -252,6 +199,7 @@ import { shellsInjectionKey, groupsInjectionKey, processingInjectionKey } from "
 import shellObj from "../hooks/shellObj";
 import ModalPopup from './ModalPopup.vue';
 import { useSpawn } from "../hooks/useSpawn";
+import Table from "./Table.vue";
 
 export default {
 	props: {
@@ -437,6 +385,7 @@ export default {
 		MinusIcon,
 		ExclamationCircleIcon,
 		ModalPopup,
+		Table,
 	},
 	emits: [
 		'applyChanges',

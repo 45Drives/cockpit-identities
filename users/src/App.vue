@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="h-full flex flex-col text-gray-900 dark:text-gray-100 bg-neutral-100 dark:bg-neutral-900"
+		class="h-full flex flex-col text-default bg-well"
 	>
 		<FfdHeader moduleName="Users and Groups" centerName />
 		<div v-if="gotInitialData" class="h-full overflow-y-auto">
@@ -19,7 +19,7 @@ import Notifications from './components/Notifications.vue';
 import FIFO from './classes/FIFO';
 import { notificationsInjectionKey, darkModeInjectionKey, processingInjectionKey, shellsInjectionKey, groupsInjectionKey } from './keys';
 
-const props = defineProps({notificationFIFO: FIFO});
+const props = defineProps({ notificationFIFO: FIFO });
 
 const gotInitialData = ref(false);
 
@@ -53,7 +53,7 @@ const getShells = async () => {
 			return a.path.localeCompare(b.path);
 		return a.name.localeCompare(b.name);
 	});
-	
+
 	processing.value--;
 }
 provide(shellsInjectionKey, shells);

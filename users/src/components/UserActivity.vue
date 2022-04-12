@@ -1,150 +1,86 @@
 <template>
-	<div class="mt-1 flex flex-col">
-		<div class="-my-2 -mx-4 sm:-mx-6 lg:-mx-8">
-			<div class="min-w-full py-2 align-middle md:px-6 lg:px-8 flex flex-col overflow-x-auto">
-				<div
-					class="shadow ring-1 ring-black ring-opacity-5 dark:ring-gray-700 md:rounded-lg inline-flex flex-col items-stretch overflow-x-visible"
-				>
-					<div
-						class="self-stretch flex flex-row flex-wrap gap-3 px-4 sm:px-6 lg:px-8 pt-4 justify-between items-baseline bg-neutral-50 dark:bg-neutral-800"
-					>
-						<div class="flex flex-row space-x-2 items-center">
-							<div
-								v-if="user !== null"
-								class="text-left text-sm font-semibold whitespace-nowrap"
-							>{{ user.name === "" ? user.user : user.name }}'s Login History</div>
-							<div
-								v-else
-								class="text-left text-sm font-semibold whitespace-nowrap"
-							>User Login History</div>
-							<LoadingSpinner v-if="processing" class="w-5 h-5" />
-						</div>
-						<Datepicker
-							v-model="range"
-							range
-							:partialRange="false"
-							placeholder="Date Range"
-							:dark="darkMode"
-							class="w-auto shrink-0"
-							:format="rangePreviewFormatter"
+	<Table stickyHeaders noShrink>
+		<template #header>
+			<div class="self-stretch flex flex-row flex-wrap gap-3 justify-between items-baseline">
+				<div class="flex flex-row space-x-2 items-center">
+					<div v-if="user !== null">{{ user.name === "" ? user.user : user.name }}'s Login History</div>
+					<div v-else>User Login History</div>
+					<LoadingSpinner v-if="processing" class="size-icon" />
+				</div>
+				<Datepicker
+					v-model="range"
+					range
+					:partialRange="false"
+					placeholder="Date Range"
+					:dark="darkMode"
+					class="w-auto shrink-0"
+					:format="rangePreviewFormatter"
+				/>
+			</div>
+		</template>
+		<template #thead>
+			<tr>
+				<th v-if="user === null" scope="col">
+					<div class="flex flex-row flex-nowrap space-x-2">
+						<div class="grow">User</div>
+						<SimpleFilter useTransformFixed :set="filters.users.set" v-model="filters.users.callback" />
+						<SortCallbackButton v-model="sortCallback" :compareFunc="compareFuncs.user" />
+					</div>
+				</th>
+				<th scope="col">
+					<div class="flex flex-row flex-nowrap space-x-2">
+						<div class="grow">Session Start</div>
+						<SortCallbackButton
+							v-model="sortCallback"
+							:compareFunc="compareFuncs.sessionStart"
+							initialFuncIsMine
+							startReversed
 						/>
 					</div>
-					<div class="relative">
-						<div class="flex flex-col overflow-y-auto max-h-80">
-							<table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
-								<thead class="bg-neutral-50 dark:bg-neutral-800">
-									<tr>
-										<th
-											v-if="user === null"
-											scope="col"
-											class="whitespace-nowrap border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-										>
-											<div class="flex flex-row flex-nowrap justify-end space-x-2">
-												<div class="grow">User</div>
-												<SortCallbackButton v-model="sortCallback" :compareFunc="compareFuncs.user" />
-												<SimpleFilter
-													:noRelative="true"
-													:set="filters.users.set"
-													v-model="filters.users.callback"
-												/>
-											</div>
-										</th>
-										<th
-											scope="col"
-											class="whitespace-nowrap border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-										>
-											<div class="flex flex-row flex-nowrap justify-end space-x-2">
-												<div class="grow">Session Start</div>
-												<SortCallbackButton
-													v-model="sortCallback"
-													:compareFunc="compareFuncs.sessionStart"
-													initialFuncIsMine
-													startReversed
-												/>
-											</div>
-										</th>
-										<th
-											scope="col"
-											class="whitespace-nowrap border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-										>
-											<div class="flex flex-row flex-nowrap justify-end space-x-2">
-												<div class="grow">Session End</div>
-												<SortCallbackButton v-model="sortCallback" :compareFunc="compareFuncs.sessionEnd" />
-											</div>
-										</th>
-										<th
-											scope="col"
-											class="whitespace-nowrap border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-										>
-											<div class="flex flex-row flex-nowrap justify-end space-x-2">
-												<div class="grow">Time Logged In</div>
-												<SortCallbackButton v-model="sortCallback" :compareFunc="compareFuncs.sessionTime" />
-											</div>
-										</th>
-										<th
-											scope="col"
-											class="whitespace-nowrap border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-										>
-											<div class="flex flex-row flex-nowrap justify-between space-x-5">
-												<span>IP Address</span>
-												<SimpleFilter :noRelative="true" :set="filters.ips.set" v-model="filters.ips.callback" />
-											</div>
-										</th>
-										<th
-											scope="col"
-											class="whitespace-nowrap border-b-2 border-b-gray-300 dark:border-b-gray-700 bg-neutral-50 dark:bg-neutral-800 sticky top-0 z-10 py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-										>
-											<div class="flex flex-row flex-nowrap justify-between space-x-5">
-												<span>TTY</span>
-												<SimpleFilter
-													:noRelative="true"
-													:set="filters.ttys.set"
-													v-model="filters.ttys.callback"
-												/>
-											</div>
-										</th>
-									</tr>
-								</thead>
-								<tbody class="dark:bg-neutral-800">
-									<tr
-										v-for="(entry, index) in historyReactive"
-										v-show="filters.users.callback(entry.user) && filters.ips.callback(entry.ip) && filters.ttys.callback(entry.tty)"
-										:class="index % 2 === 0 ? undefined : 'bg-neutral-50 dark:bg-neutral-700'"
-									>
-										<td
-											v-if="user === null"
-											class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
-										>{{ entry.user }}</td>
-										<td
-											class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
-										>{{ formatDate(entry.sessionStart) }}</td>
-										<td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8">
-											<span v-if="entry.stillLoggedIn">Still Logged In</span>
-											<span v-else>{{ formatDate(entry.sessionEnd) }}</span>
-										</td>
-										<td
-											class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
-										>{{ entry.sessionTime ?? "" }}</td>
-										<td
-											class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8"
-										>{{ entry.ip }}</td>
-										<td
-											class="whitespace-nowrap py-4 pl-4 pr\-3 text-sm font-medium sm:pl-6 lg:pl-8"
-										>{{ entry.tty }}</td>
-									</tr>
-									<tr v-if="history.length === 0">
-										<td
-											class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6 lg:pl-8"
-										>Nothing to show.</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
+				</th>
+				<th scope="col">
+					<div class="flex flex-row flex-nowrap space-x-2">
+						<div class="grow">Session End</div>
+						<SortCallbackButton v-model="sortCallback" :compareFunc="compareFuncs.sessionEnd" />
 					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+				</th>
+				<th scope="col">
+					<div class="flex flex-row flex-nowrap space-x-2">
+						<div class="grow">Time Logged In</div>
+						<SortCallbackButton v-model="sortCallback" :compareFunc="compareFuncs.sessionTime" />
+					</div>
+				</th>
+				<th scope="col">
+					<div class="flex flex-row flex-nowrap justify-between space-x-5">
+						<span>IP Address</span>
+						<SimpleFilter useTransformFixed :set="filters.ips.set" v-model="filters.ips.callback" />
+					</div>
+				</th>
+				<th scope="col">
+					<div class="flex flex-row flex-nowrap justify-between space-x-5">
+						<span>TTY</span>
+						<SimpleFilter useTransformFixed :set="filters.ttys.set" v-model="filters.ttys.callback" />
+					</div>
+				</th>
+			</tr>
+		</template>
+		<template #tbody>
+			<tr
+				v-for="(entry, index) in historyReactive"
+				v-show="filters.users.callback(entry.user) && filters.ips.callback(entry.ip) && filters.ttys.callback(entry.tty)"
+			>
+				<td v-if="user === null">{{ entry.user }}</td>
+				<td>{{ formatDate(entry.sessionStart) }}</td>
+				<td>
+					<span v-if="entry.stillLoggedIn">Still Logged In</span>
+					<span v-else>{{ formatDate(entry.sessionEnd) }}</span>
+				</td>
+				<td>{{ entry.sessionTime ?? "" }}</td>
+				<td>{{ entry.ip }}</td>
+				<td>{{ entry.tty }}</td>
+			</tr>
+		</template>
+	</Table>
 </template>
 
 <script>
@@ -158,6 +94,7 @@ import LoadingSpinner from './LoadingSpinner.vue';
 import SortCallbackButton from './SortCallbackButton.vue';
 import moment from 'moment';
 import { darkModeInjectionKey, processingInjectionKey } from '../keys';
+import Table from './Table.vue';
 
 function formatDateForLast(date) {
 	const year = date.getFullYear().toString().padStart(4, '0');
@@ -384,6 +321,7 @@ export default {
 		SimpleFilter,
 		LoadingSpinner,
 		SortCallbackButton,
+		Table,
 	}
 }
 </script>

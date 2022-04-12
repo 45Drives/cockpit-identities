@@ -1,21 +1,28 @@
 <template>
-	<div class="flex flex-row flex-wrap content-start gap-8 p-8 w-full">
-		<div
+	<div class="flex flex-row flex-wrap content-start gap-well p-well w-full">
+		<button
 			v-for="user in users"
 			@click="openUser(user.user)"
-			class="card flex flex-col items-center justify-center h-36 min-w-[10rem] cursor-pointer p-4"
+			class="card"
 		>
-			<UserIcon class="w-20 h-20 text-gray-500 shrink-0" />
-			<div>{{ user.name ?? user.user }}</div>
-			<div v-if="user.user !== user.name" class="whitespace-nowrap text-sm font-mono text-gray-500">({{user.user}})</div>
-		</div>
-		<div
+			<div class="card-body flex flex-col items-center justify-center h-36 min-w-[10rem]">
+				<UserIcon class="w-20 h-20 icon-default shrink-0" />
+				<div>{{ user.name ?? user.user }}</div>
+				<div
+					v-if="user.user !== user.name"
+					class="whitespace-nowrap text-sm font-mono text-muted"
+				>({{ user.user }})</div>
+			</div>
+		</button>
+		<button
 			@click="addUser()"
-			class="card flex flex-col items-center justify-center h-36 min-w-[10rem] cursor-pointer p-4"
+			class="card"
 		>
-			<UserAddIcon class="w-20 h-20 text-gray-500 shrink-0" />
-			<div>New User</div>
-		</div>
+			<div class="card-body flex flex-col items-center justify-center h-36 min-w-[10rem]">
+				<UserAddIcon class="w-20 h-20 icon-default shrink-0" />
+				<div>New User</div>
+			</div>
+		</button>
 	</div>
 </template>
 
@@ -30,7 +37,7 @@ export default {
 
 		const getUsers = async () => {
 			try {
-				const passwdDB = (await useSpawn(['getent', 'passwd'], {superuser: 'try'}).promise()).stdout;
+				const passwdDB = (await useSpawn(['getent', 'passwd'], { superuser: 'try' }).promise()).stdout;
 				passwdDB.split('\n').forEach(record => {
 					if (/^\s*$/.test(record))
 						return;
@@ -41,7 +48,7 @@ export default {
 						return;
 					const user = fields[0];
 					const name = fields[4];
-					users.value.push({user, name: name === "" ? user : name});
+					users.value.push({ user, name: name === "" ? user : name });
 				})
 			} catch (state) {
 				alert("Failed to get users: " + errorString(state));

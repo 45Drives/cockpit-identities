@@ -1,7 +1,7 @@
 <template>
 	<div v-if="!modalOnly">
-		<label class="block text-sm font-medium">User Login</label>
-		<div class="flex flex-row flex-wrap gap-3 mt-1 items-center">
+		<label class="block text-label">User Login</label>
+		<div class="button-group-row-wrap">
 			<button
 				class="btn btn-primary"
 				@click="setPassword"
@@ -9,8 +9,8 @@
 			<button class="btn btn-primary" @click="togglePasswordLock()" v-if="userPassword.isSet">
 				<div class="flex flex-row items-center">
 					<span class="mr-2">{{ userPassword.isLocked ? 'Unlock' : 'Lock' }} Account Password</span>
-					<LockClosedIcon v-if="userPassword.isLocked" class="w-5 h-5" />
-					<LockOpenIcon v-else class="w-5 h-5" />
+					<LockClosedIcon v-if="userPassword.isLocked" class="size-icon" />
+					<LockOpenIcon v-else class="size-icon" />
 				</div>
 			</button>
 			<button
@@ -19,9 +19,9 @@
 				v-if="userPassword.isSet"
 			>Edit Password Expiry</button>
 		</div>
-		<div v-if="userPassword.isSet" class="flex gap-1 items-center">
-			<InformationCircleIcon class="text-gray-500 w-5 h-5" />
-			<div class="text-gray-500">{{ userPassword.expires }}</div>
+		<div v-if="userPassword.isSet" class="feedback-group">
+			<InformationCircleIcon class="size-icon icon-default" />
+			<div class="text-feedback text-muted">{{ userPassword.expires }}</div>
 		</div>
 		<ModalPopup
 			:showModal="showPasswordExpiryModal"
@@ -39,7 +39,7 @@
 						placeholder="∞"
 						min="1"
 						max="9999"
-						class="w-20 grow-0 shadow-sm focus:border-gray-500 focus:ring-0 focus:outline-none block sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
+						class="w-20 grow-0 input-textlike"
 					/>
 					<span>days</span>
 				</div>
@@ -50,9 +50,9 @@
 					:disabled="userPassword.isExpired"
 					:title="userPassword.isExpired ? 'Password already expired.' : 'Force user to change password on next login.'"
 				>Force Expire Account Password</button>
-				<div class="flex gap-1 items-center">
-					<InformationCircleIcon class="text-gray-500 w-5 h-5" />
-					<div class="text-gray-500">{{ userPassword.expires }}</div>
+				<div class="feedback-group">
+					<InformationCircleIcon class="size-icon icon-default" />
+					<div class="text-feedback text-muted">{{ userPassword.expires }}</div>
 				</div>
 			</div>
 		</ModalPopup>
@@ -64,14 +64,12 @@
 			applyText="Yes"
 			cancelText="No"
 		>
-			<div class="flex flex-row">
-				<ExclamationCircleIcon class="w-5 h-5 mr-2 text-red-600" />
-				<span>They will need to set a new password at next login.</span>
-			</div>
+			<template #icon><ExclamationCircleIcon class="size-icon-xl icon-error" /></template>
+			They will need to set a new password at next login.
 		</ModalPopup>
 	</div>
 	<PasswordModal
-		v-if="userPassword.showModal"
+		:showModal="userPassword.showModal"
 		:user="user"
 		:headerText="`${userPassword.isSet ? 'Change' : 'Set'} login password for ${user}`"
 		:warnCancel="!userPassword.isSet"

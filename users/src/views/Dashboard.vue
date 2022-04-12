@@ -1,20 +1,24 @@
 <template>
-	<div class="flex flex-col items-stretch p-8 space-y-8">
-		<div class="flex flex-row items-stretch space-x-8 grow">
-			<div
-				class="card grow flex flex-col place-content-center items-center cursor-pointer"
+	<div class="flex flex-col items-stretch p-well gap-well">
+		<div class="flex flex-row items-stretch grow gap-well">
+			<button
+				class="card grow flex flex-col place-content-center items-center"
 				@click="open('users')"
 			>
-				<UsersIcon class="text-gray-500 w-40 h-40" />
-				<div>Users</div>
-			</div>
-			<div
-				class="card grow flex flex-col place-content-center items-center cursor-pointer"
+				<div class="card-body">
+					<UsersIcon class="text-gray-500 w-40 h-40" />
+					<div>Users</div>
+				</div>
+			</button>
+			<button
+				class="card grow flex flex-col place-content-center items-center"
 				@click="open('groups')"
 			>
-				<UserGroupIcon class="text-gray-500 w-40 h-40" />
-				<div>Groups</div>
-			</div>
+				<div class="card-body">
+					<UserGroupIcon class="text-gray-500 w-40 h-40" />
+					<div>Groups</div>
+				</div>
+			</button>
 		</div>
 		<div class="flex flex-row items-stretch">
 			<div class="card grow flex flex-col items-stretch place-content-center">

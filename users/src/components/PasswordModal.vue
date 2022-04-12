@@ -1,42 +1,42 @@
 <template>
 	<ModalPopup
-		:showModal="true"
+		:showModal="showModal"
 		:headerText="headerText"
 		:disableContinue="!passwordValid"
 		:onApply="applyCallback"
 		:onCancel="cancelCallback"
 	>
-		<div class="my-2 space-y-4">
-			<div class="mt-1 relative rounded-md shadow-sm">
+		<div class="my-2 space-y-content">
+			<div class="relative">
 				<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-					<LockClosedIcon class="h-5 w-5 text-gray-500" aria-hidden="true" />
+					<LockClosedIcon class="size-icon icon-default" aria-hidden="true" />
 				</div>
 				<input
 					:type="hidden ? 'password' : 'text'"
 					autocomplete="new-password"
-					class="focus:border-gray-500 focus:ring-0 focus:outline-none block w-full px-10 sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
+					class="block w-full px-10 input-textlike"
 					placeholder="Type Password"
 					v-model="password1"
 				/>
 				<div @click="hidden = !hidden" class="absolute inset-y-0 right-0 pr-3 flex items-center">
-					<EyeOffIcon v-if="hidden" class="h-5 w-5 text-gray-500" aria-hidden="true" />
-					<EyeIcon v-else class="h-5 w-5 text-gray-500" aria-hidden="true" />
+					<EyeOffIcon v-if="hidden" class="size-icon icon-default" aria-hidden="true" />
+					<EyeIcon v-else class="size-icon icon-default" aria-hidden="true" />
 				</div>
 			</div>
-			<div class="mt-1 relative rounded-md shadow-sm">
+			<div class="relative">
 				<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-					<LockClosedIcon class="h-5 w-5 text-gray-500" aria-hidden="true" />
+					<LockClosedIcon class="size-icon icon-default" aria-hidden="true" />
 				</div>
 				<input
 					:type="hidden ? 'password' : 'text'"
 					autocomplete="new-password"
-					class="focus:border-gray-500 focus:ring-0 focus:outline-none block w-full px-10 sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-neutral-800 rounded-md"
+					class="block w-full px-10 input-textlike"
 					placeholder="Repeat Password"
 					v-model="password2"
 				/>
 				<div @click="hidden = !hidden" class="absolute inset-y-0 right-0 pr-3 flex items-center">
-					<EyeOffIcon v-if="hidden" class="h-5 w-5 text-gray-500" aria-hidden="true" />
-					<EyeIcon v-else class="h-5 w-5 text-gray-500" aria-hidden="true" />
+					<EyeOffIcon v-if="hidden" class="size-icon icon-default" aria-hidden="true" />
+					<EyeIcon v-else class="size-icon icon-default" aria-hidden="true" />
 				</div>
 			</div>
 			<div v-if="allRequirements.length">
@@ -44,24 +44,24 @@
 				<div class="inline-flex flex-col items-stretch">
 					<div v-for="requirement in allRequirements" class="flex flex-row text-sm items-center">
 						<span class="grow">{{ requirement.title }}</span>
-						<CheckIcon v-if="requirement.satisfied" class="w-4 h-4 ml-2 text-green-600" />
-						<XIcon v-else class="w-4 h-4 ml-2 text-red-600" />
+						<CheckIcon v-if="requirement.satisfied" class="size-icon-sm ml-2 icon-success" />
+						<XIcon v-else class="size-icon-sm ml-2 icon-error" />
 					</div>
 				</div>
 			</div>
 			<div
-				class="mt-2 text-sm text-amber-500 flex flex-row justify-start items-center space-x-1"
+				class="feedback-group"
 				v-if="warning"
 			>
-				<ExclamationCircleIcon class="w-5 h-5 inline shrink-0" />
-				<span>{{ warning }}</span>
+				<ExclamationCircleIcon class="size-icon icon-warning shrink-0" />
+				<span class="text-feedback text-warning">{{ warning }}</span>
 			</div>
 			<div
-				class="mt-2 text-sm text-red-600 flex flex-row justify-start items-center space-x-1"
+				class="feedback-group"
 				v-if="feedback"
 			>
-				<ExclamationCircleIcon class="w-5 h-5 inline shrink-0" />
-				<span>{{ feedback }}</span>
+				<ExclamationCircleIcon class="size-icon icon-error shrink-0" />
+				<span class="text-feedback text-error">{{ feedback }}</span>
 			</div>
 		</div>
 	</ModalPopup>
@@ -132,6 +132,7 @@ export default {
 			required: false,
 			default: null,
 		},
+		showModal: Boolean,
 	},
 	setup(props, { emit }) {
 		const password1 = ref("");

@@ -1,44 +1,42 @@
 <template>
-	<div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8 py-8 overflow-visible">
-		<div class="card divide-y divide-gray-100 dark:divide-gray-700 overflow-visible">
-			<div class="card-header flex flex-row space-x-2">
-				<h3>
-					{{ user.name === "" ? user.user : user.name }}
-					<span class="text-gray-500 font-mono text-sm">
-						<span v-if="user.name">(login={{ user.user }},</span>
-						<span v-else>(</span>
-						<span>uid={{ user.uid }},</span>
-						<span>gid={{ user.gid }})</span>
-					</span>
-				</h3>
-				<LoadingSpinner class="w-5 h-5" v-if="processing" />
+	<div class="centered-column p-well space-y-well">
+		<div class="card">
+			<div class="card-header flex flex-row items-baseline bg-default space-x-2 sticky top-0 z-10">
+				<span class="text-header">{{ user.name === "" ? user.user : user.name }}</span>
+				<span class="text-muted font-mono text-sm">
+					<span v-if="user.name">(login={{ user.user }},</span>
+					<span v-else>(</span>
+					<span>uid={{ user.uid }},</span>
+					<span>gid={{ user.gid }})</span>
+				</span>
+				<LoadingSpinner class="size-icon" v-if="processing" />
 			</div>
 			<UserEditor :user="user" @applyChanges="applyChanges">
 				<button class="btn btn-danger" @click="deleteConfirmationModal.show = true">
 					<div class="flex flex-row items-center">
 						<span class="mr-2">Delete User</span>
-						<TrashIcon class="w-5 h-5" />
+						<TrashIcon class="size-icon" />
 					</div>
 				</button>
 			</UserEditor>
 		</div>
-		<div class="card divide-y divide-gray-100 dark:divide-gray-700 overflow-visible">
+		<div class="card">
 			<div class="card-header flex flex-row space-x-2">
 				<h3>Credentials</h3>
-				<LoadingSpinner class="w-5 h-5" v-if="processing" />
+				<LoadingSpinner class="size-icon" v-if="processing" />
 			</div>
-			<div class="card-body space-y-5">
+			<div class="card-body space-y-content">
 				<UserPassword :user="user.user" />
 				<SambaPassword :user="user.user" />
 				<SSHAuthorizedKeys :user="user" />
 			</div>
 		</div>
-		<div class="card divide-y divide-gray-100 dark:divide-gray-700 mb-8">
+		<div class="card">
 			<div class="card-header flex flex-row space-x-2">
 				<h3>Activity</h3>
-				<LoadingSpinner class="w-5 h-5" v-if="processing" />
+				<LoadingSpinner class="size-icon" v-if="processing" />
 			</div>
-			<div class="card-body space-y-5 mb-8">
+			<div class="card-body space-y-content">
 				<UserActivity :user="user" v-if="user.user !== undefined" />
 			</div>
 		</div>
@@ -49,18 +47,23 @@
 		:onCancel="deleteConfirmationModal.cancelCallback"
 		:headerText="`Delete user ${user.user}?`"
 		:applyText="deleteConfirmationModal.applyText"
+		applyDangerous
 	>
 		<div class="flex items-center">
 			<ExclamationCircleIcon class="w-8 h-8 text-red-600" />
 			<div class="ml-2 flex flex-col space-y-2">
 				<div>{{ deleteConfirmationModal.bodyText }}</div>
-				<div class="flex space-x-2 items-center">
-					<label class="text-sm font-medium">Remove {{ user.user }}'s files</label>
-					<input
-						class="focus:ring-offset-0 dark:bg-neutral-800 dark:border-gray-700 dark:checked:bg-red-600 focus:ring-0 focus:outline-none h-4 w-4 text-red-600 border-gray-300 rounded"
-						type="checkbox"
-						v-model="deleteConfirmationModal.removeFiles"
-					/>
+				<div class="relative flex items-start">
+					<div class="flex items-center h-5">
+						<input
+							type="checkbox"
+							class="focus:ring-offset-0 dark:bg-neutral-800 dark:border-neutral-700 dark:checked:bg-red-600 focus:ring-0 focus:outline-none h-4 w-4 text-red-600 border-neutral-300 rounded"
+							v-model="deleteConfirmationModal.removeFiles"
+						/>
+					</div>
+					<div class="ml-3 text-sm">
+						<label class="font-medium">Remove {{ user.user }}'s files</label>
+					</div>
 				</div>
 			</div>
 		</div>

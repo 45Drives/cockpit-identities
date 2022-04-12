@@ -1,65 +1,45 @@
 <template>
-	<div class="mt-1 flex flex-col overflow-visible">
-		<div class="-my-2 -mx-4 sm:-mx-6 lg:-mx-8 overflow-visible">
-			<div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8 overflow-visible">
-				<div
-					class="overflow-visible shadow ring-1 ring-black ring-opacity-5 dark:ring-gray-700 md:rounded-lg"
-				>
-					<div class="flex flex-row justify-between items-center bg-neutral-50 dark:bg-neutral-800">
-						<div
-							class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-						>Authorized SSH Access Keys</div>
-						<!-- TODO: reword or add tooltip to clarify that these are other machines' keys -->
-						<PlusIcon
-							@click="showModal('add')"
-							class="w-5 h-5 mr-7 cursor-pointer text-gray-500"
-						/>
-					</div>
-					<div class="flex flex-col overflow-y-auto max-h-80">
-						<table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700 overflow-visible">
-							<thead class="bg-neutral-50 dark:bg-neutral-800 overflow-visible">
-								<tr class="overflow-visible">
-									<th
-										scope="col"
-										class="sr-only py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-									>{{ user.name === "" ? user.user : user.name }}'s Authorized Public SSH Keys</th>
-									<th
-										scope="col"
-										class="sr-only py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6 lg:pl-8"
-									>Remove</th>
-								</tr>
-							</thead>
-							<tbody class="dark:bg-neutral-800">
-								<tr
-									v-for="(key, index) in keys"
-									:class="index % 2 === 0 ? undefined : 'bg-neutral-50 dark:bg-neutral-700'"
-								>
-									<td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 lg:pl-8">{{ key }}</td>
-									<td class="flex flex-row justify-end whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium">
-										<MinusIcon
-											@click="showModal('remove', key)"
-											class="uppercase text-red-600 hover:text-red-900 cursor-pointer w-5 h-5"
-										/>
-									</td>
-								</tr>
-								<tr v-if="keys.length === 0">
-									<td
-										class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6 lg:pl-8"
-									>No keys. Click "+" to add one.</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
+	<Table>
+		<template #header>
+			<div class="flex flex-row justify-between items-center">
+				<div>Authorized SSH Access Keys</div>
+				<!-- TODO: reword or add tooltip to clarify that these are other machines' keys -->
+				<button @click="showModal('add')">
+					<PlusIcon class="size-icon icon-default" />
+				</button>
 			</div>
-		</div>
-	</div>
+		</template>
+		<template #thead>
+			<tr>
+				<th
+					scope="col"
+					class="sr-only"
+				>{{ user.name === "" ? user.user : user.name }}'s Authorized Public SSH Keys</th>
+				<th scope="col" class="sr-only">Remove</th>
+			</tr>
+		</template>
+		<template #tbody>
+			<tr v-for="(key, index) in keys">
+				<td>{{ key }}</td>
+				<td class="flex flex-row justify-end">
+					<button @click="showModal('remove', key)">
+						<MinusIcon class="size-icon icon-danger" />
+					</button>
+				</td>
+			</tr>
+			<tr v-if="keys.length === 0">
+				<td class="text-muted">No keys. Click "+" to add one.</td>
+			</tr>
+		</template>
+	</Table>
 </template>
 
 <script>
 import { ref, reactive, watch } from 'vue';
 import { useSpawn } from '../hooks/useSpawn';
 import { MinusIcon, PlusIcon } from '@heroicons/vue/solid';
+import Table from './Table.vue';
+
 const authorizedKeysSyntax = {
 	parse: (string) => {
 		return string.split('\n')
@@ -174,6 +154,7 @@ export default {
 	components: {
 		PlusIcon,
 		MinusIcon,
+		Table,
 	}
 }
 </script>

@@ -1,9 +1,9 @@
 <template>
-	<div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8 py-8 overflow-visible">
-		<div class="card divide-y divide-y-gray-100 overflow-visible">
+	<div class="centered-column p-well gap-well">
+		<div class="card">
 			<div class="card-header flex flex-row space-x-2">
-				<h3>New User</h3>
-				<LoadingSpinner class="w-5 h-5" v-if="processing" />
+				<h3 class="text-header">New User</h3>
+				<LoadingSpinner class="size-icon" v-if="processing" />
 			</div>
 			<UserEditor :user="user" createNew :hooks="editorHooks" @applyChanges="createUser" />
 		</div>

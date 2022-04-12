@@ -1,6 +1,10 @@
 <template>
-	<div v-click-outside="() => showMenu = false" :class="[noRelative ? '' : 'relative']">
-		<FilterIcon :class="[selected.size > 0 ? 'text-red-600' : '', 'w-5 h-5 text-gray-500 cursor-pointer']" @click="showMenu = !showMenu" />
+	<div v-click-outside="() => showMenu = false" class="relative">
+		<button @click="showMenu = !showMenu">
+			<FilterIcon
+				:class="[selected.size > 0 ? 'icon-45d' : '', 'size-icon icon-default cursor-pointer']"
+			/>
+		</button>
 		<transition
 			leave-active-class="transition ease-in duration-100"
 			leave-from-class="opacity-100"
@@ -8,10 +12,11 @@
 		>
 			<ul
 				v-show="showMenu"
-				class="absolute z-10 mt-1 right-3 top-8 w-40 bg-white dark:bg-neutral-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-y-auto focus:outline-none sm:text-sm"
+				class="absolute z-20 top-8 right-0 w-40 bg-default shadow-lg max-h-60 rounded-md py-1 text-base overflow-y-auto focus:outline-none sm:text-sm"
 			>
 				<li
-					v-if="selected.size > 0" @click="clearSelected()"
+					v-if="selected.size > 0"
+					@click="clearSelected()"
 					class="hover:text-white hover:bg-red-600 py-2 pl-3 pr-9"
 				>
 					<span class="font-semibold select-none">Clear Filters</span>
@@ -42,11 +47,6 @@ export default {
 			required: true,
 		},
 		modelValue: Function,
-		noRelative: {
-			type: Boolean,
-			required: false,
-			default: false,
-		},
 	},
 	setup(props, { emit }) {
 		const selected = ref(new Set([]));

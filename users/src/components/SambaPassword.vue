@@ -1,7 +1,7 @@
 <template>
 	<div>
-		<label class="block text-sm font-medium">Samba</label>
-		<div class="flex flex-row space-x-3 mt-1">
+		<label class="block text-label">Samba</label>
+		<div class="button-group-row-wrap">
 			<button
 				class="btn btn-primary"
 				@click="sambaPassword.showModal = true"
@@ -14,7 +14,7 @@
 		</div>
 	</div>
 	<PasswordModal
-		v-if="sambaPassword.showModal"
+		:showModal="sambaPassword.showModal"
 		:user="user"
 		:headerText="`${sambaPassword.isSet ? 'Change' : 'Set'} Samba password for ${user}`"
 		@apply="setSambaPassword"
@@ -30,10 +30,8 @@
 		applyText="Yes"
 		cancelText="No"
 	>
-		<div class="flex flex-row">
-			<ExclamationCircleIcon class="w-5 h-5 mr-2 text-red-600" />
-			<span>They will no longer be able to access Samba shares.</span>
-		</div>
+			<template #icon><ExclamationCircleIcon class="size-icon-xl icon-error" /></template>
+			They will no longer be able to access Samba shares.
 	</ModalPopup>
 </template>
 
