@@ -7,15 +7,39 @@
 					<div v-else>User Login History</div>
 					<LoadingSpinner v-if="processing" class="size-icon" />
 				</div>
-				<Datepicker
-					v-model="range"
-					range
-					:partialRange="false"
-					placeholder="Date Range"
-					:dark="darkMode"
-					class="w-auto shrink-0"
-					:format="rangePreviewFormatter"
-				/>
+				<div class="flex flex-col items-stretch gap-1">
+					<Datepicker
+						v-model="range"
+						range
+						:partialRange="false"
+						placeholder="Date Range"
+						:dark="darkMode"
+						class="w-auto shrink-0"
+						:format="rangePreviewFormatter"
+					/>
+					<div class="flex flex-row items-center justify-around">
+						<div>
+							<input
+								type="checkbox"
+								v-model="arg0"
+								value="last"
+								class="input-checkbox"
+								id="successful-checkbox"
+							/>
+							<label class="text-label mr-2 ml-1" for="successful-checkbox">Successful</label>
+						</div>
+						<div>
+							<input
+								type="checkbox"
+								v-model="arg0"
+								value="lastb"
+								class="input-checkbox"
+								id="unsuccessful-checkbox"
+							/>
+							<label class="text-label ml-1" for="unsuccessful-checkbox">Unsuccessful</label>
+						</div>
+					</div>
+				</div>
 			</div>
 		</template>
 		<template #thead>
@@ -62,6 +86,11 @@
 						<SimpleFilter useTransformFixed :set="filters.ttys.set" v-model="filters.ttys.callback" />
 					</div>
 				</th>
+				<th v-if="arg0.length > 1" scope="col">
+					<div class="flex flex-row flex-nowrap justify-between space-x-5">
+						<span>Auth Result</span>
+					</div>
+				</th>
 			</tr>
 		</template>
 		<template #tbody>
@@ -78,6 +107,7 @@
 				<td>{{ entry.sessionTime ?? "" }}</td>
 				<td>{{ entry.ip }}</td>
 				<td>{{ entry.tty }}</td>
+				<td v-if="arg0.length > 1">{{ entry.bad ? "Bad" : "Good" }}</td>
 			</tr>
 		</template>
 	</Table>
@@ -161,7 +191,7 @@ export default {
 			type: Number,
 			required: false,
 			default: 7,
-		}
+		},
 	},
 	setup(props) {
 		const range = ref();
@@ -169,6 +199,7 @@ export default {
 		const historyReactive = reactive(history);
 		const processing = inject(processingInjectionKey);
 		const darkMode = inject(darkModeInjectionKey);
+		const arg0 = ref(['last', 'lastb']);
 		const filters = reactive({
 			users: {
 				set: new Set([]),
@@ -201,61 +232,68 @@ export default {
 
 			Object.keys(filters).map(key => filters[key].set.clear());
 
-			const argv = ['last', '--fullnames', '--time-format=iso', '--ip'];
+			const opts = ['--fullnames', '--time-format=iso', '--ip'];
 
 			if (range.value?.[0])
-				argv.push('--since', formatDateForLast(range.value[0]));
+				opts.push('--since', formatDateForLast(range.value[0]));
 			if (range.value?.[1])
-				argv.push('--until', formatDateForLast(range.value[1]));
+				opts.push('--until', formatDateForLast(range.value[1]));
 
 			if (props.user !== null)
-				argv.push(props.user.user);
+				opts.push(props.user.user);
 
 			try {
-				const historyDB = (await useSpawn(argv, { superuser: 'try' }).promise()).stdout;
-				history.value = historyDB.split('\n')
-					.filter(line => !(/^\s*$/.test(line) || /^[wb]tmp begins/.test(line))) // remove empty lines and last line
-					.map(line => {
-						const match = line.match(/^(\S+)\s+(\S+(?: \S+)*)\s+(\d{1,3}(?:.\d{1,3}){3})\s+(\S+)(?: - (\S+)\s+\(([^\)]+)\)|\s+(\S+(?: \S+)*))/)?.slice(1);
-						if (!match)
-							return null;
-						try {
-							const obj = reactive({
-								user: match[0],
-								tty: match[1],
-								ip: match[2],
-								sessionStart: tryDate(match[3]),
-								sessionEnd: null, // end time or "still logged in" (or something else?)
-								sessionTime: match[5] ? sessionTimeToSentence(match[5]) : "0 Minutes",
-								stillLoggedIn: false,
-							});
-							if (match[6] === "still logged in") {
-								// live update time
-								setInterval(() => {
-									obj.sessionTime = timeSince(match[3]);
-									obj.sessionEnd = new Date();
-								}, 60 * 1000);
-								obj.sessionTime = timeSince(match[3])
-								obj.stillLoggedIn = true;
-							}
-							const sessionTimeObj = sessionTimeToObj(match[5]);
-							obj.sessionEnd = tryDate(match[4])
-								?? ((!match[5])
-									? new Date()
-									: moment(obj.sessionStart)
-										.add(sessionTimeObj.days, "days")
-										.add(sessionTimeObj.hours, "hours")
-										.add(sessionTimeObj.minutes, "minutes")
-										.toDate()
-								);
-							filters.users.set.add(obj.user);
-							filters.ips.set.add(obj.ip);
-							filters.ttys.set.add(obj.tty);
-							return obj;
-						} catch (error) {
-							throw new Error(error.message + `, trigger: ${line}`);
-						}
-					}).filter(entry => entry !== null).sort(sortCallback.value);
+				let tmpHistory = [];
+				for (let arg of arg0.value) {
+					tmpHistory.push(
+						...(await useSpawn([arg, ...opts], { superuser: 'try' }).promise()).stdout.split('\n')
+							.filter(line => !(/^\s*$/.test(line) || /^[wb]tmp begins/.test(line))) // remove empty lines and last line
+							.map(line => {
+								const bad = arg === 'lastb';
+								const match = line.match(/^(\S+)\s+(\S+(?: \S+)*)\s+(\d{1,3}(?:.\d{1,3}){3})\s+(\S+)(?: - (\S+)\s+\(([^\)]+)\)|\s+(\S+(?: \S+)*))/)?.slice(1);
+								if (!match)
+									return null;
+								try {
+									const obj = reactive({
+										user: match[0],
+										tty: match[1],
+										ip: match[2],
+										sessionStart: tryDate(match[3]),
+										sessionEnd: null, // end time or "still logged in" (or something else?)
+										sessionTime: match[5] ? sessionTimeToSentence(match[5]) : "0 Minutes",
+										stillLoggedIn: false,
+										bad,
+									});
+									if (match[6] === "still logged in") {
+										// live update time
+										setInterval(() => {
+											obj.sessionTime = timeSince(match[3]);
+											obj.sessionEnd = new Date();
+										}, 60 * 1000);
+										obj.sessionTime = timeSince(match[3])
+										obj.stillLoggedIn = true;
+									}
+									const sessionTimeObj = sessionTimeToObj(match[5]);
+									obj.sessionEnd = tryDate(match[4])
+										?? ((!match[5])
+											? new Date()
+											: moment(obj.sessionStart)
+												.add(sessionTimeObj.days, "days")
+												.add(sessionTimeObj.hours, "hours")
+												.add(sessionTimeObj.minutes, "minutes")
+												.toDate()
+										);
+									filters.users.set.add(obj.user);
+									filters.ips.set.add(obj.ip);
+									filters.ttys.set.add(obj.tty);
+									return obj;
+								} catch (error) {
+									throw new Error(error.message + `, trigger: ${line}`);
+								}
+							}).filter(entry => entry !== null)
+					)
+				}
+				history.value = tmpHistory.sort(sortCallback.value);
 			} catch (state) {
 				console.error("Error getting login history: " + errorString(state));
 				return;
@@ -295,6 +333,12 @@ export default {
 			range.value = [from, to];
 			watch(() => props.user, getHistory, { immediate: true, deep: true });
 			watch(range, getHistory);
+			watch(arg0, () => {
+				if (arg0.value.length === 0) {
+					arg0.value.push('last');
+				}
+				getHistory();
+			})
 			watch(sortCallback, () => {
 				processing.value++;
 				history.value.sort(sortCallback.value);
@@ -308,6 +352,7 @@ export default {
 			historyReactive,
 			processing,
 			darkMode,
+			arg0,
 			filters,
 			compareFuncs,
 			sortCallback,
