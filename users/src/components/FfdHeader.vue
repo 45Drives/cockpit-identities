@@ -17,7 +17,7 @@ If not, see <https://www.gnu.org/licenses/>.
 -->
 
 <template>
-	<div class="p-5 flex items-center bg-plugin-header font-redhat shadow-sm">
+	<div class="p-5 flex items-center bg-plugin-header font-redhat shadow-lg">
 		<div class="flex flex-row items-baseline basis-32 grow shrink-0">
 			<img
 				class="w-6 h-6 mr-0.5 self-center"
