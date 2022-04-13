@@ -1,3 +1,5 @@
+import { useSpawn, errorString } from './useSpawn';
+
 const SSHAuthorizedKeysSyntax = {
 	parse: (string) => {
 		return string.split('\n')
@@ -31,18 +33,28 @@ const SSHAuthorizedKeysSyntax = {
 				const regMatch = line.match(regexp);
 				if (!regMatch) {
 					console.error("regex match on key failed: " + line);
-					return { ...obj };
+					return null;
 				}
 				// split on unquoted unescaped commas
-				obj.options = regMatch[1]?.split(/(?<!\\),(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)(?=(?:[^\']*\'[^\']*\')*[^\']*$)/g) ?? [];
+				obj.options = regMatch[1]?.split(/(?<!\\),(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)(?=(?:[^\']*\'[^\']*\')*[^\']*$)/g) ?? null;
 				obj.algo = regMatch[2];
 				obj.pubKey = regMatch[3];
 				obj.comment = regMatch[4];
 				return { ...obj };
 			})
+			.filter(obj => obj !== null);
 	},
 	stringify: (objs) => {
-		return objs.map(obj => `${obj.options?.join(',') ?? ""}`)
+		return objs
+			.map(obj => [
+					obj.options?.join(',') ?? null,
+					obj.algo,
+					obj.pubKey,
+					obj.comment,
+				]
+				.filter(field => field !== null)
+				.join(' '))
+			.join('\n');
 	}
 };
 
