@@ -54,21 +54,19 @@
 		:applyText="deleteConfirmationModal.applyText"
 		applyDangerous
 	>
-		<div class="flex items-center">
-			<ExclamationCircleIcon class="w-8 h-8 text-red-600" />
-			<div class="ml-2 flex flex-col space-y-2">
-				<div>{{ deleteConfirmationModal.bodyText }}</div>
-				<div class="relative flex items-start">
-					<div class="flex items-center h-5">
-						<input
-							type="checkbox"
-							class="focus:ring-offset-0 dark:bg-neutral-800 dark:border-neutral-700 dark:checked:bg-red-600 focus:ring-0 focus:outline-none h-4 w-4 text-red-600 border-neutral-300 rounded"
-							v-model="deleteConfirmationModal.removeFiles"
-						/>
-					</div>
-					<div class="ml-3 text-sm">
-						<label class="font-medium">Remove {{ user.user }}'s files</label>
-					</div>
+		<template #icon><ExclamationCircleIcon class="size-icon-xl icon-danger" /></template>
+		<div class="ml-2 flex flex-col space-y-2">
+			<div>{{ deleteConfirmationModal.bodyText }}</div>
+			<div class="relative flex items-start">
+				<div class="flex items-center h-5">
+					<input
+						type="checkbox"
+						class="focus:ring-offset-0 dark:bg-neutral-800 dark:border-neutral-700 dark:checked:bg-red-600 focus:ring-0 focus:outline-none h-4 w-4 text-red-600 border-neutral-300 rounded"
+						v-model="deleteConfirmationModal.removeFiles"
+					/>
+				</div>
+				<div class="ml-3 text-sm">
+					<label class="font-medium">Remove {{ user.user }}'s files</label>
 				</div>
 			</div>
 		</div>
