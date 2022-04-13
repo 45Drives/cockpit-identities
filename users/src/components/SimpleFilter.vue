@@ -28,7 +28,7 @@
 				>
 					<div
 						:class="[selected.has(item) ? 'font-semibold' : 'font-normal', 'block truncate']"
-					>{{ item }}</div>
+					>{{ item.name ?? item }}</div>
 					<CheckIcon class="h-5 w-5" v-if="selected.has(item)" aria-hidden="true" />
 				</li>
 			</ul>
