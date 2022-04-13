@@ -2,12 +2,12 @@
 	<div class="card-body space-y-content overflow-visible">
 		<div v-if="createNew">
 			<label class="block text-label">Username</label>
-				<input
-					type="text"
-					class="w-full input-textlike"
-					placeholder="Valid format: [a-z_][a-z0-9_-]*[$a-z0-9_-]"
-					v-model="tmpUser.user"
-				/>
+			<input
+				type="text"
+				class="w-full input-textlike"
+				placeholder="Valid format: [a-z_][a-z0-9_-]*[$a-z0-9_-]"
+				v-model="tmpUser.user"
+			/>
 			<div class="feedback-group" v-if="feedback.user">
 				<ExclamationCircleIcon class="size-icon icon-error" />
 				<span v-html="feedback.user" class="text-feedback text-error"></span>
@@ -15,16 +15,16 @@
 		</div>
 		<div>
 			<label class="block text-label">Full Name/Description</label>
-				<input type="text" class="w-full input-textlike" placeholder="Full Name" v-model="tmpUser.name" />
+			<input type="text" class="w-full input-textlike" placeholder="Full Name" v-model="tmpUser.name" />
 		</div>
 		<div>
 			<label class="block text-label">Home Directory</label>
-				<input
-					type="text"
-					class="w-full input-textlike"
-					placeholder="Path to Working Directory at login"
-					v-model="tmpUser.home"
-				/>
+			<input
+				type="text"
+				class="w-full input-textlike"
+				placeholder="Path to Working Directory at login"
+				v-model="tmpUser.home"
+			/>
 			<div class="feedback-group" v-if="feedback.home">
 				<ExclamationCircleIcon class="size-icon icon-error" />
 				<span class="text-feedback text-error">{{ feedback.home }}</span>
@@ -114,7 +114,7 @@
 		<Table class="relative" emptyText="No groups. Click '+' to add one.">
 			<template #header>
 				<div class="flex flex-row justify-between items-center">
-					<div>{{ user.name === "" ? user.user : user.name }}'s Groups</div>
+					<div>Groups</div>
 					<Listbox as="template" v-model="addGroupSelectorValue">
 						<ListboxButton class="size-icon cursor-pointer">
 							<PlusIcon class="size-icon icon-default" />
@@ -191,7 +191,7 @@
 </template>
 
 <script>
-import { ref, watch, reactive, inject } from "vue";
+import { ref, watch, reactive, inject, onMounted } from "vue";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue';
 import { CheckIcon, SelectorIcon, PlusIcon, MinusIcon, ExclamationCircleIcon } from '@heroicons/vue/solid';
 import LoadingSpinner from "../components/LoadingSpinner.vue";
@@ -325,35 +325,37 @@ export default {
 			changesMade.value = changes;
 		};
 
-		watch(tmpUser, checkIfChanged); // deep watch for nested mutations
+		onMounted(() => {
+			watch(tmpUser, checkIfChanged); // deep watch for nested mutations
 
-		watch(() => tmpUser.groups, () => {
-			nonMemberGroups.value = groups.filter(group => !(tmpUser.groups?.includes(group))).sort();
-		});
+			watch(() => tmpUser.groups, () => {
+				nonMemberGroups.value = groups.filter(group => !(tmpUser.groups?.includes(group))).sort();
+			});
 
-		watch(() => props.user, () => { // deep watch for nested mutations
-			Object.assign(tmpUser, props.user);
-			if (!shells.value.includes(tmpUser.shell)) {
-				Object.assign(customShell, tmpUser.shell);
-				tmpUser.shell = customShell;
+			watch(() => props.user, () => { // deep watch for nested mutations
+				Object.assign(tmpUser, props.user);
+				if (!shells.value.includes(tmpUser.shell)) {
+					Object.assign(customShell, tmpUser.shell);
+					tmpUser.shell = customShell;
+				}
+				// the Object.assign should trigger the deep watch on tmpUser that calls checkIfChanged,
+				// but for some reason it just won't trigger it. Running manually until it's figured out
+				checkIfChanged();
+			}, { deep: true, immediate: true });
+
+			watch(addGroupSelectorValue, (group) => {
+				addGroup(group);
+				addGroupSelectorValue.value = "";
+			});
+
+			watch(groupsRef, () => { groups = groupsRef.value.map(groupObj => groupObj.group) }, { immediate: true });
+
+			watch(() => customShell.path, () => Object.assign(customShell, shellObj(customShell.path)));
+
+			if (typeof props.hooks.onInput === 'function') {
+				watch(() => ({ ...tmpUser }), (newUser, oldUser) => props.hooks.onInput(tmpUser, oldUser));
 			}
-			// the Object.assign should trigger the deep watch on tmpUser that calls checkIfChanged,
-			// but for some reason it just won't trigger it. Running manually until it's figured out
-			checkIfChanged();
-		}, { deep: true, immediate: true });
-
-		watch(addGroupSelectorValue, (group) => {
-			addGroup(group);
-			addGroupSelectorValue.value = "";
 		});
-
-		watch(groupsRef, () => { groups = groupsRef.value.map(groupObj => groupObj.group) }, { immediate: true });
-
-		watch(() => customShell.path, () => Object.assign(customShell, shellObj(customShell.path)));
-
-		if (typeof props.hooks.onInput === 'function') {
-			watch(() => ({ ...tmpUser }), (newUser, oldUser) => props.hooks.onInput(tmpUser, oldUser));
-		}
 
 		return {
 			tmpUser,
