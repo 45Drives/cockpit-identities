@@ -44,12 +44,12 @@
 								v-if="!noCancel"
 								type="button"
 								class="btn btn-secondary"
-								@click="onCancel"
+								@click="$emit('cancel')"
 							>{{ cancelText }}</button>
 							<button
 								type="button"
 								:class="['btn', applyDangerous ? 'btn-danger' : 'btn-primary']"
-								@click="onApply"
+								@click="$emit('apply')"
 								:disabled="disableContinue"
 							>{{ applyText }}</button>
 						</div>
@@ -84,8 +84,6 @@ export default {
 		},
 		applyDangerous: Boolean,
 		disableContinue: Boolean,
-		onApply: Function,
-		onCancel: Function,
 	},
 	components: {
 		Dialog,
@@ -94,5 +92,9 @@ export default {
 		TransitionChild,
 		TransitionRoot,
 	},
+	emits: [
+		'apply',
+		'cancel',
+	]
 };
 </script>

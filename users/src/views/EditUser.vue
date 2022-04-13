@@ -1,7 +1,7 @@
 <template>
 	<div class="centered-column p-well space-y-well">
-		<div class="card">
-			<div class="card-header flex flex-row items-baseline bg-default space-x-2 sticky top-0 z-10">
+		<div class="card sticky top-0 z-10">
+			<div class="card-header flex flex-row items-baseline space-x-2">
 				<span class="text-header">{{ user.name === "" ? user.user : user.name }}</span>
 				<span class="text-muted font-mono text-sm">
 					<span v-if="user.name">(login={{ user.user }},</span>
@@ -9,6 +9,11 @@
 					<span>uid={{ user.uid }},</span>
 					<span>gid={{ user.gid }})</span>
 				</span>
+			</div>
+		</div>
+		<div class="card">
+			<div class="card-header flex flex-row items-baseline space-x-2">
+				<div class="text-header">Details</div>
 				<LoadingSpinner class="size-icon" v-if="processing" />
 			</div>
 			<UserEditor :user="user" @applyChanges="applyChanges">
@@ -22,18 +27,18 @@
 		</div>
 		<div class="card">
 			<div class="card-header flex flex-row space-x-2">
-				<h3>Credentials</h3>
+				<div class="text-header">Credentials</div>
 				<LoadingSpinner class="size-icon" v-if="processing" />
 			</div>
 			<div class="card-body space-y-content">
 				<UserPassword :user="user.user" />
 				<SambaPassword :user="user.user" />
-				<SSHAuthorizedKeys :user="user" />
+				<SSHKeys :user="user" />
 			</div>
 		</div>
 		<div class="card">
 			<div class="card-header flex flex-row space-x-2">
-				<h3>Activity</h3>
+				<div class="text-header">Activity</div>
 				<LoadingSpinner class="size-icon" v-if="processing" />
 			</div>
 			<div class="card-body space-y-content">
@@ -43,8 +48,8 @@
 	</div>
 	<ModalPopup
 		:showModal="deleteConfirmationModal.show"
-		:onApply="deleteConfirmationModal.applyCallback"
-		:onCancel="deleteConfirmationModal.cancelCallback"
+		@apply="deleteConfirmationModal.applyCallback"
+		@cancel="deleteConfirmationModal.cancelCallback"
 		:headerText="`Delete user ${user.user}?`"
 		:applyText="deleteConfirmationModal.applyText"
 		applyDangerous
@@ -77,7 +82,7 @@ import { useSpawn, errorString, errorStringHTML } from "../hooks/useSpawn";
 import UserEditor from "../components/UserEditor.vue";
 import SambaPassword from "../components/SambaPassword.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
-import SSHAuthorizedKeys from "../components/SSHAuthorizedKeys.vue";
+import SSHKeys from "../components/SSHKeys.vue";
 import UserActivity from "../components/UserActivity.vue";
 import { shellsInjectionKey, processingInjectionKey, notificationsInjectionKey } from "../keys";
 import shellObj from "../hooks/shellObj";
@@ -235,7 +240,7 @@ export default {
 		UserEditor,
 		SambaPassword,
 		LoadingSpinner,
-		SSHAuthorizedKeys,
+		SSHKeys,
 		UserActivity,
 		TrashIcon,
 		ExclamationCircleIcon,

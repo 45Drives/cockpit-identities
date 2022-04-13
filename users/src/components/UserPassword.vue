@@ -25,7 +25,7 @@
 		</div>
 		<ModalPopup
 			:showModal="showPasswordExpiryModal"
-			:onApply="() => showPasswordExpiryModal = false"
+			@apply="() => showPasswordExpiryModal = false"
 			:headerText="`Password expiry settings for ${user}`"
 			applyText="Done"
 			noCancel
@@ -58,8 +58,8 @@
 		</ModalPopup>
 		<ModalPopup
 			:showModal="showExpirePasswordModal"
-			:onApply="expirePassword"
-			:onCancel="() => showExpirePasswordModal = false"
+			@apply="expirePassword"
+			@cancel="() => showExpirePasswordModal = false"
 			:headerText="`Expire password for ${user}?`"
 			applyText="Yes"
 			cancelText="No"

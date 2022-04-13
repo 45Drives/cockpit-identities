@@ -25,8 +25,8 @@
 	<ModalPopup
 		:showModal="sambaPassword.showRemoveModal"
 		:headerText="`Remove Samba password for ${user}?`"
-		:onApply="removeSambaPassword"
-		:onCancel="() => sambaPassword.showRemoveModal = false"
+		@apply="removeSambaPassword"
+		@cancel="() => sambaPassword.showRemoveModal = false"
 		applyText="Yes"
 		cancelText="No"
 	>

@@ -3,8 +3,8 @@
 		:showModal="showModal"
 		:headerText="headerText"
 		:disableContinue="!passwordValid"
-		:onApply="applyCallback"
-		:onCancel="cancelCallback"
+		@apply="applyCallback"
+		@cancel="cancelCallback"
 	>
 		<div class="my-2 space-y-content">
 			<div class="relative">
