@@ -307,6 +307,10 @@
 		@apply shadow-sm border-default bg-default rounded-md sm:text-sm focus:ring-0 focus:outline-none focus:border-neutral-300 dark:focus:border-neutral-600;
 	}
 
+	.input-checkbox {
+		@apply bg-default checked:bg-45d text-45d focus:ring-0 focus:outline-none h-4 w-4 border-neutral-500 rounded;
+	}
+
 	/* Combination classes
 	 */
 	.card {
