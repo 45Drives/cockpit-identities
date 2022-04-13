@@ -8,7 +8,7 @@
 					>
 						<div class="grow">
 							<slot name="header">
-								<span class="text-header">{{ headerText }}</span>
+								{{ headerText }}
 							</slot>
 						</div>
 						<div class="overflow-y-auto" style="scrollbar-gutter: stable;"></div>
