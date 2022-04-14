@@ -1,6 +1,6 @@
 <template>
 	<div v-click-outside="() => showMenu = false" class="relative">
-		<button @click="showMenu = !showMenu">
+		<button @click="showMenu = !showMenu" :disabled="masterSet.length < 2" :title="masterSet.length < 2 ? 'Less than two options' : ''">
 			<FilterIcon
 				:class="[selected.size > 0 ? 'icon-45d' : '', 'size-icon icon-default cursor-pointer']"
 			/>
