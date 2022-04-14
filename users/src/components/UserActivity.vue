@@ -7,39 +7,15 @@
 					<div v-else>User Login History</div>
 					<LoadingSpinner v-if="processing" class="size-icon" />
 				</div>
-				<div class="flex flex-col items-stretch gap-1">
-					<Datepicker
-						v-model="range"
-						range
-						:partialRange="false"
-						placeholder="Date Range"
-						:dark="darkMode"
-						class="w-auto shrink-0"
-						:format="rangePreviewFormatter"
-					/>
-					<div class="flex flex-row items-center justify-around">
-						<div>
-							<input
-								type="checkbox"
-								v-model="arg0"
-								value="last"
-								class="input-checkbox"
-								id="successful-checkbox"
-							/>
-							<label class="text-label mr-2 ml-1" for="successful-checkbox">Successful</label>
-						</div>
-						<div>
-							<input
-								type="checkbox"
-								v-model="arg0"
-								value="lastb"
-								class="input-checkbox"
-								id="unsuccessful-checkbox"
-							/>
-							<label class="text-label ml-1" for="unsuccessful-checkbox">Unsuccessful</label>
-						</div>
-					</div>
-				</div>
+				<Datepicker
+					v-model="range"
+					range
+					:partialRange="false"
+					placeholder="Date Range"
+					:dark="darkMode"
+					class="w-auto shrink-0"
+					:format="rangePreviewFormatter"
+				/>
 			</div>
 		</template>
 		<template #thead>
@@ -86,9 +62,10 @@
 						<SimpleFilter useTransformFixed :set="filters.ttys.set" v-model="filters.ttys.callback" />
 					</div>
 				</th>
-				<th v-if="arg0.length > 1" scope="col">
+				<th scope="col">
 					<div class="flex flex-row flex-nowrap justify-between space-x-5">
 						<span>Auth Result</span>
+						<SimpleFilter useTransformFixed :set="filters.authResults.set" v-model="filters.authResults.callback" />
 					</div>
 				</th>
 			</tr>
@@ -96,7 +73,7 @@
 		<template #tbody>
 			<tr
 				v-for="(entry, index) in historyReactive"
-				v-show="filters.users.callback(entry.user) && filters.ips.callback(entry.ip) && filters.ttys.callback(entry.tty)"
+				v-show="filters.users.callback(entry.user) && filters.ips.callback(entry.ip) && filters.ttys.callback(entry.tty) && filters.authResults.callback(entry.authResult)"
 			>
 				<td v-if="user === null">{{ entry.user }}</td>
 				<td>{{ formatDate(entry.sessionStart) }}</td>
@@ -107,7 +84,7 @@
 				<td>{{ entry.sessionTime ?? "" }}</td>
 				<td>{{ entry.ip }}</td>
 				<td>{{ entry.tty }}</td>
-				<td v-if="arg0.length > 1">{{ entry.bad ? "Bad" : "Good" }}</td>
+				<td>{{ entry.authResult }}</td>
 			</tr>
 		</template>
 	</Table>
@@ -199,7 +176,6 @@ export default {
 		const historyReactive = reactive(history);
 		const processing = inject(processingInjectionKey);
 		const darkMode = inject(darkModeInjectionKey);
-		const arg0 = ref(['last', 'lastb']);
 		const filters = reactive({
 			users: {
 				set: new Set([]),
@@ -210,6 +186,10 @@ export default {
 				callback: () => true,
 			},
 			ttys: {
+				set: new Set([]),
+				callback: () => true,
+			},
+			authResults: {
 				set: new Set([]),
 				callback: () => true,
 			},
@@ -244,7 +224,7 @@ export default {
 
 			try {
 				let tmpHistory = [];
-				for (let arg of arg0.value) {
+				for (let arg of ['last', 'lastb']) {
 					tmpHistory.push(
 						...(await useSpawn([arg, ...opts], { superuser: 'try' }).promise()).stdout.split('\n')
 							.filter(line => !(/^\s*$/.test(line) || /^[wb]tmp begins/.test(line))) // remove empty lines and last line
@@ -262,7 +242,7 @@ export default {
 										sessionEnd: null, // end time or "still logged in" (or something else?)
 										sessionTime: match[5] ? sessionTimeToSentence(match[5]) : "0 Minutes",
 										stillLoggedIn: false,
-										bad,
+										authResult: bad ? 'bad' : 'good',
 									});
 									if (match[6] === "still logged in") {
 										// live update time
@@ -286,6 +266,7 @@ export default {
 									filters.users.set.add(obj.user);
 									filters.ips.set.add(obj.ip);
 									filters.ttys.set.add(obj.tty);
+									filters.authResults.set.add(obj.authResult);
 									return obj;
 								} catch (error) {
 									throw new Error(error.message + `, trigger: ${line}`);
@@ -333,12 +314,6 @@ export default {
 			range.value = [from, to];
 			watch(() => props.user, getHistory, { immediate: true, deep: true });
 			watch(range, getHistory);
-			watch(arg0, () => {
-				if (arg0.value.length === 0) {
-					arg0.value.push('last');
-				}
-				getHistory();
-			})
 			watch(sortCallback, () => {
 				processing.value++;
 				history.value.sort(sortCallback.value);
@@ -352,7 +327,6 @@ export default {
 			historyReactive,
 			processing,
 			darkMode,
-			arg0,
 			filters,
 			compareFuncs,
 			sortCallback,
