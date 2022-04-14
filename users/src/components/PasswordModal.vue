@@ -39,8 +39,8 @@
 					<EyeIcon v-else class="size-icon icon-default" aria-hidden="true" />
 				</div>
 			</div>
-			<div v-if="allRequirements.length">
-				The password should satisfy the following requirements:
+			<div v-if="allRequirements.length" class="flex flex-col items-start">
+				<div>The password should satisfy the following requirements:</div>
 				<div class="inline-flex flex-col items-stretch">
 					<div v-for="requirement in allRequirements" class="flex flex-row text-sm items-center">
 						<span class="grow">{{ requirement.title }}</span>

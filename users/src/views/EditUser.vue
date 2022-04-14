@@ -1,7 +1,7 @@
 <template>
 	<div class="centered-column p-well space-y-well">
 		<div class="card sticky top-0 z-10">
-			<div class="card-header flex flex-row items-baseline space-x-2">
+			<div class="card-header flex flex-row flex-wrap items-baseline gap-2">
 				<span class="text-header">{{ user.name === "" ? user.user : user.name }}</span>
 				<span class="text-muted font-mono text-sm">
 					<span v-if="user.name">(login={{ user.user }},</span>

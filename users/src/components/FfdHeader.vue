@@ -17,7 +17,7 @@ If not, see <https://www.gnu.org/licenses/>.
 -->
 
 <template>
-	<div class="p-5 flex items-center bg-plugin-header font-redhat shadow-lg">
+	<div class="px-3 py-1 sm:p-5 flex items-center bg-plugin-header font-redhat shadow-lg z-10">
 		<div class="flex flex-row items-baseline basis-32 grow shrink-0">
 			<img
 				class="w-6 h-6 mr-0.5 self-center"
@@ -32,7 +32,7 @@ If not, see <https://www.gnu.org/licenses/>.
 			</h1>
 		</div>
 		<h1
-			class="text-red-800 dark:text-white text-2xl cursor-pointer grow-0 text-center"
+			class="text-red-800 dark:text-white text-base sm:text-2xl cursor-pointer grow-0 text-center"
 			@click="home"
 		>{{ moduleName }}</h1>
 		<div class="flex basis-32 justify-end grow shrink-0">

@@ -1,8 +1,13 @@
 <template>
-	<div class="centered-column p-well gap-well">
+	<div class="flex flex-col centered-column p-well gap-well">
+		<div class="card sticky top-0 z-10">
+			<div class="card-header flex flex-row flex-wrap items-baseline gap-2">
+				<span class="text-header">New User</span>
+			</div>
+		</div>
 		<div class="card">
 			<div class="card-header flex flex-row space-x-2">
-				<h3 class="text-header">New User</h3>
+				<h3 class="text-header">Details</h3>
 				<LoadingSpinner class="size-icon" v-if="processing" />
 			</div>
 			<UserEditor :user="user" createNew :hooks="editorHooks" @applyChanges="createUser" />

@@ -1,10 +1,10 @@
 <template>
 	<div class="flex flex-col">
 		<div class="-my-2 -mx-4 sm:-mx-6 lg:-mx-8">
-			<div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+			<div class="inline-block w-full py-2 align-middle md:px-6 lg:px-8 overflow-x-auto">
 				<div class="shadow md:rounded-[9px] border border-default">
 					<div
-						class="md:rounded-t-[8px] bg-accent py-3 px-3 lg:pl-8 lg:pr-6 overflow-hidden text-sm font-semibold flex flex-row"
+						class="md:rounded-t-[8px] bg-accent py-3 px-4 lg:pl-8 lg:pr-6 overflow-hidden text-sm font-semibold flex flex-row"
 					>
 						<div class="grow">
 							<slot name="header">
@@ -72,7 +72,7 @@ thead.use-sticky tr th {
 
 th,
 td {
-	@apply py-2 px-3 lg:pl-8 lg:pr-6 whitespace-nowrap text-sm text-left;
+	@apply py-2 px-4 lg:pl-8 lg:pr-6 whitespace-nowrap text-sm text-left;
 }
 
 th {

@@ -2,29 +2,27 @@
 	<div class="flex flex-col items-stretch p-well gap-well">
 		<div class="flex flex-row items-stretch grow gap-well">
 			<button
-				class="card grow flex flex-col place-content-center items-center"
+				class="card flex flex-col place-content-center items-center grow shrink"
 				@click="open('users')"
 			>
 				<div class="card-body">
-					<UsersIcon class="text-gray-500 w-40 h-40" />
+					<UsersIcon class="text-gray-500 max-h-40" />
 					<div>Users</div>
 				</div>
 			</button>
 			<button
-				class="card grow flex flex-col place-content-center items-center"
+				class="card flex flex-col place-content-center items-center grow shrink"
 				@click="open('groups')"
 			>
 				<div class="card-body">
-					<UserGroupIcon class="text-gray-500 w-40 h-40" />
+					<UserGroupIcon class="text-gray-500 max-h-40" />
 					<div>Groups</div>
 				</div>
 			</button>
 		</div>
-		<div class="flex flex-row items-stretch">
-			<div class="card grow flex flex-col items-stretch place-content-center">
-				<div class="card-body grow">
-					<UserActivity :initialRangeDays="0" />
-				</div>
+		<div class="card grow">
+			<div class="card-body">
+				<UserActivity :initialRangeDays="0" />
 			</div>
 		</div>
 	</div>

@@ -19,7 +19,7 @@
 			>
 				<div
 					v-if="notification.show"
-					class="max-w-sm w-full shadow-lg rounded-lg pointer-events-auto overflow-hidden bg-default text-default"
+					class="max-w-sm w-full shadow-lg pointer-events-auto overflow-hidden bg-default text-default"
 				>
 					<div class="p-4">
 						<div class="flex items-start">

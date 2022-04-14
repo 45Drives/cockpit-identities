@@ -41,7 +41,7 @@
 	}
 
 	.bg-plugin-header {
-		@apply bg-neutral-50 dark:bg-neutral-900;
+		@apply bg-white dark:bg-neutral-900;
 	}
 
 	.bg-accent {
@@ -144,6 +144,9 @@
 				@apply dark:hover:text-neutral-900;
 			}
 		}
+		button:disabled > & {
+			@apply text-neutral-400 dark:text-neutral-600 cursor-no-drop;
+		}
 	}
 
 	.icon-45d {
@@ -210,7 +213,7 @@
 	}
 
 	.p-well {
-		@apply p-8;
+		@apply p-2 sm:p-8;
 	}
 
 	/* Content, e.g. stuff in cards */
@@ -314,11 +317,11 @@
 	/* Combination classes
 	 */
 	.card {
-		@apply bg-default md:shadow-lg shadow-sm divide-y divide-default;
+		@apply bg-default md:shadow-lg shadow-md divide-y divide-default;
 	}
 
 	.card-header {
-		@apply px-4 py-5 sm:px-6;
+		@apply px-4 py-2 sm:px-6 sm:py-5;
 	}
 
 	.card-body {
@@ -326,7 +329,7 @@
 	}
 
 	.card-footer {
-		@apply px-4 py-4 sm:px-6;
+		@apply px-4 py-2 sm:px-6 sm:py-5;
 	}
 
 	.card-parent-col {

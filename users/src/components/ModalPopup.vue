@@ -28,14 +28,17 @@
 					leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
 				>
 					<div
-						class="relative inline-block align-bottom overflow-hidden transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full text-left card divide-y divide-default"
+						class="relative inline-flex flex-col items-stretch align-bottom overflow-hidden transform transition-all sm:my-8 sm:align-middle sm:max-w-full text-left card"
 					>
+						<div class="block w-[512px]"></div>
 						<div class="card-header">
 							<h3 class="text-header">{{ headerText }}</h3>
 						</div>
 						<div class="card-body flex flex-row items-center gap-2">
-							<slot name="icon" />
-							<div>
+							<div class="shrink-0">
+								<slot name="icon" />
+							</div>
+							<div class="grow">
 								<slot />
 							</div>
 						</div>
