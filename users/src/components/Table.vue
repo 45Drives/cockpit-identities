@@ -1,7 +1,7 @@
 <template>
 	<div class="flex flex-col">
 		<div class="-my-2 -mx-4 sm:-mx-6 lg:-mx-8">
-			<div class="inline-block w-full py-2 align-middle md:px-6 lg:px-8 overflow-x-auto">
+			<div class="inline-block w-full py-2 align-middle md:px-6 lg:px-8">
 				<div class="shadow md:rounded-[9px] border border-default">
 					<div
 						class="md:rounded-t-[8px] bg-accent py-3 px-4 lg:pl-8 lg:pr-6 overflow-hidden text-sm font-semibold flex flex-row"
@@ -11,10 +11,10 @@
 								{{ headerText }}
 							</slot>
 						</div>
-						<div class="overflow-y-auto" style="scrollbar-gutter: stable;"></div>
+						<div :class="[noScroll ? '' : 'overflow-y-auto']" style="scrollbar-gutter: stable;"></div>
 					</div>
 					<div
-						:class="[noShrink ? 'h-80' : 'max-h-80', 'flex flex-col overflow-y-scroll md:rounded-b-[8px]']"
+						:class="[noShrink ? noShrinkHeight : shrinkHeight, noScroll ? '' : 'overflow-y-scroll', 'flex flex-col md:rounded-b-[8px] overflow-x-auto']"
 						style="scrollbar-gutter: stable;"
 					>
 						<table class="min-w-full divide houston-table">
@@ -58,7 +58,18 @@ export default {
 			type: Boolean,
 			required: false,
 			default: false,
-		}
+		},
+		noShrinkHeight: {
+			type: String,
+			required: false,
+			default: 'h-80'
+		},
+		shrinkHeight: {
+			type: String,
+			required: false,
+			default: 'max-h-80'
+		},
+		noScroll: Boolean,
 	}
 }
 </script>
@@ -72,7 +83,12 @@ table.houston-table thead.use-sticky tr th {
 
 table.houston-table th,
 table.houston-table td {
-	@apply py-2 px-4 lg:pl-8 lg:pr-6 whitespace-nowrap text-sm text-left;
+	@apply py-2 px-4 lg:pl-8 lg:pr-6 whitespace-nowrap text-sm;
+}
+
+table.houston-table th:not(.text-right):not(.text-center),
+table.houston-table td:not(.text-right):not(.text-center) {
+	@apply text-left;
 }
 
 table.houston-table th {
