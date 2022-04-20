@@ -77,7 +77,7 @@
 </template>
 
 <script>
-import { ref, watch } from 'vue';
+import { ref, watch, reactive } from 'vue';
 import { InformationCircleIcon, ExclamationCircleIcon, MinusCircleIcon, CheckCircleIcon } from '@heroicons/vue/outline';
 import { XIcon } from '@heroicons/vue/solid';
 import { FIFO, UniqueIDGenerator } from '@45drives/cockpit-helpers';
@@ -112,24 +112,30 @@ export default {
 		 */
 		const constructNotification = (title, body, level = 'info', timeout = 10000) => {
 			const actions = [];
-			const obj = {
+			const obj = reactive({
 				show: true,
 				title,
 				body,
 				level,
 				timeout,
 				actions,
-				/** Add an action to the notification (chainable)
-				 * 
-				 * @param {string} text button text for action
-				 * @param {function} callback onclick callback for action
-				 */
-				addAction(text, callback) {
-					actions.push({ text, callback });
-					return this;
-				},
-			}
+			});
 			showNotificationObj(obj);
+			/** Add an action to the notification (chainable)
+			 * 
+			 * @param {string} text button text for action
+			 * @param {function} callback onclick callback for action
+			 */
+			obj.addAction = (text, callback) => {
+				obj.actions.push({
+					text,
+					callback: () => {
+						obj.show = false;
+						callback();
+					}
+				});
+				return obj;
+			};
 			return obj;
 		}
 
