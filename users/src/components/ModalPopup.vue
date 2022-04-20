@@ -28,7 +28,7 @@
 					leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
 				>
 					<div
-						class="relative inline-flex flex-col items-stretch align-bottom overflow-hidden transform transition-all sm:my-8 sm:align-middle sm:max-w-full text-left card"
+						:class="[autoWidth ? 'sm:max-w-full' : 'sm:max-w-lg', 'relative inline-flex flex-col items-stretch align-bottom overflow-hidden transform transition-all sm:my-8 sm:align-middle text-left card']"
 					>
 						<div class="block w-[512px]"></div>
 						<div class="card-header">
@@ -74,6 +74,7 @@ export default {
 			required: false,
 			default: false,
 		},
+		autoWidth: Boolean,
 		headerText: String,
 		cancelText: {
 			type: String,
