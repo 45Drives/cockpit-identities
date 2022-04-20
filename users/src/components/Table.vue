@@ -11,11 +11,11 @@
 								{{ headerText }}
 							</slot>
 						</div>
-						<div :class="[noScroll ? '' : 'overflow-y-auto']" style="scrollbar-gutter: stable;"></div>
+						<div :class="[noScroll ? '' : 'overflow-y-auto']" :style="{'scrollbar-gutter': noScroll ? 'auto' : 'stable'}"></div>
 					</div>
 					<div
 						:class="[noShrink ? noShrinkHeight : shrinkHeight, noScroll ? '' : 'overflow-y-scroll', 'flex flex-col md:rounded-b-[8px] overflow-x-auto']"
-						style="scrollbar-gutter: stable;"
+						:style="{'scrollbar-gutter': noScroll ? 'auto' : 'stable'}"
 					>
 						<table class="min-w-full divide houston-table">
 							<thead :class="[stickyHeaders ? 'use-sticky' : '']">
