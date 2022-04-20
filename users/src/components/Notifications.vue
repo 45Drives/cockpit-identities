@@ -80,8 +80,7 @@
 import { ref, watch } from 'vue';
 import { InformationCircleIcon, ExclamationCircleIcon, MinusCircleIcon, CheckCircleIcon } from '@heroicons/vue/outline';
 import { XIcon } from '@heroicons/vue/solid';
-import FIFO from '../classes/FIFO';
-import UniqueIDGenerator from '../classes/UniqueIDGenerator';
+import { FIFO, UniqueIDGenerator } from '@45drives/cockpit-helpers';
 
 /** Notification passed to showNotification
  * 

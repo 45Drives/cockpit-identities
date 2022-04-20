@@ -32,7 +32,7 @@
 
 <script>
 import { UserIcon, UserAddIcon, StarIcon, ShieldExclamationIcon } from "@heroicons/vue/solid";
-import { useSpawn, errorString } from '../hooks/useSpawn';
+import { useSpawn, errorString } from '@45drives/cockpit-helpers';
 import { ref } from "vue";
 
 export default {

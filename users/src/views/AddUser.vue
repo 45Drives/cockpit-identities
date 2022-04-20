@@ -18,7 +18,7 @@
 
 <script>
 import { ref, watch, computed, reactive, inject } from "vue";
-import { useSpawn, errorString, errorStringHTML } from "../hooks/useSpawn";
+import { useSpawn, errorString, errorStringHTML } from "@45drives/cockpit-helpers";
 import shellObj from "../hooks/shellObj";
 import UserEditor from "../components/UserEditor.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";

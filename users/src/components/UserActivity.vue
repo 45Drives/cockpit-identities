@@ -94,7 +94,7 @@
 import { ref, reactive, watch, inject, onMounted, computed } from 'vue';
 import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
-import { useSpawn, errorString } from '../hooks/useSpawn';
+import { useSpawn, errorString } from '@45drives/cockpit-helpers';
 import { FilterIcon } from '@heroicons/vue/solid';
 import SimpleFilter from './SimpleFilter.vue';
 import LoadingSpinner from './LoadingSpinner.vue';

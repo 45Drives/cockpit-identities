@@ -198,7 +198,7 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 import { shellsInjectionKey, groupsInjectionKey, processingInjectionKey } from "../keys";
 import shellObj from "../hooks/shellObj";
 import ModalPopup from './ModalPopup.vue';
-import { useSpawn } from "../hooks/useSpawn";
+import { useSpawn } from "@45drives/cockpit-helpers";
 import Table from "./Table.vue";
 
 export default {

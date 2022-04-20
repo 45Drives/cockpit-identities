@@ -76,7 +76,7 @@
 <script>
 import { useRoute } from "vue-router";
 import { ref, watch, computed, reactive, inject, onUnmounted } from "vue";
-import { useSpawn, errorString, errorStringHTML } from "../hooks/useSpawn";
+import { useSpawn, errorString, errorStringHTML } from "@45drives/cockpit-helpers";
 import UserEditor from "../components/UserEditor.vue";
 import SambaPassword from "../components/SambaPassword.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";

@@ -84,7 +84,7 @@ import ModalPopup from "./ModalPopup.vue";
 import PasswordModal from "./PasswordModal.vue";
 import { ExclamationCircleIcon, LockClosedIcon, LockOpenIcon, InformationCircleIcon } from '@heroicons/vue/solid';
 import { ref, reactive, watch, inject } from 'vue';
-import { useSpawn, errorString, errorStringHTML } from '../hooks/useSpawn';
+import { useSpawn, errorString, errorStringHTML } from '@45drives/cockpit-helpers';
 import { notificationsInjectionKey, processingInjectionKey } from "../keys";
 
 export default {

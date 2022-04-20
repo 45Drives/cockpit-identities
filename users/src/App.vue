@@ -14,9 +14,8 @@
 import FfdHeader from './components/FfdHeader.vue';
 import { ref, provide, watch } from 'vue';
 import shellObj from './hooks/shellObj';
-import { useSpawn, errorString } from './hooks/useSpawn';
+import { useSpawn, errorString, FIFO } from '@45drives/cockpit-helpers';
 import Notifications from './components/Notifications.vue';
-import FIFO from './classes/FIFO';
 import { notificationsInjectionKey, darkModeInjectionKey, processingInjectionKey, shellsInjectionKey, groupsInjectionKey } from './keys';
 
 const props = defineProps({ notificationFIFO: FIFO });

@@ -85,13 +85,12 @@
 
 <script>
 import { ref, reactive, watch, inject, onMounted } from 'vue';
-import { errorStringHTML, useSpawn } from '../hooks/useSpawn';
+import { errorStringHTML, useSpawn, BetterCockpitFile  } from '@45drives/cockpit-helpers';
 import { MinusIcon, PlusIcon, ClipboardCopyIcon, ExclamationCircleIcon } from '@heroicons/vue/solid';
 import Table from './Table.vue';
-import { SSHAuthorizedKeysSyntax } from '../hooks/syntax';
+import { SSHAuthorizedKeysSyntax } from '@45drives/cockpit-syntaxes';
 import ModalPopup from './ModalPopup.vue';
 import { notificationsInjectionKey } from '../keys';
-import BetterCockpitFile from '../classes/BetterCockpitFile';
 
 const authorizedKeysFileOpts = {
 	superuser: 'try',

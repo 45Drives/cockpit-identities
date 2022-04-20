@@ -38,7 +38,7 @@
 <script>
 import { ExclamationCircleIcon } from '@heroicons/vue/solid';
 import { reactive, watch, inject, ref } from 'vue';
-import { useSpawn, errorStringHTML } from "../hooks/useSpawn";
+import { useSpawn, errorStringHTML } from "@45drives/cockpit-helpers";
 import { notificationsInjectionKey, processingInjectionKey } from '../keys';
 import ModalPopup from './ModalPopup.vue';
 import PasswordModal from './PasswordModal.vue';

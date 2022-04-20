@@ -1,6 +1,6 @@
 import { createApp, reactive } from 'vue';
 import App from './App.vue';
-import FIFO from './classes/FIFO';
+import { FIFO } from '@45drives/cockpit-helpers';
 import '@45drives/cockpit-css/src/index.css';
 
 import router from './router';
