@@ -17,7 +17,7 @@
 						:class="[noShrink ? 'h-80' : 'max-h-80', 'flex flex-col overflow-y-scroll md:rounded-b-[8px]']"
 						style="scrollbar-gutter: stable;"
 					>
-						<table class="min-w-full divide">
+						<table class="min-w-full divide houston-table">
 							<thead :class="[stickyHeaders ? 'use-sticky' : '']">
 								<slot name="thead" />
 							</thead>
@@ -64,22 +64,22 @@ export default {
 </script>
 
 <style>
-@import "../index.css";
+@import '@45drives/cockpit-css/src/index.css';
 
-thead.use-sticky tr th {
+table.houston-table thead.use-sticky tr th {
 	@apply sticky z-10 top-0;
 }
 
-th,
-td {
+table.houston-table th,
+table.houston-table td {
 	@apply py-2 px-4 lg:pl-8 lg:pr-6 whitespace-nowrap text-sm text-left;
 }
 
-th {
+table.houston-table th {
 	@apply bg-accent font-semibold;
 }
 
-tr {
+table.houston-table tr {
 	@apply even:bg-accent;
 }
 </style>
