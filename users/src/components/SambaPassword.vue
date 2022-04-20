@@ -55,7 +55,7 @@ export default {
 		const checkIfSmbpasswdSet = async () => {
 			processing.value++;
 			try {
-				await useSpawn(['pdbedit', '-L', '-u', props.user]).promise();
+				await useSpawn(['pdbedit', '-L', '-u', props.user], { superuser: 'try' }).promise();
 				sambaPassword.isSet = true;
 			} catch (state) {
 				sambaPassword.isSet = false;

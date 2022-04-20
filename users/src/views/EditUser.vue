@@ -139,7 +139,7 @@ export default {
 					);
 					tmpUser.shell = shellObj(fields[6]);
 				}
-				tmpUser.groups = (await useSpawn(['groups', user.user]).promise()).stdout
+				tmpUser.groups = (await useSpawn(['groups', user.user], { superuser: 'try' }).promise()).stdout
 					.replace(/^[^:]+:\s*/, '') // remove "user: " prefix present in some distributions
 					.split(/\s+/g)
 					.filter(line => !/^\s*$/.test(line)) // remove empty lines
@@ -181,7 +181,7 @@ export default {
 				procs.push(useSpawn(['usermod', '-aG', groupsToAdd.join(','), newUser.user], { superuser: 'try' }).promise());
 			if (groupsToRemove.length)
 				for (const group of groupsToRemove)
-					procs.push(useSpawn(['gpasswd', '-d', newUser.user, group]).promise());
+					procs.push(useSpawn(['gpasswd', '-d', newUser.user, group], { superuser: 'try' }).promise());
 
 			for (const proc of procs) {
 				try {
