@@ -1,19 +1,15 @@
 <template>
-	<div>
+	<div v-if="valid">
 		<label class="block text-label">SSH</label>
 		<div class="space-y-content">
 			<div class="button-group-row-wrap">
-				<button class="btn btn-primary">
+				<button v-if="publicID.hasPublicID" class="btn btn-primary" @click="publicID.copyID">
 					<div class="flex flex-row space-x-2 items-center">
 						<span>Copy SSH Public ID</span>
 						<ClipboardCopyIcon class="size-icon" />
 					</div>
 				</button>
-				<button class="btn btn-primary" @click="getKeys">
-					<div class="flex flex-row space-x-2 items-center">
-						<span>Refresh keys</span>
-					</div>
-				</button>
+				<button v-else class="btn btn-primary" @click="publicID.generateID">Generate SSH Public ID</button>
 			</div>
 			<Table>
 				<template #header>
@@ -81,15 +77,25 @@
 			class="text-muted"
 		>Fingerprint: {{ confirmRemoveKey.key?.comment ?? '' }} {{ confirmRemoveKey.key?.fingerprint ?? "no key selected" }}</div>
 	</ModalPopup>
+	<PasswordModal
+		allowEmpty
+		requireDifferentFromUser
+		:user="user.user"
+		headerText="Set passphrase for ID (empty for no passphrase)"
+		:showModal="publicID.showPassphraseModal"
+		@apply="publicID.applyPasswordCallback"
+		@cancel="publicID.cancelPasswordCallback"
+	/>
 </template>
 
 <script>
-import { ref, reactive, watch, inject, onMounted } from 'vue';
-import { errorStringHTML, useSpawn, BetterCockpitFile  } from '@45drives/cockpit-helpers';
+import { ref, reactive, watch, inject, onMounted, onUnmounted } from 'vue';
+import { errorStringHTML, errorString, useSpawn, BetterCockpitFile } from '@45drives/cockpit-helpers';
 import { MinusIcon, PlusIcon, ClipboardCopyIcon, ExclamationCircleIcon } from '@heroicons/vue/solid';
 import Table from './Table.vue';
 import { SSHAuthorizedKeysSyntax } from '@45drives/cockpit-syntaxes';
 import ModalPopup from './ModalPopup.vue';
+import PasswordModal from './PasswordModal.vue';
 import { notificationsInjectionKey } from '../keys';
 
 const authorizedKeysFileOpts = {
@@ -99,6 +105,40 @@ const authorizedKeysFileOpts = {
 	persistStat: true
 };
 
+const test = async (check, path) => {
+	try {
+		await useSpawn(['test', check, path], { superuser: 'try' }).promise();
+		return true;
+	} catch (state) {
+		if (state.status === 1)
+			return false;
+		throw new Error("Failed to check path: " + path + ": " + errorString(state));
+	}
+}
+
+const checkIfExists = async (path) => {
+	return test('-e', path);
+}
+
+const checkIfAllowed = async (path) => {
+	if (await test('-d', path)) {
+		// directory
+		return (
+			await test('-r', path) &&
+			await test('-w', path) &&
+			await test('-x', path)
+		)
+	} else if (await test('-f', path)) {
+		// file
+		return (
+			await test('-r', path) &&
+			await test('-w', path)
+		)
+	} else {
+		throw new Error("Path does not exist: " + path);
+	}
+}
+
 export default {
 	props: {
 		user: Object,
@@ -106,6 +146,7 @@ export default {
 	setup(props) {
 		const notifications = inject(notificationsInjectionKey).value;
 		const keys = ref([]);
+		const valid = ref(false);
 		const confirmRemoveKey = reactive({
 			showModal: false,
 			key: null,
@@ -117,7 +158,6 @@ export default {
 				try {
 					const tmpKeys = keys.value.filter(key => key !== confirmRemoveKey.key);
 					await authorizedKeysFile.replace(tmpKeys);
-					keys.value = tmpKeys;
 				} catch (error) {
 					notifications.constructNotification("Error removing authorized SSH key", errorStringHTML(error), 'error');
 				} finally {
@@ -143,7 +183,6 @@ export default {
 					}
 					tmpKeys = [...keys.value, ...tmpKeys];
 					await authorizedKeysFile.replace(tmpKeys);
-					keys.value = tmpKeys;
 				} catch (state) {
 					notifications.constructNotification("Error adding authorized SSH key", errorStringHTML(state), 'error');
 				} finally {
@@ -156,37 +195,153 @@ export default {
 				addKey.showModal = false;
 			},
 		});
+		const publicID = reactive({
+			hasPublicID: false,
+			checkPublicID: async () => {
+				publicID.hasPublicID = await checkIfExists(`${props.user.home}/.ssh/id_rsa.pub`);
+			},
+			copyID: async () => {
+				try {
+					navigator.clipboard.writeText(
+						await cockpit.file(`${props.user.home}/.ssh/id_rsa.pub`, { superuser: 'try' }).read()
+					);
+					notifications.constructNotification("Copied public ID to clipboard", '', 'success');
+				} catch (error) {
+					notifications.constructNotification("Error reading public ID", errorStringHTML(error), 'error');
+				}
+			},
+			generateID: async () => {
+				publicID.showPassphraseModal = true;
+				try {
+					const state = useSpawn(['sudo', '-u', props.user.user, 'ssh-keygen'], { superuser: 'try' })
+					state.proc.input(`${props.user.home}/.ssh/id_rsa\n`, true);
+					let pass;
+					try {
+						pass = await new Promise((resolve, reject) => {
+							publicID.applyPasswordCallback = resolve;
+							publicID.cancelPasswordCallback = reject;
+						})
+					} catch {
+						notifications.constructNotification("SSH key generation canceled");
+						publicID.showPassphraseModal = false;
+						return;
+					}
+					state.proc.input(`${pass}\n${pass}`);
+					await state.promise();
+					notifications.constructNotification("Successfully generated SSH key pair", "It can now be copied and used.", 'success');
+				} catch (error) {
+					notifications.constructNotification("Error generating public ID", errorStringHTML(error), 'error');
+				}
+				publicID.showPassphraseModal = false;
+				publicID.checkPublicID();
+			},
+			showPassphraseModal: false,
+			applyPasswordCallback: () => { },
+			cancelPasswordCallback: () => { },
+		});
 
+		let authorizedKeysFile = null;
 
-		let authorizedKeysFile = new BetterCockpitFile(
-			`${props.user.home}/.ssh/authorized_keys`,
-			authorizedKeysFileOpts
-		);
-
-		const getKeys = async () => {
+		const getKeys = async (promise) => {
 			if (!props.user?.home)
 				return;
 			try {
-				let tmpKeys = await authorizedKeysFile.read() ?? [];
-				console.log(tmpKeys);
-				keys.value = tmpKeys ?? [];
+				keys.value = await promise ?? [];
+				console.log(keys.value);
 			} catch (error) {
 				notifications.constructNotification("Error getting authorized SSH keys", errorStringHTML(error), 'error');
 			}
 		};
 
-		watch(props.user, () => {
+		const createSshDir = async (path) => {
+			const authorizedKeysPathArr = path.split(/(?<!\\)\//);
+			const sshDir = authorizedKeysPathArr.slice(0, authorizedKeysPathArr.length - 1).join('/');
+			try {
+				if (! await checkIfExists(sshDir)) {
+					await useSpawn(['mkdir', '-p', sshDir], { superuser: 'try' }).promise();
+					await useSpawn(['chmod', '700', sshDir], { superuser: 'try' }).promise();
+					await useSpawn(['chown', `${props.user.user}:${props.user.user}`, sshDir], { superuser: 'try' }).promise();
+				}
+				await useSpawn(['touch', path], { superuser: 'try' }).promise();
+				await useSpawn(['chmod', '600', path], { superuser: 'try' }).promise();
+				await useSpawn(['chown', `${props.user.user}:${props.user.user}`, path], { superuser: 'try' }).promise();
+				notifications.constructNotification("Fixed missing SSH directory/files", '', 'success');
+			} catch (state) {
+				notifications.constructNotification("Failed to create SSH directory / authorized_keys", errorStringHTML(state), 'error');
+			}
+			initSshManagement();
+		}
+
+		const validateAuthorizedKeysPath = async (path) => {
+			const authorizedKeysPathArr = path.split(/(?<!\\)\//);
+			const sshDir = authorizedKeysPathArr.slice(0, authorizedKeysPathArr.length - 1).join('/');
+			if (! await checkIfAllowed(props.user.home)) {
+				// permission denied
+				notifications.constructNotification("Permission denied for SSH", "You cannot manage SSH for this user.", 'warning');
+				return false;
+			}
+			if (! await checkIfExists(sshDir)) {
+				// allow to create dir and file
+				notifications.constructNotification("SSH directory doesn't exist", `${sshDir} does not exist, but you can create it now.`, 'warning', 0)
+					.addAction("Fix", () => createSshDir(path));
+				return false;
+			}
+			if (! await checkIfAllowed(sshDir)) {
+				// permission denied
+				notifications.constructNotification("Permission denied for SSH", "You cannot manage SSH for this user.", 'warning');
+				return false;
+			}
+			if (! await checkIfExists(path)) {
+				// allow to create (dir and) file
+				notifications.constructNotification("authorized_keys file doesn't exist", `${path} does not exist, but you can create it now.`, 'warning', 0)
+					.addAction("Fix", () => createSshDir(path));
+				return false;
+			}
+			if (! await checkIfAllowed(path)) {
+				// permission denied
+				notifications.constructNotification("Permission denied for SSH", "You cannot manage SSH for this user.", 'warning');
+				return false;
+			}
+			return true;
+		}
+
+		let watchHandle = null;
+
+		const initSshManagement = async () => {
+			if (!props.user.home)
+				return;
+			if (watchHandle)
+				watchHandle.remove();
+			const authorizedKeysFilePath = `${props.user.home}/.ssh/authorized_keys`;
+			try {
+				valid.value = await validateAuthorizedKeysPath(authorizedKeysFilePath);
+			} catch (error) {
+				notifications.constructNotification("Error checking path: ${}", errorStringHTML(error), 'error');
+				return;
+			}
 			authorizedKeysFile = new BetterCockpitFile(
-				`${props.user.home}/.ssh/authorized_keys`,
+				authorizedKeysFilePath,
 				authorizedKeysFileOpts
 			);
-			getKeys();
+			watchHandle = authorizedKeysFile.watch(getKeys);
+			publicID.checkPublicID();
+		}
+
+		watch(props.user, () => {
+			initSshManagement();
 		}, { immediate: true });
+
+		onUnmounted(() => {
+			if (watchHandle)
+				watchHandle.remove();
+		})
 
 		return {
 			keys,
+			valid,
 			confirmRemoveKey,
 			addKey,
+			publicID,
 			getKeys,
 		}
 	},
@@ -197,6 +352,7 @@ export default {
 		ClipboardCopyIcon,
 		ModalPopup,
 		ExclamationCircleIcon,
+		PasswordModal,
 	}
 }
 </script>
