@@ -1,7 +1,7 @@
 import { createApp, reactive } from 'vue';
 import App from './App.vue';
-import './index.css';
 import FIFO from './classes/FIFO';
+import '@45drives/cockpit-css/src/index.css';
 
 import router from './router';
 
@@ -26,13 +26,16 @@ const errorHandler = (error) => {
 	} else {
 		notificationObj.body = "An error occured, check the system console (CTRL+SHIFT+J) for more information.";
 	}
-	notificationFIFO.push(notificationObj);
+	if (notificationFIFO.getLen() < 10)
+		notificationFIFO.push(notificationObj);
+	else
+		throw error;
 }
 
 const app = createApp(App, { notificationFIFO }).use(router)
 
 app.config.errorHandler = (error) => errorHandler(error);
 
-// window.onerror = (...args) => errorHandler(args[4] ?? args[0]);
+window.onerror = (...args) => errorHandler(args[4] ?? args[0]);
 
 app.mount('#app');
