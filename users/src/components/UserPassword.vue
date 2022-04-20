@@ -1,5 +1,5 @@
 <template>
-	<div v-if="!modalOnly">
+	<div v-if="!modalOnly && allowed">
 		<label class="block text-label">User Login</label>
 		<div class="button-group-row-wrap">
 			<button
@@ -112,6 +112,7 @@ export default {
 			isExpired: false,
 			expireDays: null,
 		});
+		const allowed = ref(true);
 		const showExpirePasswordModal = ref(false);
 		const showPasswordExpiryModal = ref(false);
 		const processing = inject(processingInjectionKey);
@@ -148,9 +149,10 @@ export default {
 			} catch (state) {
 				notifications.constructNotification(
 					"Failed to check password status",
-					`${errorStringHTML(state)}\nPretending it is not set.`,
+					errorStringHTML(state),
 					'warning'
 				);
+				allowed.value = false;
 				userPassword.isSet = false;
 			}
 		};
@@ -232,6 +234,7 @@ export default {
 
 		return {
 			userPassword,
+			allowed,
 			showExpirePasswordModal,
 			showPasswordExpiryModal,
 			setPassword,
