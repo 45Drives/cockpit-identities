@@ -3,8 +3,8 @@
 		class="h-full flex flex-col text-default bg-well"
 	>
 		<FfdHeader moduleName="Users and Groups" centerName />
-		<div v-if="gotInitialData" class="h-full overflow-y-auto">
-			<router-view class="grow h-full" />
+		<div v-if="gotInitialData" class="grow overflow-y-auto">
+			<router-view class="h-full" />
 		</div>
 	</div>
 	<Notifications :notificationFIFO="notificationFIFO" ref="notifications" />
@@ -65,12 +65,14 @@ const getGroups = async () => {
 		groups.value = groupDB
 			.split('\n')
 			.filter(record => !/^\s*$/.test(record)) // remove empty lines
-			.map(record => (
-				{
-					group: record.split(':')[0], // group name is 1st field
-					members: record.split(':')[3]?.split(',') // comma-delim list of members is 4th field
+			.map(record => {
+				const fields = record.split(':');
+				return {
+					group: fields[0], // group name is 1st field
+					gid: fields[2],
+					members: fields[3]?.split(',').filter(m => m) // comma-delim list of members is 4th field
 				}
-			));
+			});
 	} catch (state) {
 		alert("Failed to get groups: " + errorString(state));
 	}
