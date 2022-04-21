@@ -202,7 +202,6 @@ export default {
 			apply: async () => {
 				try {
 					let tmpKeys = await SSHAuthorizedKeysSyntax.parse(addKey.keyText);
-					console.log(tmpKeys);
 					if (!tmpKeys.length) {
 						notifications.constructNotification("Error adding authorized SSH key", "No keys could be parsed.", 'error');
 						return;
@@ -314,7 +313,6 @@ export default {
 				return;
 			try {
 				keys.value = await promise ?? [];
-				console.log(keys.value);
 			} catch (error) {
 				notifications.constructNotification("Error getting authorized SSH keys", errorStringHTML(error), 'error');
 			}
@@ -349,7 +347,7 @@ export default {
 			}
 			if (! await checkIfExists(sshDir)) {
 				// allow to create dir and file
-				notifications.constructNotification("SSH directory doesn't exist", `${sshDir} does not exist, but you can create it now.`, 'warning', 0)
+				notifications.constructNotification("SSH directory doesn't exist", `${sshDir} does not exist, but you can create it now.`, 'warning')
 					.addAction("Fix", () => createSshDir(path));
 				return false;
 			}
@@ -360,7 +358,7 @@ export default {
 			}
 			if (! await checkIfExists(path)) {
 				// allow to create (dir and) file
-				notifications.constructNotification("authorized_keys file doesn't exist", `${path} does not exist, but you can create it now.`, 'warning', 0)
+				notifications.constructNotification("authorized_keys file doesn't exist", `${path} does not exist, but you can create it now.`, 'warning')
 					.addAction("Fix", () => createSshDir(path));
 				return false;
 			}
