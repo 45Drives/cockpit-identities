@@ -167,8 +167,8 @@
 				<tr v-for="(group, index) in tmpUser.groups">
 					<td>{{ group }}</td>
 					<td class="flex flex-row justify-end">
-						<button @click="removeGroup(group)">
-							<MinusIcon v-if="group !== tmpUser.user" class="uppercase icon-danger size-icon" />
+						<button v-if="group !== tmpUser.user" @click="removeGroup(group)">
+							<MinusIcon class="icon-danger size-icon" />
 						</button>
 					</td>
 				</tr>
