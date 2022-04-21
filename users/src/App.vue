@@ -61,17 +61,26 @@ const groups = ref([]);
 const getGroups = async () => {
 	processing.value++;
 	try {
+		const primaryGroups = (await useSpawn(['getent', 'passwd'], { superuser: 'try' }).promise()).stdout
+					.split('\n')
+					.map(record => record.split(':')[0]);
 		const groupDB = (await useSpawn(['getent', 'group'], { superuser: 'try' }).promise()).stdout;
 		groups.value = groupDB
 			.split('\n')
 			.filter(record => !/^\s*$/.test(record)) // remove empty lines
 			.map(record => {
 				const fields = record.split(':');
-				return {
+				const obj = {
 					group: fields[0], // group name is 1st field
 					gid: parseInt(fields[2]),
-					members: fields[3]?.split(',').filter(m => m) // comma-delim list of members is 4th field
+					members: fields[3]?.split(',').filter(m => m), // comma-delim list of members is 4th field
+					isPrimary: false,
 				}
+				if (primaryGroups.includes(obj.group)) {
+					obj.isPrimary = true;
+					obj.members = [...new Set([...obj.members, obj.group])];
+				}
+				return obj;
 			});
 	} catch (state) {
 		alert("Failed to get groups: " + errorString(state));
