@@ -20,6 +20,8 @@
 				<div
 					v-if="notification.show"
 					class="max-w-sm w-full shadow-lg pointer-events-auto overflow-hidden bg-default text-default"
+					@mouseenter="notification.clearTimeouts?.()"
+					@mouseleave="notification.setTimeouts?.()"
 				>
 					<div class="p-4">
 						<div class="flex items-start">
@@ -77,7 +79,7 @@
 </template>
 
 <script>
-import { ref, watch, reactive } from 'vue';
+import { ref, watch, reactive, onUnmounted } from 'vue';
 import { InformationCircleIcon, ExclamationCircleIcon, MinusCircleIcon, CheckCircleIcon } from '@heroicons/vue/outline';
 import { XIcon } from '@heroicons/vue/solid';
 import { FIFO, UniqueIDGenerator } from '@45drives/cockpit-helpers';
@@ -147,24 +149,35 @@ export default {
 		const showNotificationObj = (notificationObj) => {
 			notificationObj.show = true;
 			notificationObj.id = uniqueIDGenerator.get();
+			notificationObj.setTimeouts = () => {
+				console.log("setting timeouts");
+				if (notificationObj.timeout > 0) {
+					notificationObj.timeout1 = setTimeout(
+						() => notificationObj.show = false,
+						notificationObj.timeout
+					);
+					notificationObj.timeout2 = setTimeout(
+						() => {
+							notificationList.value = notificationList.value.filter(obj => obj !== notificationObj);
+							uniqueIDGenerator.release(notificationObj.id);
+						},
+						notificationObj.timeout + 2000
+					);
+				}
+			}
+			notificationObj.clearTimeouts = () => {
+				console.log("clearing timeouts");
+				if (notificationObj.timeout1 !== undefined)
+					clearTimeout(notificationObj.timeout1);
+				if (notificationObj.timeout2 !== undefined)
+					clearTimeout(notificationObj.timeout2);
+			}
 			notificationList.value = [notificationObj, ...notificationList.value];
 			if (notificationObj.level === 'error') {
 				console.error(notificationObj.title);
 				console.error(notificationObj.body);
 			}
-			if (notificationObj.timeout > 0) {
-				setTimeout(
-					() => notificationObj.show = false,
-					notificationObj.timeout
-				);
-				setTimeout(
-					() => {
-						notificationList.value = notificationList.value.filter(obj => obj !== notificationObj);
-						uniqueIDGenerator.release(notificationObj.id);
-					},
-					notificationObj.timeout + 2000
-				);
-			}
+			notificationObj.setTimeouts();
 		}
 
 		watch(() => props.notificationFIFO.getLen(), (newLen, oldLen) => {
@@ -179,6 +192,12 @@ export default {
 				}
 			}
 		});
+
+		let cleanupHandle = setInterval(() => {
+			notificationList.value = notificationList.value.filter(n => n.show);
+		}, 1000);
+
+		onUnmounted(() => clearInterval(cleanupHandle));
 
 		return {
 			notificationList,
