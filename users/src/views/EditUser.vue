@@ -17,7 +17,7 @@
 				<LoadingSpinner class="size-icon" v-if="processing" />
 			</div>
 			<UserEditor :user="user" @applyChanges="applyChanges">
-				<button class="btn btn-danger" @click="deleteConfirmationModal.show = true">
+				<button class="btn btn-danger" @click="deleteConfirmationModal.showModal = true">
 					<div class="flex flex-row items-center">
 						<span class="mr-2">Delete User</span>
 						<TrashIcon class="size-icon" />
@@ -47,7 +47,7 @@
 		</div>
 	</div>
 	<ModalPopup
-		:showModal="deleteConfirmationModal.show"
+		:showModal="deleteConfirmationModal.showModal"
 		@apply="deleteConfirmationModal.applyCallback"
 		@cancel="deleteConfirmationModal.cancelCallback"
 		:headerText="`Delete user ${user.user}?`"
@@ -89,7 +89,7 @@ import ModalPopup from "../components/ModalPopup.vue";
 import UserPassword from "../components/UserPassword.vue";
 
 export default {
-	setup() {
+	setup(props, { emit }) {
 		const route = useRoute();
 		const user = reactive({ groups: [] });
 		const processing = inject(processingInjectionKey);
@@ -100,21 +100,26 @@ export default {
 			deleteConfirmationModal.applyText = "Yes I am really sure";
 			deleteConfirmationModal.applyCallback = () => {
 				deleteUser();
-				deleteConfirmationModal.applyCallback = defaultShowDeleteConfirmationModalApplyCallback;
+				deleteConfirmationModal.reset();
 			};
 		};
 		const deleteConfirmationModal = reactive({
-			show: false,
+			showModal: false,
 			bodyText: "This cannot be undone. Are you sure?",
 			applyText: "Yes",
 			removeFiles: false,
 			applyCallback: defaultShowDeleteConfirmationModalApplyCallback,
 			cancelCallback: () => {
-				deleteConfirmationModal.show = false;
-				deleteConfirmationModal.bodyText = "This cannot be undone. Are you sure?";
-				deleteConfirmationModal.applyText = "Yes";
+				deleteConfirmationModal.reset();
+			},
+			reset: () => {
+				deleteConfirmationModal.showModal = false;
 				deleteConfirmationModal.applyCallback = defaultShowDeleteConfirmationModalApplyCallback;
-			}
+				setTimeout(() => {
+					deleteConfirmationModal.bodyText = "This cannot be undone. Are you sure?";
+					deleteConfirmationModal.applyText = "Yes";
+				}, 300);
+			},
 		});
 
 		const getUserInfo = async (newUserLogin = null) => {
@@ -210,6 +215,7 @@ export default {
 			try {
 				await useSpawn(argv, { superuser: 'try' }).promise();
 				notifications.constructNotification("Deleted user", `${user.user} was deleted successfully.`, 'success');
+				emit('refreshGroups');
 				cockpit.location.go("/users");
 			} catch (state) {
 				notifications.constructNotification("Error deleting user", errorStringHTML(state), 'error');
@@ -244,6 +250,9 @@ export default {
 		ExclamationCircleIcon,
 		ModalPopup,
 		UserPassword,
-	}
+	},
+	emits: [
+		'refreshGroups'
+	]
 }
 </script>
