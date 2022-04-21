@@ -9,7 +9,7 @@
 					<template #header>
 						<div class="flex flex-row justify-between">
 							<span>Groups</span>
-							<button @click="newGroup.showModal = true">
+							<button @click="newGroup.showModal = true" title="Create new group">
 								<PlusIcon class="size-icon icon-default" />
 							</button>
 						</div>
@@ -42,7 +42,12 @@
 					</template>
 					<template #tbody>
 						<tr v-for="group in groupsSorted" :index="group.gid">
-							<td>{{ group.group }}</td>
+							<td class="flex flex-row gap-x-2 items-center">
+								<span class="grow">{{ group.group }}</span>
+								<div v-if="group.isPrimary && (group.gid >= 1000 || group.gid === 0)" :title="`${group.primaryMember}'s primary group`">
+									<UserIcon class="size-icon-sm icon-default" />
+								</div>
+							</td>
 							<td class="text-right">{{ group.gid }}</td>
 							<td v-if="group.members.length">{{ group.members.join(', ') }}</td>
 							<td v-else class="text-muted">No members</td>
@@ -64,8 +69,8 @@
 	<ModalPopup
 		:showModal="newGroup.showModal"
 		autoWidth
-		headerText="New Group"
-		applyText="Add"
+		headerText="Create New Group"
+		applyText="Create"
 		@apply="newGroup.applyCallback"
 		@cancel="newGroup.cancelCallback"
 		:disableContinue="!newGroup.valid"
@@ -99,7 +104,7 @@
 
 <script>
 import Table from "../components/Table.vue";
-import { PlusIcon, TrashIcon, ExclamationCircleIcon } from "@heroicons/vue/solid";
+import { PlusIcon, TrashIcon, ExclamationCircleIcon, UserIcon } from "@heroicons/vue/solid";
 import { groupsInjectionKey, notificationsInjectionKey } from "../keys";
 import { inject, onBeforeMount, reactive, ref, watch } from "vue";
 import ModalPopup from "../components/ModalPopup.vue";
@@ -230,9 +235,10 @@ export default {
 		SortCallbackButton,
 		TrashIcon,
 		ExclamationCircleIcon,
+		UserIcon,
 	},
 	emits: [
-		'refreshGroups'
-	]
+		'refreshGroups',
+	],
 }
 </script>
