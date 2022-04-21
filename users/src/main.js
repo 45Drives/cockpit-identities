@@ -8,7 +8,7 @@ import router from './router';
 const notificationFIFO = reactive(new FIFO());
 
 const errorHandler = (error) => {
-	console.log(error);
+	console.error(error);
 	const notificationObj = {
 		title: "System Error",
 		body: "",
