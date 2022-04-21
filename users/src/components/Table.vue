@@ -4,7 +4,7 @@
 			<div class="inline-block w-full py-2 align-middle md:px-6 lg:px-8">
 				<div class="shadow md:rounded-[9px] border border-default">
 					<div
-						class="md:rounded-t-[8px] bg-accent py-3 px-4 lg:pl-8 lg:pr-6 overflow-hidden text-sm font-semibold flex flex-row"
+						class="md:rounded-t-[8px] bg-accent py-3 px-4 lg:pl-8 lg:pr-6 text-sm font-semibold flex flex-row"
 					>
 						<div class="grow">
 							<slot name="header">
