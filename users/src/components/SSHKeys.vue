@@ -9,7 +9,8 @@
 						<ClipboardCopyIcon class="size-icon" />
 					</div>
 				</button>
-				<button v-else class="btn btn-primary" @click="publicID.generateID">Generate SSH Public ID</button>
+				<button v-else class="btn btn-primary" @click="publicID.generateID">Generate SSH Key Pair</button>
+				<button class="btn btn-secondary" @click="testSSH.showModal = true">Test Passwordless SSH</button>
 			</div>
 			<Table>
 				<template #header>
@@ -86,12 +87,37 @@
 		@apply="publicID.applyPasswordCallback"
 		@cancel="publicID.cancelPasswordCallback"
 	/>
+	<ModalPopup
+		:showModal="testSSH.showModal"
+		headerText="Test passwordless SSH"
+		applyText="Test"
+		cancelText="Close"
+		@apply="testSSH.test"
+		@cancel="testSSH.close"
+		autoWidth
+	>
+		<label class="text-label block">SSH Target</label>
+		<input
+			type="text"
+			class="input-textlike w-full"
+			v-model="testSSH.target"
+			@input="testSSH.reset"
+			placeholer="user@hostname or just hostname"
+		/>
+		<div class="feedback-group" v-if="testSSH.result !== null">
+			<CheckCircleIcon v-if="testSSH.result" class="size-icon icon-success" />
+			<MinusCircleIcon v-else class="size-icon icon-error" />
+			<span
+				:class="[testSSH.result ? 'text-success' : 'text-error', 'text-feedback whitespace-pre-wrap']"
+			>{{testSSH.message}}</span>
+		</div>
+	</ModalPopup>
 </template>
 
 <script>
 import { ref, reactive, watch, inject, onMounted, onUnmounted } from 'vue';
 import { errorStringHTML, errorString, useSpawn, BetterCockpitFile } from '@45drives/cockpit-helpers';
-import { MinusIcon, PlusIcon, ClipboardCopyIcon, ExclamationCircleIcon } from '@heroicons/vue/solid';
+import { MinusIcon, PlusIcon, ClipboardCopyIcon, ExclamationCircleIcon, CheckCircleIcon, MinusCircleIcon } from '@heroicons/vue/solid';
 import Table from './Table.vue';
 import { SSHAuthorizedKeysSyntax } from '@45drives/cockpit-syntaxes';
 import ModalPopup from './ModalPopup.vue';
@@ -196,6 +222,7 @@ export default {
 			},
 		});
 		const publicID = reactive({
+			showPassphraseModal: false,
 			hasPublicID: false,
 			checkPublicID: async () => {
 				publicID.hasPublicID = await checkIfExists(`${props.user.home}/.ssh/id_rsa.pub`);
@@ -235,9 +262,49 @@ export default {
 				publicID.showPassphraseModal = false;
 				publicID.checkPublicID();
 			},
-			showPassphraseModal: false,
 			applyPasswordCallback: () => { },
 			cancelPasswordCallback: () => { },
+		});
+		const testSSH = reactive({
+			showModal: false,
+			target: "",
+			result: null,
+			message: "",
+			test: async () => {
+				try {
+					const argv = [
+						"sudo",
+						"-u",
+						props.user.user,
+						"ssh",
+						"-o",
+						"StrictHostKeyChecking=no",
+						"-o",
+						"UserKnownHostsFile=/dev/null",
+						"-o",
+						"PasswordAuthentication=no",
+						testSSH.target,
+						"whoami"
+					];
+					const output = (await useSpawn(argv, { superuser: 'try' }).promise()).stdout.trim();
+					testSSH.message = `Successfully logged in as ${output}@${testSSH.target.replace(/^[^@]*@/, '')}`;
+					testSSH.result = true;
+				} catch (state) {
+					const errorMessage = errorString(state)
+						.split('\n')
+						.filter(line => !/to the list of known hosts/.test(line))
+						.join('\n');
+					testSSH.message = `Failed to log in:\n${errorMessage}`;
+					testSSH.result = false;
+				}
+			},
+			close: () => {
+				testSSH.showModal = false;
+			},
+			reset: () => {
+				testSSH.result = null;
+				testSSH.message = "";
+			}
 		});
 
 		let authorizedKeysFile = null;
@@ -342,6 +409,7 @@ export default {
 			confirmRemoveKey,
 			addKey,
 			publicID,
+			testSSH,
 			getKeys,
 		}
 	},
@@ -353,6 +421,8 @@ export default {
 		ModalPopup,
 		ExclamationCircleIcon,
 		PasswordModal,
+		CheckCircleIcon,
+		MinusCircleIcon,
 	}
 }
 </script>
