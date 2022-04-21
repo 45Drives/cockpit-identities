@@ -3,7 +3,7 @@
 		class="h-full flex flex-col text-default bg-well"
 	>
 		<FfdHeader moduleName="Users and Groups" centerName />
-		<div v-if="gotInitialData" class="grow overflow-y-auto">
+		<div class="grow overflow-y-auto">
 			<router-view class="h-full" @refreshGroups="getGroups" />
 		</div>
 	</div>
@@ -19,8 +19,6 @@ import Notifications from './components/Notifications.vue';
 import { notificationsInjectionKey, darkModeInjectionKey, processingInjectionKey, shellsInjectionKey, groupsInjectionKey } from './keys';
 
 const props = defineProps({ notificationFIFO: FIFO });
-
-const gotInitialData = ref(false);
 
 const notifications = ref();
 provide(notificationsInjectionKey, notifications);
@@ -63,7 +61,12 @@ const getGroups = async () => {
 	try {
 		const primaryGroups = (await useSpawn(['getent', 'passwd'], { superuser: 'try' }).promise()).stdout
 					.split('\n')
-					.map(record => record.split(':')[0]);
+					.filter(l => !/^\s*$/.test(l))
+					.map(record => {
+						const [user, pass, uid, gid, ...etc] = record.split(':');
+						return {gid: parseInt(gid), user};
+					});
+		console.log(primaryGroups);
 		const groupDB = (await useSpawn(['getent', 'group'], { superuser: 'try' }).promise()).stdout;
 		groups.value = groupDB
 			.split('\n')
@@ -76,9 +79,11 @@ const getGroups = async () => {
 					members: fields[3]?.split(',').filter(m => m), // comma-delim list of members is 4th field
 					isPrimary: false,
 				}
-				if (primaryGroups.includes(obj.group)) {
+				let primaryGroup = primaryGroups.find(g => g.gid === obj.gid);
+				if (primaryGroup) {
 					obj.isPrimary = true;
-					obj.members = [...new Set([...obj.members, obj.group])];
+					obj.primaryMember = primaryGroup.user;
+					obj.members = [...new Set([...obj.members, primaryGroup.user])];
 				}
 				return obj;
 			});
@@ -92,7 +97,6 @@ provide(groupsInjectionKey, groups);
 const init = async () => {
 	await getShells();
 	await getGroups();
-	gotInitialData.value = true;
 }
 
 init();
