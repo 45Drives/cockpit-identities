@@ -267,7 +267,7 @@ export default {
 				const invalidCharacters = [...(tmpUser.user.match(/(?:^[^a-z_]|(?<=.+)[^a-z0-9_-](?=.+)|[^\$a-z0-9_-]$)/g) ?? [])];
 				feedback.user = (feedback.user ?? "")
 					+ `Invalid character${invalidCharacters.length > 1 ? 's' : ''}: `
-					+ invalidCharacters.map(char => `"${char}"`).join(', ') + '\n';
+					+ invalidCharacters.map(char => `'${char}'`).join(', ') + '\n';
 				result = false;
 			}
 			if (tmpUser.user.length > 32) {
