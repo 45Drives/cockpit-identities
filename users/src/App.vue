@@ -4,7 +4,7 @@
 	>
 		<FfdHeader moduleName="Users and Groups" centerName />
 		<div v-if="gotInitialData" class="grow overflow-y-auto">
-			<router-view class="h-full" />
+			<router-view class="h-full" @refreshGroups="getGroups" />
 		</div>
 	</div>
 	<Notifications :notificationFIFO="notificationFIFO" ref="notifications" />
