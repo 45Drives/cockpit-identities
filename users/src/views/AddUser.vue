@@ -26,7 +26,7 @@ import UserPassword from "../components/UserPassword.vue";
 import { shellsInjectionKey, processingInjectionKey, notificationsInjectionKey } from "../keys";
 
 export default {
-	setup() {
+	setup(props, { emit }) {
 		const userPasswordRef = ref();
 		const shells = inject(shellsInjectionKey);
 		const notifications = inject(notificationsInjectionKey).value;
@@ -125,6 +125,7 @@ export default {
 			} else {
 				Object.assign(user, newUser);
 				notifications.constructNotification("Created user", `${newUser.name ?? newUser.user} was created successfully.`, 'success');
+				emit('refreshGroups');
 				await userPasswordRef.value.setPassword();
 				cockpit.location.go(`/users/${newUser.user}`);
 				notifications
@@ -146,6 +147,9 @@ export default {
 		UserEditor,
 		LoadingSpinner,
 		UserPassword
-	}
+	},
+	emits: [
+		'refreshGroups'
+	]
 }
 </script>
