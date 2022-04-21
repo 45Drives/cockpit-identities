@@ -69,7 +69,7 @@ const getGroups = async () => {
 				const fields = record.split(':');
 				return {
 					group: fields[0], // group name is 1st field
-					gid: fields[2],
+					gid: parseInt(fields[2]),
 					members: fields[3]?.split(',').filter(m => m) // comma-delim list of members is 4th field
 				}
 			});
