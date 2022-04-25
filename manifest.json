@@ -1,0 +1,67 @@
+{
+    "__version": "45D-R2",
+    "name": "cockpit-users",
+    "title": "Cockpit Users and Groups",
+    "prerelease": true,
+    "version": "0.1.0",
+    "buildVersion": "1",
+    "author": "Joshua Boudreau <jboudreau@45drives.com>",
+    "url": "https://github.com/45Drives/cockpit-users",
+    "category": "utils",
+    "priority": "optional",
+    "licence": "GPL-3.0+",
+    "architecture": {
+        "deb": "all",
+        "el": "noarch"
+    },
+    "description": {
+        "long": "User and Group Management for Cockpit (Houston)",
+        "short": "User and Group Management for Cockpit (Houston)"
+    },
+    "defaults": {
+        "urgency": "medium"
+    },
+    "dependencies": {
+        "deb": {
+            "bionic": [
+                "cockpit",
+				"smbclient"
+            ],
+            "focal": [
+                "cockpit",
+				"smbclient"
+            ]
+        },
+        "el": {
+            "el7": [
+                "cockpit",
+				"samba-client"
+            ],
+            "el8": [
+                "cockpit",
+				"samba-client"
+            ]
+        }
+    },
+    "releases": [
+        {
+            "image": "node-ubuntu-focal-builder",
+            "codeName": "focal",
+            "type": "deb"
+        },
+        {
+            "image": "node-rocky-el8-builder",
+            "codeName": "el8",
+            "type": "el"
+        }
+    ],
+    "changelog": {
+        "urgency": "medium",
+        "version": "0.1.0",
+        "buildVersion": "1",
+        "ignore": [],
+        "date": null,
+        "packager": "Joshua Boudreau <jboudreau@45drives.com>",
+        "changes": []
+    }
+}

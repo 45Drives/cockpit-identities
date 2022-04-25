@@ -8,8 +8,8 @@ all: default
 
 # system install, requires `systemctl restart cockpit.socket`
 install: default
-	mkdir -p $(DESTDIR)/usr/share/cockpit/$(PLUGIN)
-	cp -rpf $(PLUGIN)/dist/* $(DESTDIR)/usr/share/cockpit/$(PLUGIN)
+	mkdir -p $(DESTDIR)/usr/share/cockpit/$(PLUGIN)-houston
+	cp -rpf $(PLUGIN)/dist/* $(DESTDIR)/usr/share/cockpit/$(PLUGIN)-houston
 
 # install to ~/.local, can test plugin without restarting cockpit
 install-local: default
