@@ -85,7 +85,7 @@ import PasswordModal from "./PasswordModal.vue";
 import { ExclamationCircleIcon, LockClosedIcon, LockOpenIcon, InformationCircleIcon } from '@heroicons/vue/solid';
 import { ref, reactive, watch, inject } from 'vue';
 import { useSpawn, errorString, errorStringHTML } from '@45drives/cockpit-helpers';
-import { notificationsInjectionKey, processingInjectionKey } from "../keys";
+import { notificationsInjectionKey } from "../keys";
 
 export default {
 	props: {
@@ -101,7 +101,7 @@ export default {
 			default: false,
 		},
 	},
-	setup(props) {
+	setup(props, { emit }) {
 		const userPassword = reactive({
 			showModal: false,
 			applyCallback: () => userPassword.showModal = false,
@@ -115,10 +115,10 @@ export default {
 		const allowed = ref(true);
 		const showExpirePasswordModal = ref(false);
 		const showPasswordExpiryModal = ref(false);
-		const processing = inject(processingInjectionKey);
 		const notifications = inject(notificationsInjectionKey).value;
 
 		const checkPasswdStatus = async () => {
+			emit('startProcessing');
 			try {
 				const passwdStatusFields = (await useSpawn(['passwd', '--status', props.user], { superuser: 'try' }).promise()).stdout
 					.trim().split(' ');
@@ -154,6 +154,8 @@ export default {
 				);
 				allowed.value = false;
 				userPassword.isSet = false;
+			} finally {
+				emit('stopProcessing');
 			}
 		};
 
@@ -167,7 +169,7 @@ export default {
 			);
 			let password = null;
 			if (password = await waitForPassword()) {
-				processing.value++;
+				emit('startProcessing');
 				try {
 					const state = useSpawn(['passwd', props.user], { superuser: 'try' });
 					state.proc.input(`${password}\n${password}\n`);
@@ -180,8 +182,9 @@ export default {
 						errorStringHTML(state),
 						'error'
 					);
+				} finally {
+					emit('stopProcessing');
 				}
-				processing.value--;
 			} else if (!userPassword.isSet) {
 				notifications.constructNotification(`${props.user} has no password`, "Set the password in the user editor to be able to log in.", 'warning');
 			}
@@ -189,6 +192,7 @@ export default {
 		};
 
 		const expirePassword = async () => {
+			emit('startProcessing');
 			try {
 				await useSpawn(['passwd', '-e', props.user], { superuser: 'try' }).promise();
 				await checkPasswdStatus();
@@ -198,8 +202,10 @@ export default {
 					errorStringHTML(state),
 					'warning'
 				);
+			} finally {
+				showExpirePasswordModal.value = false;
+				emit('stopProcessing');
 			}
-			showExpirePasswordModal.value = false;
 		};
 
 		const togglePasswordLock = async () => {
@@ -210,6 +216,7 @@ export default {
 				argv.push('-l');
 			}
 			argv.push(props.user);
+			emit('startProcessing');
 			try {
 				await useSpawn(argv, { superuser: 'try' }).promise();
 				await checkPasswdStatus();
@@ -219,6 +226,8 @@ export default {
 					errorStringHTML(state),
 					'warning'
 				);
+			} finally {
+				emit('stopProcessing');
 			}
 		};
 
@@ -250,5 +259,9 @@ export default {
 		LockOpenIcon,
 		InformationCircleIcon,
 	},
+	emits: [
+		'startProcessing',
+		'stopProcessing',
+	],
 }
 </script>

@@ -39,7 +39,7 @@
 import { ExclamationCircleIcon } from '@heroicons/vue/solid';
 import { reactive, watch, inject, ref } from 'vue';
 import { useSpawn, errorStringHTML } from "@45drives/cockpit-helpers";
-import { notificationsInjectionKey, processingInjectionKey } from '../keys';
+import { notificationsInjectionKey } from '../keys';
 import ModalPopup from './ModalPopup.vue';
 import PasswordModal from './PasswordModal.vue';
 
@@ -47,24 +47,24 @@ export default {
 	props: {
 		user: String,
 	},
-	setup(props) {
+	setup(props, { emit }) {
 		const sambaPassword = reactive({ showModal: false, showRemoveModal: false, isSet: false });
-		const processing = inject(processingInjectionKey);
 		const notifications = inject(notificationsInjectionKey).value;
 
 		const checkIfSmbpasswdSet = async () => {
-			processing.value++;
+			emit('startProcessing');
 			try {
 				await useSpawn(['pdbedit', '-L', '-u', props.user], { superuser: 'try' }).promise();
 				sambaPassword.isSet = true;
 			} catch (state) {
 				sambaPassword.isSet = false;
+			} finally {
+				emit('stopProcessing');
 			}
-			processing.value--;
 		};
 
 		const setSambaPassword = async (password) => {
-			processing.value++;
+			emit('startProcessing');
 			try {
 				const state = useSpawn(['smbpasswd', '-a', '-s', props.user], { superuser: 'try' });
 				state.proc.input(`${password}\n${password}\n`);
@@ -74,13 +74,14 @@ export default {
 			} catch (state) {
 				notifications.constructNotification(`Failed to set Samba password for ${props.user}`, errorStringHTML(state), 'error');
 				checkIfSmbpasswdSet();
+			} finally {
+				sambaPassword.showModal = false;
+				emit('stopProcessing');
 			}
-			sambaPassword.showModal = false;
-			processing.value--;
 		};
 
 		const removeSambaPassword = async () => {
-			processing.value++;
+			emit('startProcessing');
 			try {
 				await useSpawn(['smbpasswd', '-x', props.user], { superuser: 'try' }).promise();
 				sambaPassword.isSet = false;
@@ -88,9 +89,10 @@ export default {
 			} catch (state) {
 				notifications.constructNotification(`Failed to remove Samba password for ${props.user}`, errorStringHTML(state), 'error');
 				checkIfSmbpasswdSet();
+			} finally {
+				sambaPassword.showRemoveModal = false;
+				emit('stopProcessing');
 			}
-			sambaPassword.showRemoveModal = false;
-			processing.value--;
 		};
 
 		watch(props.user, () => {
@@ -108,6 +110,10 @@ export default {
 		ModalPopup,
 		PasswordModal,
 		ExclamationCircleIcon,
-	}
+	},
+	emits: [
+		'startProcessing',
+		'stopProcessing',
+	]
 }
 </script>

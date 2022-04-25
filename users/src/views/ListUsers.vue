@@ -27,6 +27,7 @@
 				<div>New User</div>
 			</div>
 		</button>
+		<LoadingSpinner v-if="processing" class="h-32 w-32 self-center" />
 	</div>
 </template>
 
@@ -34,12 +35,15 @@
 import { UserIcon, UserAddIcon, StarIcon, ShieldExclamationIcon } from "@heroicons/vue/solid";
 import { useSpawn, errorString } from '@45drives/cockpit-helpers';
 import { ref } from "vue";
+import LoadingSpinner from "../components/LoadingSpinner.vue";
 
 export default {
 	setup() {
 		const users = ref([]);
+		const processing = ref(0);
 
 		const getUsers = async () => {
+			processing.value++;
 			try {
 				const currentLoggedInUser = (await cockpit.user()).name;
 				users.value = (await useSpawn(['getent', 'passwd'], { superuser: 'try' }).promise()).stdout
@@ -63,6 +67,8 @@ export default {
 					}).filter(user => user !== null) ?? [];
 			} catch (state) {
 				alert("Failed to get users: " + errorString(state));
+			} finally {
+				processing.value--;
 			}
 		}
 
@@ -77,8 +83,9 @@ export default {
 		}
 
 		return {
-			openUser,
 			users,
+			processing,
+			openUser,
 			addUser,
 		}
 	},
@@ -87,6 +94,7 @@ export default {
 		UserAddIcon,
 		StarIcon,
 		ShieldExclamationIcon,
+		LoadingSpinner,
 	}
 }
 </script>

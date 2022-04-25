@@ -96,6 +96,12 @@
 		@cancel="testSSH.close"
 		autoWidth
 	>
+		<template #header>
+			<div class="flex flex-row gap-2 items-center">
+				<h3 class="text-header">Test passwordless SSH</h3>
+				<LoadingSpinner class="size-icon" v-if="testSSH.running" />
+			</div>
+		</template>
 		<label class="text-label block">SSH Target</label>
 		<input
 			type="text"
@@ -109,7 +115,7 @@
 			<MinusCircleIcon v-else class="size-icon icon-error" />
 			<span
 				:class="[testSSH.result ? 'text-success' : 'text-error', 'text-feedback whitespace-pre-wrap']"
-			>{{testSSH.message}}</span>
+			>{{ testSSH.message }}</span>
 		</div>
 	</ModalPopup>
 </template>
@@ -123,6 +129,7 @@ import { SSHAuthorizedKeysSyntax } from '@45drives/cockpit-syntaxes';
 import ModalPopup from './ModalPopup.vue';
 import PasswordModal from './PasswordModal.vue';
 import { notificationsInjectionKey } from '../keys';
+import LoadingSpinner from './LoadingSpinner.vue';
 
 const authorizedKeysFileOpts = {
 	superuser: 'try',
@@ -169,7 +176,7 @@ export default {
 	props: {
 		user: Object,
 	},
-	setup(props) {
+	setup(props, { emit }) {
 		const notifications = inject(notificationsInjectionKey).value;
 		const keys = ref([]);
 		const valid = ref(false);
@@ -181,6 +188,7 @@ export default {
 				confirmRemoveKey.showModal = true;
 			},
 			apply: async () => {
+				emit('startProcessing');
 				try {
 					const tmpKeys = keys.value.filter(key => key !== confirmRemoveKey.key);
 					await authorizedKeysFile.replace(tmpKeys);
@@ -189,6 +197,7 @@ export default {
 				} finally {
 					confirmRemoveKey.key = null;
 					confirmRemoveKey.showModal = false;
+					emit('stopProcessing');
 				}
 			},
 			cancel: () => {
@@ -200,6 +209,7 @@ export default {
 			showModal: false,
 			keyText: "",
 			apply: async () => {
+				emit('startProcessing');
 				try {
 					let tmpKeys = await SSHAuthorizedKeysSyntax.parse(addKey.keyText);
 					if (!tmpKeys.length) {
@@ -213,6 +223,7 @@ export default {
 				} finally {
 					addKey.keyText = "";
 					addKey.showModal = false;
+					emit('stopProcessing');
 				}
 			},
 			cancel: () => {
@@ -227,6 +238,7 @@ export default {
 				publicID.hasPublicID = await checkIfExists(`${props.user.home}/.ssh/id_rsa.pub`);
 			},
 			copyID: async () => {
+				emit('startProcessing');
 				try {
 					navigator.clipboard.writeText(
 						await cockpit.file(`${props.user.home}/.ssh/id_rsa.pub`, { superuser: 'try' }).read()
@@ -234,11 +246,14 @@ export default {
 					notifications.constructNotification("Copied public ID to clipboard", '', 'success');
 				} catch (error) {
 					notifications.constructNotification("Error reading public ID", errorStringHTML(error), 'error');
+				} finally {
+					emit('stopProcessing');
 				}
 			},
 			generateID: async () => {
-				publicID.showPassphraseModal = true;
+				emit('startProcessing');
 				try {
+					publicID.showPassphraseModal = true;
 					const state = useSpawn(['sudo', '-u', props.user.user, 'ssh-keygen'], { superuser: 'try' })
 					state.proc.input(`${props.user.home}/.ssh/id_rsa\n`, true);
 					let pass;
@@ -257,8 +272,10 @@ export default {
 					notifications.constructNotification("Successfully generated SSH key pair", "It can now be copied and used.", 'success');
 				} catch (error) {
 					notifications.constructNotification("Error generating public ID", errorStringHTML(error), 'error');
+				} finally {
+					publicID.showPassphraseModal = false;
+					emit('stopProcessing');
 				}
-				publicID.showPassphraseModal = false;
 				publicID.checkPublicID();
 			},
 			applyPasswordCallback: () => { },
@@ -269,7 +286,9 @@ export default {
 			target: "",
 			result: null,
 			message: "",
+			running: false,
 			test: async () => {
+				testSSH.running = true;
 				try {
 					const argv = [
 						"sudo",
@@ -295,6 +314,8 @@ export default {
 						.join('\n');
 					testSSH.message = `Failed to log in:\n${errorMessage}`;
 					testSSH.result = false;
+				} finally {
+					testSSH.running = false;
 				}
 			},
 			close: () => {
@@ -311,17 +332,21 @@ export default {
 		const getKeys = async (promise) => {
 			if (!props.user?.home)
 				return;
+			emit('startProcessing');
 			try {
 				keys.value = await promise ?? [];
 			} catch (error) {
 				notifications.constructNotification("Error getting authorized SSH keys", errorStringHTML(error), 'error');
+			} finally {
+				emit('stopProcessing');
 			}
 		};
 
 		const createSshDir = async (path) => {
-			const authorizedKeysPathArr = path.split(/(?<!\\)\//);
-			const sshDir = authorizedKeysPathArr.slice(0, authorizedKeysPathArr.length - 1).join('/');
+			emit('startProcessing');
 			try {
+				const authorizedKeysPathArr = path.split(/(?<!\\)\//);
+				const sshDir = authorizedKeysPathArr.slice(0, authorizedKeysPathArr.length - 1).join('/');
 				if (! await checkIfExists(sshDir)) {
 					await useSpawn(['mkdir', '-p', sshDir], { superuser: 'try' }).promise();
 					await useSpawn(['chmod', '700', sshDir], { superuser: 'try' }).promise();
@@ -333,6 +358,8 @@ export default {
 				notifications.constructNotification("Fixed missing SSH directory/files", '', 'success');
 			} catch (state) {
 				notifications.constructNotification("Failed to create SSH directory / authorized_keys", errorStringHTML(state), 'error');
+			} finally {
+				emit('stopProcessing');
 			}
 			initSshManagement();
 		}
@@ -375,21 +402,26 @@ export default {
 		const initSshManagement = async () => {
 			if (!props.user.home)
 				return;
-			if (watchHandle)
-				watchHandle.remove();
-			const authorizedKeysFilePath = `${props.user.home}/.ssh/authorized_keys`;
+			emit('startProcessing');
 			try {
-				valid.value = await validateAuthorizedKeysPath(authorizedKeysFilePath);
-			} catch (error) {
-				notifications.constructNotification("Error checking path: ${}", errorStringHTML(error), 'error');
-				return;
+				if (watchHandle)
+					watchHandle.remove();
+				const authorizedKeysFilePath = `${props.user.home}/.ssh/authorized_keys`;
+				try {
+					valid.value = await validateAuthorizedKeysPath(authorizedKeysFilePath);
+				} catch (error) {
+					notifications.constructNotification("Error checking path: ${}", errorStringHTML(error), 'error');
+					return;
+				}
+				authorizedKeysFile = new BetterCockpitFile(
+					authorizedKeysFilePath,
+					authorizedKeysFileOpts
+				);
+				watchHandle = authorizedKeysFile.watch(getKeys);
+				publicID.checkPublicID();
+			} finally {
+				emit('stopProcessing');
 			}
-			authorizedKeysFile = new BetterCockpitFile(
-				authorizedKeysFilePath,
-				authorizedKeysFileOpts
-			);
-			watchHandle = authorizedKeysFile.watch(getKeys);
-			publicID.checkPublicID();
 		}
 
 		watch(props.user, () => {
@@ -421,6 +453,11 @@ export default {
 		PasswordModal,
 		CheckCircleIcon,
 		MinusCircleIcon,
-	}
+		LoadingSpinner
+	},
+	emits: [
+		'startProcessing',
+		'stopProcessing',
+	],
 }
 </script>

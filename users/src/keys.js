@@ -7,10 +7,6 @@ export const notificationsInjectionKey = Symbol();
  */
 export const darkModeInjectionKey = Symbol();
 /**
- * ref to boolean to show loading spinners
- */
-export const processingInjectionKey = Symbol();
-/**
  * ref to list of shells (shellObj)
  */
 export const shellsInjectionKey = Symbol();

@@ -32,7 +32,9 @@
 					>
 						<div class="block w-[512px]"></div>
 						<div class="card-header">
-							<h3 class="text-header">{{ headerText }}</h3>
+							<slot name="header">
+								<h3 class="text-header">{{ headerText }}</h3>
+							</slot>
 						</div>
 						<div class="card-body flex flex-row items-center gap-2">
 							<div class="shrink-0">

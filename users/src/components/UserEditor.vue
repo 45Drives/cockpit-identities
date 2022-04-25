@@ -195,7 +195,7 @@ import { ref, watch, reactive, inject, onMounted } from "vue";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue';
 import { CheckIcon, SelectorIcon, PlusIcon, MinusIcon, ExclamationCircleIcon } from '@heroicons/vue/solid';
 import LoadingSpinner from "../components/LoadingSpinner.vue";
-import { shellsInjectionKey, groupsInjectionKey, processingInjectionKey } from "../keys";
+import { shellsInjectionKey, groupsInjectionKey } from "../keys";
 import shellObj from "../hooks/shellObj";
 import ModalPopup from './ModalPopup.vue';
 import { useSpawn } from "@45drives/cockpit-helpers";
@@ -220,7 +220,6 @@ export default {
 		const changesMade = ref(false);
 		const inputsValid = ref(true);
 		const feedback = reactive({});
-		const processing = inject(processingInjectionKey);
 		const shells = inject(shellsInjectionKey);
 		const groupsRef = inject(groupsInjectionKey);
 		let groups = groupsRef.value.map(groupObj => groupObj.group); // get just plain group names
@@ -362,7 +361,6 @@ export default {
 			changesMade,
 			inputsValid,
 			feedback,
-			processing,
 			shells,
 			nonMemberGroups,
 			showCustomShellModal,

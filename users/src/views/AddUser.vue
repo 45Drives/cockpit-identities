@@ -6,7 +6,7 @@
 			</div>
 		</div>
 		<div class="card">
-			<div class="card-header flex flex-row space-x-2">
+			<div class="card-header flex flex-row space-x-2 items-center">
 				<h3 class="text-header">Details</h3>
 				<LoadingSpinner class="size-icon" v-if="processing" />
 			</div>
@@ -23,7 +23,7 @@ import shellObj from "../hooks/shellObj";
 import UserEditor from "../components/UserEditor.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import UserPassword from "../components/UserPassword.vue";
-import { shellsInjectionKey, processingInjectionKey, notificationsInjectionKey } from "../keys";
+import { shellsInjectionKey, notificationsInjectionKey } from "../keys";
 
 export default {
 	setup(props, { emit }) {
@@ -38,7 +38,7 @@ export default {
 			groups: [],
 		});
 		let existingUsers = [];
-		const processing = inject(processingInjectionKey);
+		const processing = ref(0);
 
 		const editorHooks = reactive({
 			onInput: (newUser, oldUser) => {
@@ -69,6 +69,7 @@ export default {
 		});
 
 		const getExistingUsers = async () => {
+			processing.value++;
 			try {
 				const passwdDB = (await useSpawn(['getent', 'passwd'], { superuser: 'try' }).promise()).stdout;
 				existingUsers = passwdDB.split('\n')
@@ -84,55 +85,60 @@ export default {
 					`${errorStringHTML(state)}\nBe careful not to create an existing user.`,
 					'warning'
 				);
+			} finally {
+				processing.value--;
 			}
 		}
 		getExistingUsers();
 
 		const createUser = async (newUser, oldUser) => {
 			processing.value++;
-			const procs = [];
-			const errors = [];
+			try {
+				const procs = [];
+				const errors = [];
 
-			const argv = ['useradd', '-m'];
+				const argv = ['useradd', '-m'];
 
-			if (newUser.name)
-				argv.push('--comment', newUser.name);
+				if (newUser.name)
+					argv.push('--comment', newUser.name);
 
-			if (newUser.home)
-				argv.push('--home', newUser.home);
+				if (newUser.home)
+					argv.push('--home', newUser.home);
 
-			argv.push('--user-group');
-			const secondaryGroups = newUser.groups.filter(group => group !== newUser.user)
-			if (secondaryGroups.length)
-				argv.push('--groups', secondaryGroups.join(','));
-			
-			if (newUser.shell.path)
-				argv.push('-s', newUser.shell.path);
-			
-			argv.push(newUser.user);
+				argv.push('--user-group');
+				const secondaryGroups = newUser.groups.filter(group => group !== newUser.user)
+				if (secondaryGroups.length)
+					argv.push('--groups', secondaryGroups.join(','));
+				
+				if (newUser.shell.path)
+					argv.push('-s', newUser.shell.path);
+				
+				argv.push(newUser.user);
 
-			procs.push(useSpawn(argv, { superuser: 'try' }).promise());
+				procs.push(useSpawn(argv, { superuser: 'try' }).promise());
 
-			for (const proc of procs) {
-				try {
-					await proc;
-				} catch (state) {
-					errors.push(state.errorStringHTML());
+				for (const proc of procs) {
+					try {
+						await proc;
+					} catch (state) {
+						errors.push(state.errorStringHTML());
+					}
 				}
+				if (errors.length) {
+					notifications.constructNotification("Error creating user", `<span class="text-gray-500 font-mono text-sm whitespace-pre-wrap">${errors.join('\n')}</span>`, 'error');
+				} else {
+					Object.assign(user, newUser);
+					notifications.constructNotification("Created user", `${newUser.name ?? newUser.user} was created successfully.`, 'success');
+					emit('refreshGroups');
+					await userPasswordRef.value.setPassword();
+					cockpit.location.go(`/users/${newUser.user}`);
+					notifications
+						.constructNotification("Redirected", "You were taken to the user editor after creation.", 'info')
+						.addAction('Back to users list', () => cockpit.location.go('/users'));
+				}
+			} finally {
+				processing.value--;
 			}
-			if (errors.length) {
-				notifications.constructNotification("Error creating user", `<span class="text-gray-500 font-mono text-sm whitespace-pre-wrap">${errors.join('\n')}</span>`, 'error');
-			} else {
-				Object.assign(user, newUser);
-				notifications.constructNotification("Created user", `${newUser.name ?? newUser.user} was created successfully.`, 'success');
-				emit('refreshGroups');
-				await userPasswordRef.value.setPassword();
-				cockpit.location.go(`/users/${newUser.user}`);
-				notifications
-					.constructNotification("Redirected", "You were taken to the user editor after creation.", 'info')
-					.addAction('Back to users list', () => cockpit.location.go('/users'));
-			}
-			processing.value--;
 		}
 
 		return {

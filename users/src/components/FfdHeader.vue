@@ -30,6 +30,7 @@ If not, see <https://www.gnu.org/licenses/>.
 				>45</span>
 				<span class="text-gray-800 dark:text-red-600">Drives</span>
 			</h1>
+			<LoadingSpinner v-if="showSpinner" class="size-icon self-center ml-2" />
 		</div>
 		<h1
 			class="text-red-800 dark:text-white text-base sm:text-2xl cursor-pointer grow-0 text-center"
@@ -56,10 +57,12 @@ import "source-sans-pro/source-sans-pro.css";
 import { SunIcon, MoonIcon } from "@heroicons/vue/solid";
 import { ref, watch, inject } from "vue";
 import { darkModeInjectionKey } from "../keys";
+import LoadingSpinner from "./LoadingSpinner.vue";
 
 export default {
 	props: {
 		moduleName: String,
+		showSpinner: Boolean,
 	},
 	setup(props) {
 		const darkMode = inject(darkModeInjectionKey) ?? ref(true);
@@ -95,8 +98,9 @@ export default {
 		};
 	},
 	components: {
-		SunIcon,
-		MoonIcon
-	}
+    SunIcon,
+    MoonIcon,
+    LoadingSpinner,
+}
 };
 </script>

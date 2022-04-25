@@ -23,7 +23,7 @@
 				<th v-if="user === null" scope="col">
 					<div class="flex flex-row flex-nowrap space-x-2">
 						<div class="grow">User</div>
-						<SimpleFilter useTransformFixed :set="filters.users.set" v-model="filters.users.callback" />
+						<SimpleFilter :set="filters.users.set" v-model="filters.users.callback" />
 						<SortCallbackButton v-model="sortCallback" :compareFunc="compareFuncs.user" />
 					</div>
 				</th>
@@ -53,19 +53,19 @@
 				<th scope="col">
 					<div class="flex flex-row flex-nowrap justify-between space-x-5">
 						<span>IP Address</span>
-						<SimpleFilter useTransformFixed :set="filters.ips.set" v-model="filters.ips.callback" />
+						<SimpleFilter :set="filters.ips.set" v-model="filters.ips.callback" />
 					</div>
 				</th>
 				<th scope="col">
 					<div class="flex flex-row flex-nowrap justify-between space-x-5">
 						<span>TTY</span>
-						<SimpleFilter useTransformFixed :set="filters.ttys.set" v-model="filters.ttys.callback" />
+						<SimpleFilter :set="filters.ttys.set" v-model="filters.ttys.callback" />
 					</div>
 				</th>
 				<th scope="col">
 					<div class="flex flex-row flex-nowrap justify-between space-x-5">
 						<span>Auth Result</span>
-						<SimpleFilter useTransformFixed :set="filters.authResults.set" v-model="filters.authResults.callback" />
+						<SimpleFilter :set="filters.authResults.set" v-model="filters.authResults.callback" />
 					</div>
 				</th>
 			</tr>
@@ -94,13 +94,13 @@
 import { ref, reactive, watch, inject, onMounted, computed } from 'vue';
 import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
-import { useSpawn, errorString } from '@45drives/cockpit-helpers';
+import { useSpawn, errorStringHTML } from '@45drives/cockpit-helpers';
 import { FilterIcon } from '@heroicons/vue/solid';
 import SimpleFilter from './SimpleFilter.vue';
 import LoadingSpinner from './LoadingSpinner.vue';
 import SortCallbackButton from './SortCallbackButton.vue';
 import moment from 'moment';
-import { darkModeInjectionKey, processingInjectionKey } from '../keys';
+import { darkModeInjectionKey, notificationsInjectionKey } from '../keys';
 import Table from './Table.vue';
 
 function formatDateForLast(date) {
@@ -174,8 +174,9 @@ export default {
 		const range = ref();
 		const history = ref([]);
 		const historyReactive = reactive(history);
-		const processing = inject(processingInjectionKey);
+		const processing = ref(0);
 		const darkMode = inject(darkModeInjectionKey);
+		const notifications = inject(notificationsInjectionKey).value;
 		const filters = reactive({
 			users: {
 				set: new Set([]),
@@ -209,77 +210,79 @@ export default {
 
 		const getHistory = async () => {
 			processing.value++;
-
-			Object.keys(filters).map(key => filters[key].set.clear());
-
-			const opts = ['--fullnames', '--time-format=iso', '--ip'];
-
-			if (range.value?.[0])
-				opts.push('--since', formatDateForLast(range.value[0]));
-			if (range.value?.[1])
-				opts.push('--until', formatDateForLast(range.value[1]));
-
-			if (props.user !== null)
-				opts.push(props.user.user);
-
 			try {
-				let tmpHistory = [];
-				for (let arg of ['last', 'lastb']) {
-					tmpHistory.push(
-						...(await useSpawn([arg, ...opts], { superuser: 'try' }).promise()).stdout.split('\n')
-							.filter(line => !(/^\s*$/.test(line) || /^[wb]tmp begins/.test(line))) // remove empty lines and last line
-							.map(line => {
-								const bad = arg === 'lastb';
-								const match = line.match(/^(\S+)\s+(\S+(?: \S+)*)\s+(\d{1,3}(?:.\d{1,3}){3})\s+(\S+)(?: - (\S+)\s+\(([^\)]+)\)|\s+(\S+(?: \S+)*))/)?.slice(1);
-								if (!match)
-									return null;
-								try {
-									const obj = reactive({
-										user: match[0],
-										tty: match[1],
-										ip: match[2],
-										sessionStart: tryDate(match[3]),
-										sessionEnd: null, // end time or "still logged in" (or something else?)
-										sessionTime: match[5] ? sessionTimeToSentence(match[5]) : "0 Minutes",
-										stillLoggedIn: false,
-										authResult: bad ? 'bad' : 'good',
-									});
-									if (match[6] === "still logged in") {
-										// live update time
-										setInterval(() => {
-											obj.sessionTime = timeSince(match[3]);
-											obj.sessionEnd = new Date();
-										}, 60 * 1000);
-										obj.sessionTime = timeSince(match[3])
-										obj.stillLoggedIn = true;
+				Object.keys(filters).map(key => filters[key].set.clear());
+
+				const opts = ['--fullnames', '--time-format=iso', '--ip'];
+
+				if (range.value?.[0])
+					opts.push('--since', formatDateForLast(range.value[0]));
+				if (range.value?.[1])
+					opts.push('--until', formatDateForLast(range.value[1]));
+
+				if (props.user !== null)
+					opts.push(props.user.user);
+
+				try {
+					let tmpHistory = [];
+					for (let arg of ['last', 'lastb']) {
+						tmpHistory.push(
+							...(await useSpawn([arg, ...opts], { superuser: 'try' }).promise()).stdout.split('\n')
+								.filter(line => !(/^\s*$/.test(line) || /^[wb]tmp begins/.test(line))) // remove empty lines and last line
+								.map(line => {
+									const bad = arg === 'lastb';
+									const match = line.match(/^(\S+)\s+(\S+(?: \S+)*)\s+(\d{1,3}(?:.\d{1,3}){3})\s+(\S+)(?: - (\S+)\s+\(([^\)]+)\)|\s+(\S+(?: \S+)*))/)?.slice(1);
+									if (!match)
+										return null;
+									try {
+										const obj = reactive({
+											user: match[0],
+											tty: match[1],
+											ip: match[2],
+											sessionStart: tryDate(match[3]),
+											sessionEnd: null, // end time or "still logged in" (or something else?)
+											sessionTime: match[5] ? sessionTimeToSentence(match[5]) : "0 Minutes",
+											stillLoggedIn: false,
+											authResult: bad ? 'bad' : 'good',
+										});
+										if (match[6] === "still logged in") {
+											// live update time
+											setInterval(() => {
+												obj.sessionTime = timeSince(match[3]);
+												obj.sessionEnd = new Date();
+											}, 60 * 1000);
+											obj.sessionTime = timeSince(match[3])
+											obj.stillLoggedIn = true;
+										}
+										const sessionTimeObj = sessionTimeToObj(match[5]);
+										obj.sessionEnd = tryDate(match[4])
+											?? ((!match[5])
+												? new Date()
+												: moment(obj.sessionStart)
+													.add(sessionTimeObj.days, "days")
+													.add(sessionTimeObj.hours, "hours")
+													.add(sessionTimeObj.minutes, "minutes")
+													.toDate()
+											);
+										filters.users.set.add(obj.user);
+										filters.ips.set.add(obj.ip);
+										filters.ttys.set.add(obj.tty);
+										filters.authResults.set.add(obj.authResult);
+										return obj;
+									} catch (error) {
+										throw new Error(error.message + `, trigger: ${line}`);
 									}
-									const sessionTimeObj = sessionTimeToObj(match[5]);
-									obj.sessionEnd = tryDate(match[4])
-										?? ((!match[5])
-											? new Date()
-											: moment(obj.sessionStart)
-												.add(sessionTimeObj.days, "days")
-												.add(sessionTimeObj.hours, "hours")
-												.add(sessionTimeObj.minutes, "minutes")
-												.toDate()
-										);
-									filters.users.set.add(obj.user);
-									filters.ips.set.add(obj.ip);
-									filters.ttys.set.add(obj.tty);
-									filters.authResults.set.add(obj.authResult);
-									return obj;
-								} catch (error) {
-									throw new Error(error.message + `, trigger: ${line}`);
-								}
-							}).filter(entry => entry !== null)
-					)
+								}).filter(entry => entry !== null)
+						)
+					}
+					history.value = tmpHistory.sort(sortCallback.value);
+				} catch (state) {
+					notifications.constructNotification("Error getting login history", errorStringHTML(state), 'error');
+					return;
 				}
-				history.value = tmpHistory.sort(sortCallback.value);
-			} catch (state) {
-				console.error("Error getting login history: " + errorString(state));
-				return;
+			} finally {
+				processing.value--;
 			}
-			processing.value--;
 		}
 
 		const rangePreviewFormatter = (previewRange) => {
@@ -316,8 +319,11 @@ export default {
 			watch(range, getHistory);
 			watch(sortCallback, () => {
 				processing.value++;
-				history.value.sort(sortCallback.value);
-				processing.value--;
+				try {
+					history.value.sort(sortCallback.value);
+				} finally {
+					processing.value--;
+				}
 			});
 		});
 

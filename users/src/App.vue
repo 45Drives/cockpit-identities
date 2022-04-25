@@ -2,7 +2,7 @@
 	<div
 		class="h-full flex flex-col text-default bg-well"
 	>
-		<FfdHeader moduleName="Users and Groups" centerName />
+		<FfdHeader moduleName="Users and Groups" centerName :showSpinner="processing" />
 		<div class="grow overflow-y-auto">
 			<router-view class="h-full" @refreshGroups="getGroups" />
 		</div>
@@ -16,7 +16,7 @@ import { ref, provide, watch } from 'vue';
 import shellObj from './hooks/shellObj';
 import { useSpawn, errorString, FIFO } from '@45drives/cockpit-helpers';
 import Notifications from './components/Notifications.vue';
-import { notificationsInjectionKey, darkModeInjectionKey, processingInjectionKey, shellsInjectionKey, groupsInjectionKey } from './keys';
+import { notificationsInjectionKey, darkModeInjectionKey, shellsInjectionKey, groupsInjectionKey } from './keys';
 
 const props = defineProps({ notificationFIFO: FIFO });
 
@@ -27,31 +27,31 @@ const darkMode = ref(false);
 provide(darkModeInjectionKey, darkMode);
 
 const processing = ref(0);
-provide(processingInjectionKey, processing);
 
 const shells = ref([]);
 const getShells = async () => {
 	processing.value++;
 	try {
-		shells.value = (await cockpit.file("/etc/shells", { superuser: 'try' }).read())
-			.split('\n')
-			.filter(line => !/^\s*(?:#.*)?$/.test(line))
-			.map(path => (shellObj(path)));
-	} catch (error) {
-		alert("Failed to get shells: " + error.message);
+		try {
+			shells.value = (await cockpit.file("/etc/shells", { superuser: 'try' }).read())
+				.split('\n')
+				.filter(line => !/^\s*(?:#.*)?$/.test(line))
+				.map(path => (shellObj(path)));
+		} catch (error) {
+			alert("Failed to get shells: " + error.message);
+			return;
+		}
+
+		shells.value.push(shellObj("/bin/nologin"));
+
+		shells.value.sort((a, b) => {
+			if (a.name === b.name)
+				return a.path.localeCompare(b.path);
+			return a.name.localeCompare(b.name);
+		});
+	} finally {
 		processing.value--;
-		return;
 	}
-
-	shells.value.push(shellObj("/bin/nologin"));
-
-	shells.value.sort((a, b) => {
-		if (a.name === b.name)
-			return a.path.localeCompare(b.path);
-		return a.name.localeCompare(b.name);
-	});
-
-	processing.value--;
 }
 provide(shellsInjectionKey, shells);
 
@@ -66,7 +66,6 @@ const getGroups = async () => {
 						const [user, pass, uid, gid, ...etc] = record.split(':');
 						return {gid: parseInt(gid), user};
 					});
-		console.log(primaryGroups);
 		const groupDB = (await useSpawn(['getent', 'group'], { superuser: 'try' }).promise()).stdout;
 		groups.value = groupDB
 			.split('\n')
@@ -89,8 +88,9 @@ const getGroups = async () => {
 			});
 	} catch (state) {
 		alert("Failed to get groups: " + errorString(state));
+	} finally {
+		processing.value--;
 	}
-	processing.value--;
 }
 provide(groupsInjectionKey, groups);
 

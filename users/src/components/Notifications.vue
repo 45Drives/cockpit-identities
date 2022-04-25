@@ -150,7 +150,6 @@ export default {
 			notificationObj.show = true;
 			notificationObj.id = uniqueIDGenerator.get();
 			notificationObj.setTimeouts = () => {
-				console.log("setting timeouts");
 				if (notificationObj.timeout > 0) {
 					notificationObj.timeout1 = setTimeout(
 						() => notificationObj.show = false,
@@ -166,7 +165,6 @@ export default {
 				}
 			}
 			notificationObj.clearTimeouts = () => {
-				console.log("clearing timeouts");
 				if (notificationObj.timeout1 !== undefined)
 					clearTimeout(notificationObj.timeout1);
 				if (notificationObj.timeout2 !== undefined)
