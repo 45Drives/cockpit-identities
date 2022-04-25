@@ -2,20 +2,20 @@
 	<div class="flex flex-col items-stretch p-well gap-well">
 		<div class="flex flex-row items-stretch grow gap-well">
 			<button
-				class="card flex flex-col place-content-center items-center grow shrink"
+				class="card grow shrink"
 				@click="open('users')"
 			>
-				<div class="card-body">
-					<UsersIcon class="text-gray-500 max-h-40" />
+				<div class="card-body flex flex-col place-content-center items-center">
+					<UsersIcon class="icon-default max-h-40 h-auto w-auto" />
 					<div>Users</div>
 				</div>
 			</button>
 			<button
-				class="card flex flex-col place-content-center items-center grow shrink"
+				class="card grow shrink"
 				@click="open('groups')"
 			>
-				<div class="card-body">
-					<UserGroupIcon class="text-gray-500 max-h-40" />
+				<div class="card-body flex flex-col place-content-center items-center">
+					<UserGroupIcon class="icon-default max-h-40" />
 					<div>Groups</div>
 				</div>
 			</button>
