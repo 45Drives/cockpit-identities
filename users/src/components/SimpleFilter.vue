@@ -1,44 +1,37 @@
 <template>
-	<div v-click-outside="() => showMenu = false" class="relative">
-		<button @click="showMenu = !showMenu" :disabled="masterSet.length < 2" :title="masterSet.length < 2 ? 'Less than two options' : ''">
-			<FilterIcon
-				:class="[selected.size > 0 ? 'icon-45d' : '', 'size-icon icon-default cursor-pointer']"
-			/>
-		</button>
-		<transition
-			leave-active-class="transition ease-in duration-100"
-			leave-from-class="opacity-100"
-			leave-to-class="opacity-0"
+	<FixedMenu
+		:disabled="masterSet.length < 2"
+		:title="masterSet.length < 2 ? 'Less than two options' : ''"
+		extraMenuClasses="max-w-lg max-h-56 overflow-y-auto"
+	>
+		<template #buttonContent>
+			<FilterIcon :class="[selected.size > 0 ? 'icon-45d' : 'icon-default', 'size-icon']" />
+		</template>
+		<div class="block w-40"></div>
+		<div
+			v-if="selected.size > 0"
+			@click="clearSelected()"
+			class="hover:text-white hover:bg-red-600 flex flex-row justify-between items-center px-4 py-2 text-sm"
 		>
-			<ul
-				v-show="showMenu"
-				class="absolute z-20 top-8 right-0 w-40 bg-default shadow-lg max-h-60 rounded-md py-1 text-base overflow-y-auto focus:outline-none sm:text-sm"
-			>
-				<li
-					v-if="selected.size > 0"
-					@click="clearSelected()"
-					class="hover:text-white hover:bg-red-600 py-2 pl-3 pr-9"
-				>
-					<span class="font-semibold select-none">Clear Filters</span>
-				</li>
-				<li
-					v-for="item in masterSet"
-					@click="toggleSelect(item)"
-					class="hover:text-white hover:bg-red-600 cursor-default select-none py-2 pl-3 pr-4 flex flex-row flex-nowrap justify-between items-center"
-				>
-					<div
-						:class="[selected.has(item) ? 'font-semibold' : 'font-normal', 'block truncate']"
-					>{{ item.name ?? item }}</div>
-					<CheckIcon class="h-5 w-5" v-if="selected.has(item)" aria-hidden="true" />
-				</li>
-			</ul>
-		</transition>
-	</div>
+			<div class="block truncate font-semibold">Clear Filters</div>
+		</div>
+		<div
+			v-for="item in masterSet"
+			@click="toggleSelect(item)"
+			class="hover:text-white hover:bg-red-600 flex flex-row justify-between items-center px-4 py-2 text-sm"
+		>
+			<div
+				:class="[selected.has(item) ? 'font-semibold' : 'font-normal', 'block truncate']"
+			>{{ item.name ?? item }}</div>
+			<CheckIcon class="size-icon" v-if="selected.has(item)" aria-hidden="true" />
+		</div>
+	</FixedMenu>
 </template>
 
 <script>
 import { onMounted, reactive, ref, watch } from 'vue';
 import { CheckIcon, FilterIcon } from '@heroicons/vue/solid';
+import FixedMenu from './FixedMenu.vue';
 
 export default {
 	props: {
@@ -90,6 +83,7 @@ export default {
 	components: {
 		CheckIcon,
 		FilterIcon,
+		FixedMenu,
 	},
 	emits: [
 		'update:modelValue'
