@@ -108,7 +108,7 @@
 			class="input-textlike w-full"
 			v-model="testSSH.target"
 			@input="testSSH.reset"
-			placeholer="user@hostname or just hostname"
+			placeholder="user@hostname or just hostname"
 		/>
 		<div class="feedback-group" v-if="testSSH.result !== null">
 			<CheckCircleIcon v-if="testSSH.result" class="size-icon icon-success" />
