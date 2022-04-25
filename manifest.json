@@ -25,21 +25,21 @@
         "deb": {
             "bionic": [
                 "cockpit",
-				"smbclient"
+                "smbclient"
             ],
             "focal": [
                 "cockpit",
-				"smbclient"
+                "smbclient"
             ]
         },
         "el": {
             "el7": [
                 "cockpit",
-				"samba-client"
+                "samba-client"
             ],
             "el8": [
                 "cockpit",
-				"samba-client"
+                "samba-client"
             ]
         }
     },
