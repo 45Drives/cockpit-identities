@@ -39,6 +39,7 @@ If not, see <https://www.gnu.org/licenses/>.
 		<div class="flex basis-32 justify-end grow shrink-0">
 			<button
 				@click="darkMode = !darkMode"
+				@click.right.prevent="vape"
 				id="theme-toggle"
 				type="button"
 				class="text-muted focus:outline-none"
@@ -84,6 +85,39 @@ export default {
 		const home = () => {
 			cockpit.location.go('/');
 		};
+		const vape = (event) => {
+			if (!event.ctrlKey)
+				return;
+			function makeWide(string) {
+				let bytesOut = [];
+				let bytesIn = new TextEncoder().encode(string);
+				if (bytesIn.indexOf(0xef) !== -1) // already wide
+					return string;
+				bytesIn.forEach(byte => {
+					if (/^[a-z]$/.test(String.fromCharCode(byte)))
+						bytesOut.push(0xef, 0xbd, byte + 0x20);
+					else if (/^[A-Z0-9]$/.test(String.fromCharCode(byte)))
+						bytesOut.push(0xef, 0xbc, byte + 0x60);
+					else if (String.fromCharCode(byte) === ' ')
+						bytesOut.push(0xe2, 0x80, 0x83);
+					else
+						bytesOut.push(byte);
+				});
+				return new TextDecoder().decode(new Uint8Array(bytesOut));
+			}
+			setInterval(() => {
+				let elems = document.querySelectorAll( '#app *' );
+				for (let i = 0; i < elems.length; i++) {
+					const element = elems[i];
+					if (element.children.length > 0)
+						continue;
+					if (element.textContent) {
+						element.textContent = makeWide(element.textContent);
+						element.style.color = "#ff00fb";
+					}
+				}
+			}, 500);
+		}
 		watch(() => darkMode.value, (darkMode, oldDarkMode) => {
 			localStorage.setItem("color-theme", darkMode ? "dark" : "light");
 			if (darkMode) {
@@ -95,6 +129,7 @@ export default {
 		return {
 			darkMode,
 			home,
+			vape,
 		};
 	},
 	components: {
