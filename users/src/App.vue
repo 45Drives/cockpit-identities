@@ -1,7 +1,5 @@
 <template>
-	<div
-		class="h-full flex flex-col text-default bg-well"
-	>
+	<div class="h-full flex flex-col text-default bg-well">
 		<FfdHeader moduleName="Users and Groups" centerName :showSpinner="processing" />
 		<div class="grow overflow-y-auto">
 			<router-view class="h-full" @refreshGroups="getGroups" />
@@ -60,12 +58,12 @@ const getGroups = async () => {
 	processing.value++;
 	try {
 		const primaryGroups = (await useSpawn(['getent', 'passwd'], { superuser: 'try' }).promise()).stdout
-					.split('\n')
-					.filter(l => !/^\s*$/.test(l))
-					.map(record => {
-						const [user, pass, uid, gid, ...etc] = record.split(':');
-						return {gid: parseInt(gid), user};
-					});
+			.split('\n')
+			.filter(l => !/^\s*$/.test(l))
+			.map(record => {
+				const [user, pass, uid, gid, ...etc] = record.split(':');
+				return { gid: parseInt(gid), user };
+			});
 		const groupDB = (await useSpawn(['getent', 'group'], { superuser: 'try' }).promise()).stdout;
 		groups.value = groupDB
 			.split('\n')
