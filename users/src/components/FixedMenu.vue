@@ -162,7 +162,6 @@ export default {
 		let origMenuParent;
 
 		onMounted(() => {
-			console.log(menuElement);
 			origMenuParent = menuElement.value.parentElement;
 			origMenuParent.removeChild(menuElement.value);
 			document.documentElement.append(menuElement.value);
