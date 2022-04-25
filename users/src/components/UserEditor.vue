@@ -111,11 +111,11 @@
 			<ExclamationCircleIcon class="size-icon icon-error" />
 			<span v-html="feedback.shell" class="text-feedback text-error"></span>
 		</div>
-		<Table class="relative" emptyText="No groups. Click '+' to add one.">
+		<Table emptyText="No groups. Click '+' to add one.">
 			<template #header>
 				<div class="flex flex-row justify-between items-center">
 					<div>Groups</div>
-					<Listbox as="template" v-model="addGroupSelectorValue">
+					<Listbox as="div" v-model="addGroupSelectorValue" class="relative">
 						<ListboxButton class="size-icon cursor-pointer">
 							<PlusIcon class="size-icon icon-default" />
 						</ListboxButton>
@@ -126,7 +126,7 @@
 							leave-to-class="opacity-0"
 						>
 							<ListboxOptions
-								class="absolute z-10 right-3 top-8 bg-default shadow-lg max-h-60 rounded-md text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+								class="absolute z-10 right-0 top-5 bg-default shadow-lg max-h-60 rounded-md text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
 							>
 								<ListboxOption
 									as="template"
