@@ -1,9 +1,9 @@
 {
     "__version": "45D-R2",
-    "name": "cockpit-users",
-    "title": "Cockpit Users and Groups",
+    "name": "cockpit-identites",
+    "title": "Cockpit Identities",
     "prerelease": true,
-    "version": "0.1.0",
+    "version": "0.1.1",
     "buildVersion": "1",
     "author": "Joshua Boudreau <jboudreau@45drives.com>",
     "url": "https://github.com/45Drives/cockpit-users",
@@ -49,7 +49,7 @@
     ],
     "changelog": {
         "urgency": "medium",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "buildVersion": "1",
         "ignore": [],
         "date": null,

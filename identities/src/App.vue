@@ -1,6 +1,6 @@
 <template>
 	<div class="h-full flex flex-col text-default bg-well">
-		<FfdHeader moduleName="Users and Groups" centerName :showSpinner="processing" />
+		<FfdHeader moduleName="Identities" centerName :showSpinner="processing" />
 		<div class="grow overflow-y-auto">
 			<router-view class="h-full" @refreshGroups="getGroups" />
 		</div>

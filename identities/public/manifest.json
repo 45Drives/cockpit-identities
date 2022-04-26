@@ -2,8 +2,8 @@
     "version": 2.0,
 
     "menu": {
-        "users-and-groups": {
-            "label": "Users and Groups",
+        "identities": {
+            "label": "Identities",
             "path": "index.html",
             "order": 116
         }
