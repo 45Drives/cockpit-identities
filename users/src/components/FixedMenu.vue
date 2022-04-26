@@ -25,6 +25,7 @@
 				:class="['fixed z-30', menuClasses, extraMenuClasses]"
 				v-show="menuVisible"
 				ref="menuElement"
+				class="text-default"
 			>
 				<div
 					v-for="option in options"
