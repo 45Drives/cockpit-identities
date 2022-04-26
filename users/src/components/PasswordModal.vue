@@ -2,6 +2,8 @@
 	<ModalPopup
 		:showModal="showModal"
 		:headerText="headerText"
+		:applyText="applyText"
+		:cancelText="cancelText"
 		:disableContinue="!passwordValid"
 		@apply="applyCallback"
 		@cancel="cancelCallback"
@@ -49,17 +51,11 @@
 					</div>
 				</div>
 			</div>
-			<div
-				class="feedback-group"
-				v-if="warning"
-			>
+			<div class="feedback-group" v-if="warning">
 				<ExclamationCircleIcon class="size-icon icon-warning shrink-0" />
 				<span class="text-feedback text-warning">{{ warning }}</span>
 			</div>
-			<div
-				class="feedback-group"
-				v-if="feedback"
-			>
+			<div class="feedback-group" v-if="feedback">
 				<ExclamationCircleIcon class="size-icon icon-error shrink-0" />
 				<span class="text-feedback text-error">{{ feedback }}</span>
 			</div>
@@ -127,6 +123,16 @@ export default {
 			required: false,
 			default: "Set password",
 		},
+		applyText: {
+			type: String,
+			required: false,
+			default: "Apply",
+		},
+		cancelText: {
+			type: String,
+			required: false,
+			default: "Cancel",
+		},
 		user: {
 			type: String,
 			required: false,
@@ -149,7 +155,10 @@ export default {
 				emit('apply', password1.value);
 			} else {
 				feedback.value = "Password does not satisfy all strength requirements. Click apply again to proceed anyway.";
-				applyCallback.value = () => emit('apply', password1.value);
+				applyCallback.value = () => {
+					emit('apply', password1.value);
+					setTimeout(reset, 300);
+				};
 			}
 		};
 
@@ -157,14 +166,23 @@ export default {
 
 		const defaultCancelCallback = () => {
 			if (props.warnCancel) {
-				feedback.value = `Warning: ${props.user ?? 'user'} will have no password. Click cancel again to proceed anyway.`;
-				cancelCallback.value = () => emit('cancel');
+				feedback.value = `Warning: ${props.user ?? 'user'} will have no password. Click "${props.cancelText}" again to proceed anyway.`;
+				cancelCallback.value = () => {
+					emit('cancel');
+					setTimeout(reset, 300);
+				};
 			} else {
 				emit('cancel');
 			}
 		};
 
 		const cancelCallback = ref(defaultCancelCallback);
+
+		const reset = () => {
+			applyCallback.value = defaultApplyCallback;
+			cancelCallback.value = defaultCancelCallback;
+			feedback.value = "";
+		}
 
 		if (props.requireDifferentFromUser && props.user) {
 			const userPasswordRequirementNotSameAsUser = {
