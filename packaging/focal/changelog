@@ -1,4 +1,4 @@
-cockpit-users (0.1.1-1focal) focal; urgency=medium
+cockpit-identities (0.1.1-1focal) focal; urgency=medium
 
   * When no password is set, cancel button now says 'No Password'
   * Fixed position of dropdown menu to add user to groups
@@ -7,7 +7,7 @@ cockpit-users (0.1.1-1focal) focal; urgency=medium
 
  -- Joshua Boudreau <jboudreau@45drives.com>  Tue, 26 Apr 2022 11:28:18 -0300
 
-cockpit-users (0.1.0-1focal) focal; urgency=medium
+cockpit-identities (0.1.0-1focal) focal; urgency=medium
 
   * first build
 
