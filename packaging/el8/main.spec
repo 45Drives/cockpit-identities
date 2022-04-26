@@ -24,7 +24,7 @@ make
 make DESTDIR=%{buildroot} install
 
 %files
-/usr/share/cockpit/users-houston/*
+/usr/share/cockpit/identities/*
 
 %changelog
 * Tue Apr 26 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.1-1
