@@ -41,13 +41,21 @@
 				<th scope="col">
 					<div class="flex flex-row flex-nowrap space-x-2">
 						<div class="grow">Session End</div>
-						<SortCallbackButton v-model="sortCallback" :compareFunc="compareFuncs.sessionEnd" />
+						<SortCallbackButton
+							v-model="sortCallback"
+							:compareFunc="compareFuncs.sessionEnd"
+							startReversed
+						/>
 					</div>
 				</th>
 				<th scope="col">
 					<div class="flex flex-row flex-nowrap space-x-2">
 						<div class="grow">Time Logged In</div>
-						<SortCallbackButton v-model="sortCallback" :compareFunc="compareFuncs.sessionTime" />
+						<SortCallbackButton
+							v-model="sortCallback"
+							:compareFunc="compareFuncs.sessionTime"
+							startReversed
+						/>
 					</div>
 				</th>
 				<th scope="col">
@@ -77,10 +85,7 @@
 			>
 				<td v-if="user === null">{{ entry.user }}</td>
 				<td>{{ formatDate(entry.sessionStart) }}</td>
-				<td>
-					<span v-if="entry.stillLoggedIn">Still Logged In</span>
-					<span v-else>{{ formatDate(entry.sessionEnd) }}</span>
-				</td>
+				<td>{{ entry.overrideEndText ?? formatDate(entry.sessionEnd) }}</td>
 				<td>{{ entry.sessionTime ?? "" }}</td>
 				<td>{{ entry.ip }}</td>
 				<td>{{ entry.tty }}</td>
@@ -242,17 +247,17 @@ export default {
 											sessionStart: tryDate(match[3]),
 											sessionEnd: null, // end time or "still logged in" (or something else?)
 											sessionTime: match[5] ? sessionTimeToSentence(match[5]) : "0 Minutes",
-											stillLoggedIn: false,
+											overrideEndText: null,
 											authResult: bad ? 'bad' : 'good',
 										});
-										if (match[6] === "still logged in") {
+										if (match[6] === "still logged in" || match[6] === "still running") {
 											// live update time
 											setInterval(() => {
 												obj.sessionTime = timeSince(match[3]);
 												obj.sessionEnd = new Date();
 											}, 60 * 1000);
-											obj.sessionTime = timeSince(match[3])
-											obj.stillLoggedIn = true;
+											obj.sessionTime = timeSince(match[3]);
+											obj.overrideEndText = match[6].replace(/\b(\w)/g, w => w.toUpperCase());
 										}
 										const sessionTimeObj = sessionTimeToObj(match[5]);
 										obj.sessionEnd = tryDate(match[4])
