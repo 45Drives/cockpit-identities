@@ -17,10 +17,26 @@
 				<LoadingSpinner class="size-icon" v-if="processing" />
 			</div>
 			<UserEditor :user="user" @applyChanges="applyChanges">
-				<button class="btn btn-danger" @click="deleteConfirmation.showModal = true">
+				<button
+					class="btn btn-danger"
+					@click="deleteConfirmation.showModal = true"
+					:disabled="user.uid === '0' || user.isCurrentLoggedIn"
+					:title="user.uid === '0' ? 'Cannot delete root.' : user.isCurrentLoggedIn ? 'Cannot delete self.' : ''"
+				>
 					<div class="flex flex-row items-center">
 						<span class="mr-2">Delete User</span>
 						<TrashIcon class="size-icon" />
+					</div>
+				</button>
+				<button
+					class="btn btn-danger"
+					@click="terminateConfirmation.showModal = true"
+					:disabled="user.uid === '0'"
+					:title="user.uid === '0' ? 'Cannot terminate root session.' : `Send HUP to all processes owned by ${user.user}`"
+				>
+					<div class="flex flex-row items-center">
+						<span class="mr-2">Terminate Session</span>
+						<LogoutIcon class="size-icon" />
 					</div>
 				</button>
 			</UserEditor>
@@ -92,6 +108,16 @@
 			@input="deleteConfirmation.checkConfirmation"
 		/>
 	</ModalPopup>
+	<ModalPopup
+		:showModal="terminateConfirmation.showModal"
+		@apply="terminateConfirmation.applyCallback"
+		@cancel="terminateConfirmation.cancelCallback"
+		:headerText="`Terminate session for ${user.user}?`"
+		:applyText="terminateConfirmation.applyText"
+		applyDangerous
+	>
+		This will attempt to kill all processes owned by {{user.user}} with the SIGHUP signal, simulating a logout.
+	</ModalPopup>
 </template>
 
 <script>
@@ -105,7 +131,7 @@ import SSHKeys from "../components/SSHKeys.vue";
 import UserActivity from "../components/UserActivity.vue";
 import { shellsInjectionKey, notificationsInjectionKey } from "../keys";
 import shellObj from "../hooks/shellObj";
-import { TrashIcon, ExclamationCircleIcon } from "@heroicons/vue/solid";
+import { TrashIcon, ExclamationCircleIcon, LogoutIcon } from "@heroicons/vue/solid";
 import ModalPopup from "../components/ModalPopup.vue";
 import UserPassword from "../components/UserPassword.vue";
 import FixedMenu from "../components/FixedMenu.vue";
@@ -114,7 +140,7 @@ export default {
 	setup(props, { emit }) {
 		const testOutput = ref("");
 		const route = useRoute();
-		const user = reactive({ groups: [] });
+		const user = reactive({ groups: [], isCurrentLoggedIn: false });
 		const processing = ref(0);
 		const processingCredentials = ref(0);
 		const shells = inject(shellsInjectionKey);
@@ -151,6 +177,17 @@ export default {
 				}, 300);
 			},
 		});
+		const terminateConfirmation = reactive({
+			showModal: false,
+			applyText: "Confirm",
+			applyCallback: async () => {
+				await useSpawn(['killall', '-HUP', '-u', user.user], { superuser: 'try' }).promise();
+				terminateConfirmation.showModal = false;
+			},
+			cancelCallback: () => {
+				terminateConfirmation.showModal = false;
+			},
+		});
 
 		const getUserInfo = async (newUserLogin = null) => {
 			processing.value++;
@@ -158,6 +195,7 @@ export default {
 				if (newUserLogin !== null)
 					user.user = newUserLogin;
 				deleteConfirmation.confirmationCheck = `delete-${user.user}`;
+				user.isCurrentLoggedIn = user.user === (await cockpit.user()).name;
 				let tmpUser = {};
 				try {
 					const fields = (await useSpawn(['getent', 'passwd', user.user], { superuser: 'try' }).promise()).stdout
@@ -278,8 +316,9 @@ export default {
 			processing,
 			processingCredentials,
 			deleteConfirmation,
+			terminateConfirmation,
 			applyChanges,
-			deleteUser
+			deleteUser,
 		}
 	},
 	components: {
@@ -292,7 +331,8 @@ export default {
 		ExclamationCircleIcon,
 		ModalPopup,
 		UserPassword,
-		FixedMenu
+		FixedMenu,
+		LogoutIcon,
 	},
 	emits: [
 		'refreshGroups'
