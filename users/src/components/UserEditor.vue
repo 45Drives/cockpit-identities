@@ -113,9 +113,9 @@
 		</div>
 		<Table emptyText="No groups. Click '+' to add one.">
 			<template #header>
-				<div class="flex flex-row justify-between items-center">
+				<div class="flex flex-row justify-between items-center relative">
 					<div>Groups</div>
-					<Listbox as="div" v-model="addGroupSelectorValue" class="relative">
+					<Listbox as="div" v-model="addGroupSelectorValue">
 						<ListboxButton class="size-icon cursor-pointer">
 							<PlusIcon class="size-icon icon-default" />
 						</ListboxButton>
