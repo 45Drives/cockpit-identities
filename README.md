@@ -1,2 +1,2 @@
-# cockpit-users-and-groups
+# Cockpit Identities
 User and group management plugin for Houston UI (Cockpit)
