@@ -1,8 +1,8 @@
 PLUGIN=users
 
 default:
-	npm install --prefix $(PLUGIN)
-	npm run --prefix $(PLUGIN) build
+	yarn install --cwd $(PLUGIN)
+	yarn --cwd $(PLUGIN) build
 
 all: default
 
