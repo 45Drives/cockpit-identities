@@ -34,7 +34,8 @@
 				<div class="flex gap-1 items-baseline flex-wrap justify-start">
 					<span>Expire password every</span>
 					<input
-						v-model.lazy.number="userPassword.expireDays"
+						:value="userPassword.expireDays == -1 ? '' : userPassword.expireDays"
+						@change="updateExpiry($event.target.value)"
 						type="number"
 						placeholder="∞"
 						min="1"
@@ -61,6 +62,7 @@
 			@apply="expirePassword"
 			@cancel="() => showExpirePasswordModal = false"
 			:headerText="`Expire password for ${user}?`"
+			applyDangerous
 			applyText="Yes"
 			cancelText="No"
 		>
@@ -72,6 +74,7 @@
 		:showModal="userPassword.showModal"
 		:user="user"
 		:headerText="`${userPassword.isSet ? 'Change' : 'Set'} login password for ${user}`"
+		:cancelText="userPassword.isSet ? 'Cancel' : 'No Password'"
 		:warnCancel="!userPassword.isSet"
 		@apply="userPassword.applyCallback"
 		@cancel="userPassword.cancelCallback"
@@ -124,6 +127,7 @@ export default {
 					.trim().split(' ');
 				switch (passwdStatusFields[1]) {
 					case 'P':
+					case 'PS':
 						userPassword.isSet = true;
 						userPassword.isLocked = false;
 						break;
@@ -137,6 +141,7 @@ export default {
 					default:
 						throw new Error(`Unknown field in passwd -S: ${passwdStatusFields[1]}. Should be NP, P, or L.`);
 				}
+				userPassword.expireDays = parseInt(passwdStatusFields[4]);
 				const chageLines = (await useSpawn(['chage', '-l', props.user], { superuser: 'try' }).promise()).stdout
 					.split('\n'); // split lines
 				const chageExpires = chageLines.find(line => /^Password expires/.test(line))
@@ -150,7 +155,7 @@ export default {
 				notifications.constructNotification(
 					"Failed to check password status",
 					errorStringHTML(state),
-					'warning'
+					'error'
 				);
 				allowed.value = false;
 				userPassword.isSet = false;
@@ -200,7 +205,7 @@ export default {
 				notifications.constructNotification(
 					`Failed to expire password`,
 					errorStringHTML(state),
-					'warning'
+					'error'
 				);
 			} finally {
 				showExpirePasswordModal.value = false;
@@ -224,22 +229,34 @@ export default {
 				notifications.constructNotification(
 					`Failed to ${userPassword.isLocked ? 'un' : ''}lock password`,
 					errorStringHTML(state),
-					'warning'
+					'error'
 				);
 			} finally {
 				emit('stopProcessing');
 			}
 		};
 
+		const updateExpiry = async (daysStr) => {
+			emit('startProcessing');
+			console.log(daysStr);
+			try {
+				const days = daysStr ? parseInt(daysStr) : -1;
+				await useSpawn(['passwd', '-x', `${days}`, props.user], { superuser: 'try' }).promise();
+			} catch (state) {
+				notifications.constructNotification(
+					`Failed to set password expiry`,
+					errorStringHTML(state),
+					'error'
+				);
+			} finally {
+				emit('stopProcessing');
+				await checkPasswdStatus();
+			}
+		}
+
 		watch(() => props.user, async () => {
 			await checkPasswdStatus();
 		}, { immediate: !props.newUser });
-
-		if (!props.modalOnly) {
-			watch(() => userPassword.expireDays, () => {
-				console.log(userPassword.expireDays);
-			})
-		}
 
 		return {
 			userPassword,
@@ -249,6 +266,7 @@ export default {
 			setPassword,
 			expirePassword,
 			togglePasswordLock,
+			updateExpiry,
 		}
 	},
 	components: {
