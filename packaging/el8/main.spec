@@ -27,5 +27,10 @@ make DESTDIR=%{buildroot} install
 /usr/share/cockpit/users-houston/*
 
 %changelog
+* Tue Apr 26 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.1-1
+- When no password is set, cancel button now says 'No Password'
+- Fixed position of dropdown menu to add user to groups
+- Implemented password expiry period
+- Added ability to terminate user session
 * Mon Apr 25 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.0-1
 - first build
