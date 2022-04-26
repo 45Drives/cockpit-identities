@@ -23,21 +23,13 @@
     },
     "dependencies": {
         "deb": {
-            "bionic": [
-                "cockpit",
-                "smbclient"
-            ],
-            "focal": [
+            "generic": [
                 "cockpit",
                 "smbclient"
             ]
         },
         "el": {
-            "el7": [
-                "cockpit",
-                "samba-client"
-            ],
-            "el8": [
+            "generic": [
                 "cockpit",
                 "samba-client"
             ]
