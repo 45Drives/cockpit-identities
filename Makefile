@@ -63,6 +63,7 @@ $(OUTPUTS): %/dist/index.html: $$(shell find $$*/{src,public} -type f) $$(shell 
 	@echo
 
 # system install, requires `systemctl restart cockpit.socket`
+# runs plugin-install-* for each plugin
 .SECONDEXPANSION:
 install install-local install-remote: default $$(addprefix plugin-$$@-, $$(PLUGIN_SRCS))
 ifeq ($(RESTART_COCKPIT), 1)
