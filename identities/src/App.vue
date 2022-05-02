@@ -10,7 +10,7 @@
 
 <script setup>
 import FfdHeader from './components/FfdHeader.vue';
-import { ref, provide, watch } from 'vue';
+import { ref, provide } from 'vue';
 import shellObj from './hooks/shellObj';
 import { useSpawn, errorString, FIFO } from '@45drives/cockpit-helpers';
 import Notifications from './components/Notifications.vue';
