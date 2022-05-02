@@ -40,7 +40,7 @@
 						</td>
 					</tr>
 					<tr v-if="keys.length === 0">
-						<td class="text-muted">No keys. Click "+" to add one.</td>
+						<td class="text-muted">No keys. Click '+' to add one.</td>
 					</tr>
 				</template>
 			</Table>
