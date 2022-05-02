@@ -57,7 +57,6 @@ import "@fontsource/red-hat-text/400.css";
 import "source-sans-pro/source-sans-pro.css";
 import { SunIcon, MoonIcon } from "@heroicons/vue/solid";
 import { ref, watch, inject } from "vue";
-import { darkModeInjectionKey } from "../keys";
 import LoadingSpinner from "./LoadingSpinner.vue";
 
 export default {
@@ -66,7 +65,7 @@ export default {
 		showSpinner: Boolean,
 	},
 	setup(props) {
-		const darkMode = inject(darkModeInjectionKey) ?? ref(true);
+		const darkMode = inject('darkModeInjectionKey') ?? ref(true);
 		function getTheme() {
 			let prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
 			let theme = localStorage.getItem("color-theme");
