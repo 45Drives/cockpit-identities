@@ -177,7 +177,7 @@ export default {
 		user: Object,
 	},
 	setup(props, { emit }) {
-		const notifications = inject(notificationsInjectionKey).value;
+		const notifications = inject(notificationsInjectionKey);
 		const keys = ref([]);
 		const valid = ref(false);
 		const confirmRemoveKey = reactive({
@@ -193,7 +193,7 @@ export default {
 					const tmpKeys = keys.value.filter(key => key !== confirmRemoveKey.key);
 					await authorizedKeysFile.replace(tmpKeys);
 				} catch (error) {
-					notifications.constructNotification("Error removing authorized SSH key", errorStringHTML(error), 'error');
+					notifications.value.constructNotification("Error removing authorized SSH key", errorStringHTML(error), 'error');
 				} finally {
 					confirmRemoveKey.key = null;
 					confirmRemoveKey.showModal = false;
@@ -213,13 +213,13 @@ export default {
 				try {
 					let tmpKeys = await SSHAuthorizedKeysSyntax.parse(addKey.keyText);
 					if (!tmpKeys.length) {
-						notifications.constructNotification("Error adding authorized SSH key", "No keys could be parsed.", 'error');
+						notifications.value.constructNotification("Error adding authorized SSH key", "No keys could be parsed.", 'error');
 						return;
 					}
 					tmpKeys = [...keys.value, ...tmpKeys];
 					await authorizedKeysFile.replace(tmpKeys);
 				} catch (state) {
-					notifications.constructNotification("Error adding authorized SSH key", errorStringHTML(state), 'error');
+					notifications.value.constructNotification("Error adding authorized SSH key", errorStringHTML(state), 'error');
 				} finally {
 					addKey.keyText = "";
 					addKey.showModal = false;
@@ -243,9 +243,9 @@ export default {
 					navigator.clipboard.writeText(
 						await cockpit.file(`${props.user.home}/.ssh/id_rsa.pub`, { superuser: 'try' }).read()
 					);
-					notifications.constructNotification("Copied public ID to clipboard", '', 'success');
+					notifications.value.constructNotification("Copied public ID to clipboard", '', 'success');
 				} catch (error) {
-					notifications.constructNotification("Error reading public ID", errorStringHTML(error), 'error');
+					notifications.value.constructNotification("Error reading public ID", errorStringHTML(error), 'error');
 				} finally {
 					emit('stopProcessing');
 				}
@@ -263,15 +263,15 @@ export default {
 							publicID.cancelPasswordCallback = reject;
 						})
 					} catch {
-						notifications.constructNotification("SSH key generation canceled");
+						notifications.value.constructNotification("SSH key generation canceled");
 						publicID.showPassphraseModal = false;
 						return;
 					}
 					state.proc.input(`${pass}\n${pass}`);
 					await state.promise();
-					notifications.constructNotification("Successfully generated SSH key pair", "It can now be copied and used.", 'success');
+					notifications.value.constructNotification("Successfully generated SSH key pair", "It can now be copied and used.", 'success');
 				} catch (error) {
-					notifications.constructNotification("Error generating public ID", errorStringHTML(error), 'error');
+					notifications.value.constructNotification("Error generating public ID", errorStringHTML(error), 'error');
 				} finally {
 					publicID.showPassphraseModal = false;
 					emit('stopProcessing');
@@ -336,7 +336,7 @@ export default {
 			try {
 				keys.value = await promise ?? [];
 			} catch (error) {
-				notifications.constructNotification("Error getting authorized SSH keys", errorStringHTML(error), 'error');
+				notifications.value.constructNotification("Error getting authorized SSH keys", errorStringHTML(error), 'error');
 			} finally {
 				emit('stopProcessing');
 			}
@@ -355,9 +355,9 @@ export default {
 				await useSpawn(['touch', path], { superuser: 'try' }).promise();
 				await useSpawn(['chmod', '600', path], { superuser: 'try' }).promise();
 				await useSpawn(['chown', `${props.user.user}:${props.user.user}`, path], { superuser: 'try' }).promise();
-				notifications.constructNotification("Fixed missing SSH directory/files", '', 'success');
+				notifications.value.constructNotification("Fixed missing SSH directory/files", '', 'success');
 			} catch (state) {
-				notifications.constructNotification("Failed to create SSH directory / authorized_keys", errorStringHTML(state), 'error');
+				notifications.value.constructNotification("Failed to create SSH directory / authorized_keys", errorStringHTML(state), 'error');
 			} finally {
 				emit('stopProcessing');
 			}
@@ -369,29 +369,29 @@ export default {
 			const sshDir = authorizedKeysPathArr.slice(0, authorizedKeysPathArr.length - 1).join('/');
 			if (! await checkIfAllowed(props.user.home)) {
 				// permission denied
-				notifications.constructNotification("Permission denied for SSH", "You cannot manage SSH for this user.", 'warning');
+				notifications.value.constructNotification("Permission denied for SSH", "You cannot manage SSH for this user.", 'warning');
 				return false;
 			}
 			if (! await checkIfExists(sshDir)) {
 				// allow to create dir and file
-				notifications.constructNotification("SSH directory doesn't exist", `${sshDir} does not exist, but you can create it now.`, 'warning')
+				notifications.value.constructNotification("SSH directory doesn't exist", `${sshDir} does not exist, but you can create it now.`, 'warning')
 					.addAction("Fix", () => createSshDir(path));
 				return false;
 			}
 			if (! await checkIfAllowed(sshDir)) {
 				// permission denied
-				notifications.constructNotification("Permission denied for SSH", "You cannot manage SSH for this user.", 'warning');
+				notifications.value.constructNotification("Permission denied for SSH", "You cannot manage SSH for this user.", 'warning');
 				return false;
 			}
 			if (! await checkIfExists(path)) {
 				// allow to create (dir and) file
-				notifications.constructNotification("authorized_keys file doesn't exist", `${path} does not exist, but you can create it now.`, 'warning')
+				notifications.value.constructNotification("authorized_keys file doesn't exist", `${path} does not exist, but you can create it now.`, 'warning')
 					.addAction("Fix", () => createSshDir(path));
 				return false;
 			}
 			if (! await checkIfAllowed(path)) {
 				// permission denied
-				notifications.constructNotification("Permission denied for SSH", "You cannot manage SSH for this user.", 'warning');
+				notifications.value.constructNotification("Permission denied for SSH", "You cannot manage SSH for this user.", 'warning');
 				return false;
 			}
 			return true;
@@ -410,7 +410,7 @@ export default {
 				try {
 					valid.value = await validateAuthorizedKeysPath(authorizedKeysFilePath);
 				} catch (error) {
-					notifications.constructNotification("Error checking path: ${}", errorStringHTML(error), 'error');
+					notifications.value.constructNotification("Error checking path: ${}", errorStringHTML(error), 'error');
 					return;
 				}
 				authorizedKeysFile = new BetterCockpitFile(

@@ -136,7 +136,7 @@ import { useSpawn, errorStringHTML } from "@45drives/cockpit-helpers";
 
 export default {
 	setup(props, { emit }) {
-		const notifications = inject(notificationsInjectionKey).value;
+		const notifications = inject(notificationsInjectionKey);
 		const processing = ref(0);
 		const groups = inject(groupsInjectionKey);
 		const groupsSorted = ref([...groups.value]);
@@ -173,10 +173,10 @@ export default {
 				processing.value++;
 				try {
 					await useSpawn(['groupadd', newGroup.group], { superuser: 'try' }).promise();
-					notifications.constructNotification("Created group", `Successfully created group ${newGroup.group}`, 'success');
+					notifications.value.constructNotification("Created group", `Successfully created group ${newGroup.group}`, 'success');
 					emit('refreshGroups');
 				} catch (state) {
-					notifications.constructNotification("Failed to create group", errorStringHTML(state), 'error');
+					notifications.value.constructNotification("Failed to create group", errorStringHTML(state), 'error');
 				} finally {
 					newGroup.showModal = false;
 					setTimeout(() => {
@@ -199,10 +199,10 @@ export default {
 		// 		processing.value++;
 		// 		try {
 		// 			await useSpawn(['groupdel', deleteConfirmation.group], { superuser: 'try' }).promise();
-		// 			notifications.constructNotification("Deleted group", `Successfully deleted group ${newGroup.group}`, 'success');
+		// 			notifications.value.constructNotification("Deleted group", `Successfully deleted group ${newGroup.group}`, 'success');
 		// 			emit('refreshGroups');
 		// 		} catch (state) {
-		// 			notifications.constructNotification("Failed to delete group", errorStringHTML(state), 'error');
+		// 			notifications.value.constructNotification("Failed to delete group", errorStringHTML(state), 'error');
 		// 		} finally {
 		// 			deleteConfirmation.reset();
 		// 			processing.value--;
@@ -252,10 +252,10 @@ export default {
 					processing.value++;
 					try {
 						await useSpawn(['groupdel', deleteConfirmation.group.group], { superuser: 'try' }).promise();
-						notifications.constructNotification("Deleted group", `Successfully deleted group ${deleteConfirmation.group.group}`, 'success');
+						notifications.value.constructNotification("Deleted group", `Successfully deleted group ${deleteConfirmation.group.group}`, 'success');
 						emit('refreshGroups');
 					} catch (state) {
-						notifications.constructNotification("Failed to delete group", errorStringHTML(state), 'error');
+						notifications.value.constructNotification("Failed to delete group", errorStringHTML(state), 'error');
 					} finally {
 						deleteConfirmation.reset();
 						processing.value--;

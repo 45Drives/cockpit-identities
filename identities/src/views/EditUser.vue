@@ -144,7 +144,7 @@ export default {
 		const processing = ref(0);
 		const processingCredentials = ref(0);
 		const shells = inject(shellsInjectionKey);
-		const notifications = inject(notificationsInjectionKey).value;
+		const notifications = inject(notificationsInjectionKey);
 		const deleteConfirmation = reactive({
 			showModal: false,
 			applyText: "Confirm",
@@ -181,7 +181,9 @@ export default {
 			showModal: false,
 			applyText: "Confirm",
 			applyCallback: async () => {
-				await useSpawn(['killall', '-HUP', '-u', user.user], { superuser: 'try' }).promise();
+				try {
+					await useSpawn(['killall', '-HUP', '-u', user.user], { superuser: 'try' }).promise();
+				} catch (state) { /* exits non-zero if no procs killed */}
 				terminateConfirmation.showModal = false;
 			},
 			cancelCallback: () => {
@@ -207,7 +209,7 @@ export default {
 					tmpUser.home = fields[5];
 					tmpUser.shell = shells.value.find(shell => shell.path === fields[6]);
 					if (!tmpUser.shell) {
-						notifications.constructNotification(
+						notifications.value.constructNotification(
 							`${fields[6]} not in /etc/shells`,
 							"If you modify this user's shell, you will need to use 'Custom Shell' in the dropdown to set it back.",
 							'info'
@@ -219,13 +221,14 @@ export default {
 						.split(/\s+/g)
 						.filter(line => !/^\s*$/.test(line)) // remove empty lines
 						.sort();
+					tmpUser.primaryGroup = (await useSpawn(['id', '-ng', user.user], { superuser: 'try' }).promise()).stdout.trim();
 				} catch (state) {
 					let message;
 					if (state?.status === 2)
 						message = `User '${user.user}' not found.`;
 					else
 						message = errorStringHTML(state);
-					notifications.constructNotification(
+					notifications.value.constructNotification(
 						"Failed to query user",
 						message,
 						'error'
@@ -292,11 +295,11 @@ export default {
 			argv.push(user.user);
 			try {
 				await useSpawn(argv, { superuser: 'try' }).promise();
-				notifications.constructNotification("Deleted user", `${user.user} was deleted successfully.`, 'success');
+				notifications.value.constructNotification("Deleted user", `${user.user} was deleted successfully.`, 'success');
 				emit('refreshGroups');
 				cockpit.location.go("/users");
 			} catch (state) {
-				notifications.constructNotification("Error deleting user", errorStringHTML(state), 'error');
+				notifications.value.constructNotification("Error deleting user", errorStringHTML(state), 'error');
 			}
 		}
 

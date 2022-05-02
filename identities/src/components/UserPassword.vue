@@ -34,13 +34,13 @@
 				<div class="flex gap-1 items-baseline flex-wrap justify-start">
 					<span>Expire password every</span>
 					<input
-						:value="userPassword.expireDays == -1 ? '' : userPassword.expireDays"
+						:value="(userPassword.expireDays == -1 || userPassword.expireDays == 99999) ? '' : userPassword.expireDays"
 						@change="updateExpiry($event.target.value)"
 						type="number"
 						placeholder="∞"
-						min="1"
+						min="0"
 						max="9999"
-						class="w-20 grow-0 input-textlike"
+						class="w-24 grow-0 input-textlike"
 					/>
 					<span>days</span>
 				</div>
@@ -118,7 +118,7 @@ export default {
 		const allowed = ref(true);
 		const showExpirePasswordModal = ref(false);
 		const showPasswordExpiryModal = ref(false);
-		const notifications = inject(notificationsInjectionKey).value;
+		const notifications = inject(notificationsInjectionKey);
 
 		const checkPasswdStatus = async () => {
 			emit('startProcessing');
@@ -139,7 +139,7 @@ export default {
 						userPassword.isLocked = true;
 						break;
 					default:
-						throw new Error(`Unknown field in passwd -S: ${passwdStatusFields[1]}. Should be NP, P, or L.`);
+						throw new Error(`Unknown field in passwd -S: ${passwdStatusFields[1]}. Should be NP, P, PS, or L.`);
 				}
 				userPassword.expireDays = parseInt(passwdStatusFields[4]);
 				const chageLines = (await useSpawn(['chage', '-l', props.user], { superuser: 'try' }).promise()).stdout
@@ -152,7 +152,7 @@ export default {
 					.replace("password must be changed", "Password is expired.")
 					.replace("never", "Password never expires.");
 			} catch (state) {
-				notifications.constructNotification(
+				notifications.value.constructNotification(
 					"Failed to check password status",
 					errorStringHTML(state),
 					'error'
@@ -179,10 +179,10 @@ export default {
 					const state = useSpawn(['passwd', props.user], { superuser: 'try' });
 					state.proc.input(`${password}\n${password}\n`);
 					await state.promise();
-					notifications.constructNotification(`Set password for ${props.user}`, "Password was set successfully.", 'success');
+					notifications.value.constructNotification(`Set password for ${props.user}`, "Password was set successfully.", 'success');
 					await checkPasswdStatus();
 				} catch (state) {
-					notifications.constructNotification(
+					notifications.value.constructNotification(
 						"Error setting password",
 						errorStringHTML(state),
 						'error'
@@ -191,7 +191,7 @@ export default {
 					emit('stopProcessing');
 				}
 			} else if (!userPassword.isSet) {
-				notifications.constructNotification(`${props.user} has no password`, "Set the password in the user editor to be able to log in.", 'warning');
+				notifications.value.constructNotification(`${props.user} has no password`, "Set the password in the user editor to be able to log in.", 'warning');
 			}
 			userPassword.showModal = false;
 		};
@@ -202,7 +202,7 @@ export default {
 				await useSpawn(['passwd', '-e', props.user], { superuser: 'try' }).promise();
 				await checkPasswdStatus();
 			} catch (state) {
-				notifications.constructNotification(
+				notifications.value.constructNotification(
 					`Failed to expire password`,
 					errorStringHTML(state),
 					'error'
@@ -226,7 +226,7 @@ export default {
 				await useSpawn(argv, { superuser: 'try' }).promise();
 				await checkPasswdStatus();
 			} catch (state) {
-				notifications.constructNotification(
+				notifications.value.constructNotification(
 					`Failed to ${userPassword.isLocked ? 'un' : ''}lock password`,
 					errorStringHTML(state),
 					'error'
@@ -243,7 +243,7 @@ export default {
 				const days = daysStr ? parseInt(daysStr) : -1;
 				await useSpawn(['passwd', '-x', `${days}`, props.user], { superuser: 'try' }).promise();
 			} catch (state) {
-				notifications.constructNotification(
+				notifications.value.constructNotification(
 					`Failed to set password expiry`,
 					errorStringHTML(state),
 					'error'

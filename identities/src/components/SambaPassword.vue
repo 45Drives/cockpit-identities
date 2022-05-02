@@ -49,7 +49,7 @@ export default {
 	},
 	setup(props, { emit }) {
 		const sambaPassword = reactive({ showModal: false, showRemoveModal: false, isSet: false });
-		const notifications = inject(notificationsInjectionKey).value;
+		const notifications = inject(notificationsInjectionKey);
 
 		const checkIfSmbpasswdSet = async () => {
 			emit('startProcessing');
@@ -70,9 +70,9 @@ export default {
 				state.proc.input(`${password}\n${password}\n`);
 				await state.promise();
 				sambaPassword.isSet = true;
-				notifications.constructNotification("Set Samba password", `Samba password for ${props.user} was set successfully.`, 'success');
+				notifications.value.constructNotification("Set Samba password", `Samba password for ${props.user} was set successfully.`, 'success');
 			} catch (state) {
-				notifications.constructNotification(`Failed to set Samba password for ${props.user}`, errorStringHTML(state), 'error');
+				notifications.value.constructNotification(`Failed to set Samba password for ${props.user}`, errorStringHTML(state), 'error');
 				checkIfSmbpasswdSet();
 			} finally {
 				sambaPassword.showModal = false;
@@ -85,9 +85,9 @@ export default {
 			try {
 				await useSpawn(['smbpasswd', '-x', props.user], { superuser: 'try' }).promise();
 				sambaPassword.isSet = false;
-				notifications.constructNotification("Removed Samba password", `Samba password for ${props.user} was removed successfully.`, 'success');
+				notifications.value.constructNotification("Removed Samba password", `Samba password for ${props.user} was removed successfully.`, 'success');
 			} catch (state) {
-				notifications.constructNotification(`Failed to remove Samba password for ${props.user}`, errorStringHTML(state), 'error');
+				notifications.value.constructNotification(`Failed to remove Samba password for ${props.user}`, errorStringHTML(state), 'error');
 				checkIfSmbpasswdSet();
 			} finally {
 				sambaPassword.showRemoveModal = false;

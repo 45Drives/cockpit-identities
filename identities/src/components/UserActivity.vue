@@ -181,7 +181,7 @@ export default {
 		const historyReactive = reactive(history);
 		const processing = ref(0);
 		const darkMode = inject(darkModeInjectionKey);
-		const notifications = inject(notificationsInjectionKey).value;
+		const notifications = inject(notificationsInjectionKey);
 		const filters = reactive({
 			users: {
 				set: new Set([]),
@@ -282,7 +282,7 @@ export default {
 					}
 					history.value = tmpHistory.sort(sortCallback.value);
 				} catch (state) {
-					notifications.constructNotification("Error getting login history", errorStringHTML(state), 'error');
+					notifications.value.constructNotification("Error getting login history", errorStringHTML(state), 'error');
 					return;
 				}
 			} finally {
