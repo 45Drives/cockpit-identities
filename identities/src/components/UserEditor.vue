@@ -164,10 +164,14 @@
 				</tr>
 			</template>
 			<template #tbody>
+				<slot name="primaryGroup" :primaryGroup="tmpUser?.primaryGroup ?? ''" />
 				<tr v-for="(group, index) in tmpUser.groups">
-					<td>{{ group }}</td>
+					<td>
+						{{ group }}
+						<span v-if="group === tmpUser.primaryGroup" class="text-muted">(primary group)</span>
+					</td>
 					<td class="flex flex-row justify-end">
-						<button v-if="group !== tmpUser.user" @click="removeGroup(group)">
+						<button v-if="group !== tmpUser.primaryGroup" @click="removeGroup(group)">
 							<MinusIcon class="icon-danger size-icon" />
 						</button>
 					</td>
@@ -357,6 +361,7 @@ export default {
 		});
 
 		return {
+			groupsRef,
 			tmpUser,
 			changesMade,
 			inputsValid,
