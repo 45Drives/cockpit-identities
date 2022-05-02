@@ -10,7 +10,17 @@
 				<h3 class="text-header">Details</h3>
 				<LoadingSpinner class="size-icon" v-if="processing" />
 			</div>
-			<UserEditor :user="user" createNew :hooks="editorHooks" @applyChanges="createUser" />
+			<UserEditor :user="user" createNew :hooks="editorHooks" @applyChanges="createUser">
+				<template #primaryGroup="{ primaryGroup }">
+					<tr>
+						<td>
+							{{ primaryGroup ?? "" }}
+							<span class="text-muted">(primary group)</span>
+						</td>
+						<td></td>
+					</tr>
+				</template>
+			</UserEditor>
 		</div>
 	</div>
 	<UserPassword modalOnly newUser :user="user.user" ref="userPasswordRef" />
@@ -29,9 +39,10 @@ export default {
 	setup(props, { emit }) {
 		const userPasswordRef = ref();
 		const shells = inject(shellsInjectionKey);
-		const notifications = inject(notificationsInjectionKey).value;
+		const notifications = inject(notificationsInjectionKey);
 		const user = reactive({
 			user: "",
+			primaryGroup: "",
 			name: "",
 			home: "",
 			shell: shells.value.find(shell => /bash/.test(shell.path)) ?? shellObj('/bin/bash'),
@@ -47,11 +58,7 @@ export default {
 						newUser.home = "";
 					else if (!newUser.home || /^\/home\//.test(newUser.home))
 						newUser.home = `/home/${newUser.user}`;
-					const primaryGroupInd = newUser.groups.indexOf(oldUser.user);
-					if (primaryGroupInd !== -1)
-						newUser.groups[primaryGroupInd] = newUser.user;
-					else
-						newUser.groups = [newUser.user, ...newUser.groups];
+					newUser.primaryGroup = newUser.user;
 				}
 			},
 			validateInputs: (user) => {
@@ -80,7 +87,7 @@ export default {
 					})
 					.filter(user => user !== null);
 			} catch (state) {
-				notifications.constructNotification(
+				notifications.value.constructNotification(
 					"Failed to get exiting users",
 					`${errorStringHTML(state)}\nBe careful not to create an existing user.`,
 					'warning'
@@ -106,13 +113,13 @@ export default {
 					argv.push('--home', newUser.home);
 
 				argv.push('--user-group');
-				const secondaryGroups = newUser.groups.filter(group => group !== newUser.user)
-				if (secondaryGroups.length)
-					argv.push('--groups', secondaryGroups.join(','));
-				
+
+				if (newUser.groups.length)
+					argv.push('--groups', newUser.groups.join(','));
+
 				if (newUser.shell.path)
 					argv.push('-s', newUser.shell.path);
-				
+
 				argv.push(newUser.user);
 
 				procs.push(useSpawn(argv, { superuser: 'try' }).promise());
@@ -125,14 +132,14 @@ export default {
 					}
 				}
 				if (errors.length) {
-					notifications.constructNotification("Error creating user", `<span class="text-gray-500 font-mono text-sm whitespace-pre-wrap">${errors.join('\n')}</span>`, 'error');
+					notifications.value.constructNotification("Error creating user", `<span class="text-gray-500 font-mono text-sm whitespace-pre-wrap">${errors.join('\n')}</span>`, 'error');
 				} else {
 					Object.assign(user, newUser);
-					notifications.constructNotification("Created user", `${newUser.name ?? newUser.user} was created successfully.`, 'success');
+					notifications.value.constructNotification("Created user", `${newUser.name ?? newUser.user} was created successfully.`, 'success');
 					emit('refreshGroups');
 					await userPasswordRef.value.setPassword();
 					cockpit.location.go(`/users/${newUser.user}`);
-					notifications
+					notifications.value
 						.constructNotification("Redirected", "You were taken to the user editor after creation.", 'info')
 						.addAction('Back to users list', () => cockpit.location.go('/users'));
 				}
