@@ -5,6 +5,9 @@
 				<div class="flex flex-row space-x-2 items-center">
 					<div v-if="user !== null">{{ user.name === "" ? user.user : user.name }}'s Login History</div>
 					<div v-else>User Login History</div>
+					<button @click="copyCSV" title="Copy data to clipboard as CSV">
+						<ClipboardCopyIcon class="size-icon icon-default" />
+					</button>
 					<LoadingSpinner v-if="processing" class="size-icon" />
 				</div>
 				<Datepicker
@@ -100,7 +103,7 @@ import { ref, reactive, watch, inject, onMounted, computed } from 'vue';
 import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { useSpawn, errorStringHTML } from '@45drives/cockpit-helpers';
-import { FilterIcon } from '@heroicons/vue/solid';
+import { FilterIcon, ClipboardCopyIcon } from '@heroicons/vue/solid';
 import SimpleFilter from './SimpleFilter.vue';
 import LoadingSpinner from './LoadingSpinner.vue';
 import SortCallbackButton from './SortCallbackButton.vue';
@@ -314,6 +317,25 @@ export default {
 			}
 		}
 
+		const copyCSV = async () => {
+			const header = "user,session start,session end,time logged in,IP address,TTY,authorization result"
+			const data = [
+				header,
+				...(history.value
+					.map(entry => [
+						entry.user,
+						formatDate(entry.sessionStart),
+						entry.overrideEndText ?? formatDate(entry.sessionEnd),
+						entry.sessionTime ?? "",
+						entry.ip,
+						entry.tty,
+						entry.authResult,
+					].map(field => field.includes(',') ? `"${field}"` : field).join(','))
+				)
+			].join('\n');
+			navigator.clipboard.writeText(data);
+		}
+
 		onMounted(() => {
 			const to = new Date();
 			const from = new Date(new Date().setDate(to.getDate() - props.initialRangeDays));
@@ -343,6 +365,7 @@ export default {
 			sortCallback,
 			rangePreviewFormatter,
 			formatDate,
+			copyCSV,
 		}
 	},
 	components: {
@@ -352,6 +375,7 @@ export default {
 		LoadingSpinner,
 		SortCallbackButton,
 		Table,
+		ClipboardCopyIcon,
 	}
 }
 </script>
