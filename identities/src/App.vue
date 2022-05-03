@@ -1,6 +1,13 @@
 <template>
 	<div class="h-full flex flex-col text-default bg-well">
-		<FfdHeader moduleName="Identities" centerName :showSpinner="processing" />
+		<FfdHeader
+			moduleName="Identities"
+			centerName
+			:showSpinner="processing"
+			:infoNudgeScrollbar="infoNudgeScrollbar"
+			sourceURL="https://github.com/45Drives/cockpit-identities"
+			issuesURL="https://github.com/45Drives/cockpit-identities/issues"
+		/>
 		<div class="grow overflow-y-auto">
 			<router-view class="h-full" @refreshGroups="getGroups" />
 		</div>
@@ -14,7 +21,8 @@ import { ref, provide } from 'vue';
 import shellObj from './hooks/shellObj';
 import { useSpawn, errorString, FIFO } from '@45drives/cockpit-helpers';
 import Notifications from './components/Notifications.vue';
-import { notificationsInjectionKey, darkModeInjectionKey, shellsInjectionKey, groupsInjectionKey } from './keys';
+import { notificationsInjectionKey, darkModeInjectionKey, shellsInjectionKey, groupsInjectionKey, infoNudgeScrollbarInjectionKey } from './keys';
+import { useRoute } from 'vue-router';
 
 const props = defineProps({ notificationFIFO: FIFO });
 
@@ -23,6 +31,9 @@ provide(notificationsInjectionKey, notifications);
 
 const darkMode = ref(false);
 provide(darkModeInjectionKey, darkMode);
+
+const infoNudgeScrollbar = ref(false);
+provide(infoNudgeScrollbarInjectionKey, infoNudgeScrollbar);
 
 const processing = ref(0);
 
