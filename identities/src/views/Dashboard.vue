@@ -20,7 +20,7 @@
 				</div>
 			</button>
 		</div>
-		<div class="card grow">
+		<div class="card">
 			<div class="card-body">
 				<UserActivity :initialRangeDays="0" />
 			</div>
