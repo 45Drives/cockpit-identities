@@ -122,14 +122,14 @@
 
 <script>
 import { useRoute } from "vue-router";
-import { ref, watch, computed, reactive, inject, onUnmounted } from "vue";
+import { ref, watch, computed, reactive, inject, onMounted, onBeforeUnmount } from "vue";
 import { useSpawn, errorString, errorStringHTML } from "@45drives/cockpit-helpers";
 import UserEditor from "../components/UserEditor.vue";
 import SambaPassword from "../components/SambaPassword.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import SSHKeys from "../components/SSHKeys.vue";
 import UserActivity from "../components/UserActivity.vue";
-import { shellsInjectionKey, notificationsInjectionKey } from "../keys";
+import { shellsInjectionKey, notificationsInjectionKey, infoNudgeScrollbarInjectionKey } from "../keys";
 import shellObj from "../hooks/shellObj";
 import { TrashIcon, ExclamationCircleIcon, LogoutIcon } from "@heroicons/vue/solid";
 import ModalPopup from "../components/ModalPopup.vue";
@@ -145,6 +145,9 @@ export default {
 		const processingCredentials = ref(0);
 		const shells = inject(shellsInjectionKey);
 		const notifications = inject(notificationsInjectionKey);
+		const infoNudgeScrollbar = inject(infoNudgeScrollbarInjectionKey);
+		onMounted(() => infoNudgeScrollbar.value = true);
+		onBeforeUnmount(() => infoNudgeScrollbar.value = false);
 		const deleteConfirmation = reactive({
 			showModal: false,
 			applyText: "Confirm",

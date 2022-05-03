@@ -27,13 +27,13 @@
 </template>
 
 <script>
-import { ref, watch, computed, reactive, inject } from "vue";
+import { ref, watch, computed, reactive, inject, onMounted, onBeforeUnmount } from "vue";
 import { useSpawn, errorString, errorStringHTML } from "@45drives/cockpit-helpers";
 import shellObj from "../hooks/shellObj";
 import UserEditor from "../components/UserEditor.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import UserPassword from "../components/UserPassword.vue";
-import { shellsInjectionKey, notificationsInjectionKey } from "../keys";
+import { shellsInjectionKey, notificationsInjectionKey, infoNudgeScrollbarInjectionKey } from "../keys";
 
 export default {
 	setup(props, { emit }) {
@@ -50,6 +50,9 @@ export default {
 		});
 		let existingUsers = [];
 		const processing = ref(0);
+		const infoNudgeScrollbar = inject(infoNudgeScrollbarInjectionKey);
+		onMounted(() => infoNudgeScrollbar.value = true);
+		onBeforeUnmount(() => infoNudgeScrollbar.value = false);
 
 		const editorHooks = reactive({
 			onInput: (newUser, oldUser) => {

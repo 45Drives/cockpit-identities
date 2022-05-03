@@ -15,3 +15,7 @@ export const shellsInjectionKey = Symbol();
  * ref to list of groups
  */
 export const groupsInjectionKey = Symbol();
+/**
+ * ref to boolean to nudge out info icon to clear scrollbar
+ */
+export const infoNudgeScrollbarInjectionKey = Symbol();

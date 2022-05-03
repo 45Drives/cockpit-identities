@@ -2,17 +2,17 @@
 Copyright (C) 2022 Mark Hooper <mhooper@45drives.com>
                    Josh Boudreau <jboudreau@45drives.com>
 
-This file is part of Cockpit File Sharing.
+This file is part of Cockpit Identities.
 
-Cockpit File Sharing is free software: you can redistribute it and/or modify it under the terms
+Cockpit Identities is free software: you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation, either version 3
 of the License, or (at your option) any later version.
 
-Cockpit File Sharing is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+Cockpit Identities is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with Cockpit File Sharing.
+You should have received a copy of the GNU General Public License along with Cockpit Identities.
 If not, see <https://www.gnu.org/licenses/>. 
 -->
 
@@ -33,41 +33,68 @@ If not, see <https://www.gnu.org/licenses/>.
 				</h1>
 			</div>
 			<slot />
-			<LoadingSpinner v-if="showSpinner" class="size-icon self-center ml-2" />
+			<LoadingSpinner v-if="showSpinner" class="size-icon self-center" />
 		</div>
 		<h1
 			class="text-red-800 dark:text-white text-base sm:text-2xl cursor-pointer grow-0 text-center"
 			@click="home"
 		>{{ moduleName }}</h1>
-		<div class="flex basis-32 justify-end grow shrink-0">
+		<div class="flex basis-32 justify-end items-center grow shrink-0 gap-buttons">
+			<button :class="[infoButtonInHeader ? '' : infoNudgeScrollbar ? 'md:fixed md:right-5 md:bottom-2 md:z-50' : 'md:fixed md:right-2 md:bottom-2 md:z-50']" @click="showInfo = true">
+				<QuestionMarkCircleIcon class="size-icon icon-default" />
+			</button>
 			<button
 				@click="darkMode = !darkMode"
 				@click.right.prevent="vape"
-				id="theme-toggle"
-				type="button"
-				class="text-muted focus:outline-none"
 			>
-				<SunIcon v-if="darkMode" class="size-icon-lg" />
-				<MoonIcon v-else class="size-icon-lg" />
+				<SunIcon v-if="darkMode" class="size-icon-lg icon-default" />
+				<MoonIcon v-else class="size-icon-lg icon-default" />
 			</button>
 		</div>
 	</div>
+	<ModalPopup
+		:showModal="showInfo"
+		:headerText="`${moduleName} ${version}`"
+		noCancel
+		applyText="Close"
+		@apply="showInfo = false"
+	>
+		<div class="flex flex-col">
+			<span>
+				Created by
+				<a
+					class="text-link"
+					href="https://www.45drives.com/?utm_source=Houston&utm_medium=UI&utm_campaign=OS-Link"
+				>45Drives</a> for Houston UI (Cockpit)
+			</span>
+			<a class="text-link" href="sourceURL">Source Code</a>
+			<a class="text-link" href="issuesURL">Issue Tracker</a>
+		</div>
+	</ModalPopup>
 </template>
 
 <script>
 import "@fontsource/red-hat-text/700.css";
 import "@fontsource/red-hat-text/400.css";
 import "source-sans-pro/source-sans-pro.css";
-import { SunIcon, MoonIcon } from "@heroicons/vue/solid";
+import { SunIcon, MoonIcon, QuestionMarkCircleIcon } from "@heroicons/vue/solid";
 import { ref, watch, inject } from "vue";
 import LoadingSpinner from "./LoadingSpinner.vue";
+import ModalPopup from './ModalPopup.vue';
+import { pluginVersion } from '../version';
 
 export default {
 	props: {
 		moduleName: String,
+		sourceURL: String,
+		issuesURL: String,
 		showSpinner: Boolean,
+		infoButtonInHeader: Boolean,
+		infoNudgeScrollbar: Boolean,
 	},
 	setup(props) {
+		const version = ref(pluginVersion);
+		const showInfo = ref(false);
 		const darkMode = inject('darkModeInjectionKey') ?? ref(true);
 		function getTheme() {
 			let prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -129,6 +156,8 @@ export default {
 			}
 		}, { lazy: false });
 		return {
+			version,
+			showInfo,
 			darkMode,
 			home,
 			vape,
@@ -138,6 +167,8 @@ export default {
 		SunIcon,
 		MoonIcon,
 		LoadingSpinner,
+		ModalPopup,
+		QuestionMarkCircleIcon,
 	}
 };
 </script>
