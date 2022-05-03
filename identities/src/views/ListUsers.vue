@@ -2,16 +2,13 @@
 	<div class="flex flex-row flex-wrap content-start gap-well p-well w-full">
 		<button v-for="user in users" @click="openUser(user.user)" class="card">
 			<div class="card-body flex flex-col items-center justify-center h-36 min-w-[10rem] relative">
-				<div class="flex flex-col gap-2 absolute right-3 top-3">
-					<StarIcon
-						v-if="user.currentLoggedIn"
-						class="size-icon icon-default"
-						title="You"
-					/>
-					<ShieldExclamationIcon
-						v-if="user.uid === 0"
-						class="size-icon icon-default"
-					/>
+				<div class="flex flex-col gap-0.5 absolute right-3 top-3">
+					<div title="You">
+						<StarIcon v-if="user.currentLoggedIn" class="size-icon icon-default" />
+					</div>
+					<div title="Administrator">
+						<ShieldExclamationIcon v-if="user.uid === 0" class="size-icon icon-default" />
+					</div>
 				</div>
 				<UserIcon class="w-20 h-20 icon-default shrink-0" />
 				<div>{{ user.name ?? user.user }}</div>
