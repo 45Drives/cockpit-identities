@@ -6,7 +6,7 @@
 				class="btn btn-primary"
 				@click="setPassword"
 			>{{ userPassword.isSet ? 'Change' : 'Set' }} Account Password</button>
-			<button class="btn btn-primary" @click="togglePasswordLock()" v-if="userPassword.isSet">
+			<button class="btn btn-primary" @click="togglePasswordLock()">
 				<div class="flex flex-row items-center">
 					<span class="mr-2">{{ userPassword.isLocked ? 'Unlock' : 'Lock' }} Account Password</span>
 					<LockClosedIcon v-if="userPassword.isLocked" class="size-icon" />
@@ -90,6 +90,16 @@ import { ref, reactive, watch, inject } from 'vue';
 import { useSpawn, errorString, errorStringHTML } from '@45drives/cockpit-helpers';
 import { notificationsInjectionKey } from "../keys";
 
+const checkIfPasswdSet = async (user) => {
+	try {
+		await useSpawn(['bash', '-c', `[[ -n "$(getent shadow ${user} | cut -d: -f2 | sed 's/^!+//')" ]]`], { superuser: 'require' }).promise();
+		return true;
+	} catch (state) {
+		console.error(state);
+		return false;
+	}
+}
+
 export default {
 	props: {
 		user: String, // just the username
@@ -136,10 +146,12 @@ export default {
 						userPassword.isLocked = false;
 						break;
 					case 'L':
+					case 'LK':
+						userPassword.isSet = await checkIfPasswdSet(props.user);
 						userPassword.isLocked = true;
 						break;
 					default:
-						throw new Error(`Unknown field in passwd -S: ${passwdStatusFields[1]}. Should be NP, P, PS, or L.`);
+						throw new Error(`Unknown field in passwd -S: ${passwdStatusFields[1]}. Should be NP, P, PS, L, or LK.`);
 				}
 				userPassword.expireDays = parseInt(passwdStatusFields[4]);
 				const chageLines = (await useSpawn(['chage', '-l', props.user], { superuser: 'try' }).promise()).stdout
