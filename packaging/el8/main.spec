@@ -27,6 +27,11 @@ make DESTDIR=%{buildroot} install
 /usr/share/cockpit/identities/*
 
 %changelog
+* Thu May 05 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.3-1
+- Add plugin info button
+- Handle user password case where locked and not set
+- Remove gap under activity table on dashboard
+- Add exporting user activity as CSV download
 * Mon May 02 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.2-1
 - Fix race condition where notifications is undefined
 - Handle case for password expiry = 99999 (default case)

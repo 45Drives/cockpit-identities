@@ -3,7 +3,7 @@
     "name": "cockpit-identities",
     "title": "Cockpit Identities",
     "prerelease": true,
-    "version": "0.1.2",
+    "version": "0.1.3",
     "buildVersion": "1",
     "author": "Joshua Boudreau <jboudreau@45drives.com>",
     "url": "https://github.com/45Drives/cockpit-identities",
@@ -52,13 +52,8 @@
         "version": "0.1.3",
         "buildVersion": "1",
         "ignore": [],
-        "date": "2022-05-05T12:56:54.238261",
+        "date": null,
         "packager": "Joshua Boudreau <jboudreau@45drives.com>",
-        "changes": [
-            "Add plugin info button",
-            "Handle user password case where locked and not set",
-            "Remove gap under activity table on dashboard",
-            "Add exporting user activity as CSV download"
-        ]
+        "changes": []
     }
 }

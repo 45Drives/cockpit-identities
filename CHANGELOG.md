@@ -1,5 +1,6 @@
-## Cockpit Identities 0.1.2-1
+## Cockpit Identities 0.1.3-1
 
-* Fix race condition where notifications is undefined
-* Handle case for password expiry = 99999 (default case)
-* Properly determine user primary group from command, not just equal to user login name
+* Add plugin info button
+* Handle user password case where locked and not set
+* Remove gap under activity table on dashboard
+* Add exporting user activity as CSV download

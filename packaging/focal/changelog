@@ -1,3 +1,12 @@
+cockpit-identities (0.1.3-1focal) focal; urgency=medium
+
+  * Add plugin info button
+  * Handle user password case where locked and not set
+  * Remove gap under activity table on dashboard
+  * Add exporting user activity as CSV download
+
+ -- Joshua Boudreau <jboudreau@45drives.com>  Thu, 05 May 2022 09:56:54 -0300
+
 cockpit-identities (0.1.2-1focal) focal; urgency=medium
 
   * Fix race condition where notifications is undefined
