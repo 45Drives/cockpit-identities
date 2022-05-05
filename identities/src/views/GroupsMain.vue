@@ -157,7 +157,7 @@ export default {
 					const invalidCharacters = [...(newGroup.group.match(/(?:^[^a-z_]|(?<=.+)[^a-z0-9_-](?=.+)|[^\$a-z0-9_-]$)/g) ?? [])];
 					newGroup.feedback.group =
 						`Invalid character${invalidCharacters.length > 1 ? 's' : ''}: `
-						+ invalidCharacters.map(char => `'${char}'`).join(', ');
+						+ invalidCharacters.filter((c, i, a) => a.indexOf(c) === i).map(char => `'${char}'`).join(', ');
 					result = false;
 				} else if (groupNames.includes(newGroup.group)) {
 					newGroup.feedback.group = "Group already exists.";
