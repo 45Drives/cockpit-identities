@@ -5,8 +5,8 @@
 				<div class="flex flex-row space-x-2 items-center">
 					<div v-if="user !== null">{{ user.name === "" ? user.user : user.name }}'s Login History</div>
 					<div v-else>User Login History</div>
-					<button @click="copyCSV" title="Copy data to clipboard as CSV">
-						<ClipboardCopyIcon class="size-icon icon-default" />
+					<button @click="saveCSV" title="Save data as CSV">
+						<DocumentDownloadIcon class="size-icon icon-default" />
 					</button>
 					<LoadingSpinner v-if="processing" class="size-icon" />
 				</div>
@@ -16,8 +16,11 @@
 					:partialRange="false"
 					placeholder="Date Range"
 					:dark="darkMode"
-					class="w-auto shrink-0"
 					:format="rangePreviewFormatter"
+					autoApply
+					teleport="#app"
+					enableSeconds
+					:startTime="[{ hours: 0, minutes: 0, seconds: 0 }, { hours: 23, minutes: 59, seconds: 59 }]"
 				/>
 			</div>
 		</template>
@@ -99,11 +102,11 @@
 </template>
 
 <script>
-import { ref, reactive, watch, inject, onMounted, computed } from 'vue';
+import { ref, reactive, watch, inject, onMounted } from 'vue';
 import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
-import { useSpawn, errorStringHTML } from '@45drives/cockpit-helpers';
-import { FilterIcon, ClipboardCopyIcon } from '@heroicons/vue/solid';
+import { useSpawn, errorStringHTML, generatedFileDownload } from '@45drives/cockpit-helpers';
+import { FilterIcon, DocumentDownloadIcon } from '@heroicons/vue/solid';
 import SimpleFilter from './SimpleFilter.vue';
 import LoadingSpinner from './LoadingSpinner.vue';
 import SortCallbackButton from './SortCallbackButton.vue';
@@ -152,10 +155,20 @@ function timeSince(start) {
 		+ `${minutes} Minute${minutes === 1 ? '' : 's'}`;
 }
 
-function sameDay(a, b) {
+function isSameDay(a, b) {
 	return a.getFullYear() === b.getFullYear()
 		&& a.getMonth() === b.getMonth()
 		&& a.getDate() === b.getDate();
+}
+
+function isFullDay(a, b) {
+	return isSameDay(a, b)
+		&& a.getHours() === 0
+		&& a.getMinutes() === 0
+		&& a.getSeconds() === 0
+		&& b.getHours() === 23
+		&& b.getMinutes() === 59
+		&& b.getSeconds() === 59
 }
 
 function tryDate(date) {
@@ -297,7 +310,8 @@ export default {
 			let result = "";
 			result += previewRange[0].toLocaleDateString([], { dateStyle: "short" });
 			if (previewRange[1] !== null) {
-				if (sameDay(...previewRange))
+				if (isFullDay(...previewRange)) {}
+				else if (isSameDay(...previewRange))
 					result += `, ${previewRange[0].getHours().toString().padStart(2, '0')}:${previewRange[0].getMinutes().toString().padStart(2, '0')} - ${previewRange[1].getHours()}:${previewRange[1].getMinutes()}`;
 				else
 					result += ` - ${previewRange[1].toLocaleDateString([], { dateStyle: "short" })}`;
@@ -317,7 +331,7 @@ export default {
 			}
 		}
 
-		const copyCSV = async () => {
+		const saveCSV = async () => {
 			const header = "user,session start,session end,time logged in,IP address,TTY,authorization result"
 			const data = [
 				header,
@@ -333,7 +347,16 @@ export default {
 					].map(field => field.includes(',') ? `"${field}"` : field).join(','))
 				)
 			].join('\n');
-			navigator.clipboard.writeText(data);
+			let hostname = "";
+			try {
+				hostname = (await useSpawn(['hostname'], { superuser: 'try' }).promise()).stdout.trim() + ' ';
+			} catch { }
+			const dataRange = range.value ? rangePreviewFormatter(range.value) : 'all time';
+			try {
+				await generatedFileDownload(`${hostname}user activity - ${dataRange}.csv`, data);
+			} catch (error) {
+				notifications.value.constructNotification("Failed to download file", errorStringHTML(error), 'error');
+			}
 		}
 
 		onMounted(() => {
@@ -365,7 +388,7 @@ export default {
 			sortCallback,
 			rangePreviewFormatter,
 			formatDate,
-			copyCSV,
+			saveCSV,
 		}
 	},
 	components: {
@@ -375,7 +398,7 @@ export default {
 		LoadingSpinner,
 		SortCallbackButton,
 		Table,
-		ClipboardCopyIcon,
+		DocumentDownloadIcon,
 	}
 }
 </script>
