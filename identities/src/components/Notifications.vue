@@ -41,6 +41,11 @@
 									class="icon-success size-icon-lg"
 									aria-hidden="true"
 								/>
+								<MinusCircleIcon
+									v-else-if="notification.level === 'denied'"
+									class="icon-error size-icon-lg"
+									aria-hidden="true"
+								/>
 								<InformationCircleIcon v-else class="icon-info size-icon-lg" />
 							</div>
 							<div class="ml-3 w-0 flex-1 pt-0.5">
