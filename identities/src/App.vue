@@ -95,6 +95,7 @@ const getGroups = async () => {
 				}
 				return obj;
 			});
+		groups.value.sort((a, b) => a.group.localeCompare(b.group));
 	} catch (state) {
 		alert("Failed to get groups: " + errorString(state));
 	} finally {
