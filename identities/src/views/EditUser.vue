@@ -68,7 +68,7 @@
 			<div class="card-header">
 				<div class="text-header">Activity</div>
 			</div>
-			<div class="card-body space-y-content">
+			<div class="card-body">
 				<UserActivity :user="user" v-if="user.user !== undefined" />
 			</div>
 		</div>
