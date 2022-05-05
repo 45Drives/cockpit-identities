@@ -8,9 +8,9 @@
   integrity sha512-fyUb6xMwKpuRWOL3DV1ZjGQjPxEkEhqsbFlZy6gALeOzk9RuJlBReQXyo0Ds9ZwcJlrhwRRdSDmT/EEtNs+ZaA==
 
 "@45drives/cockpit-helpers@^0.1.2":
-  version "0.1.5"
-  resolved "https://npm.pkg.github.com/download/@45drives/cockpit-helpers/0.1.5/11da695fa45541ed05a741e727ad7bd0ab9147f6d64b6232a3c0e0864ed11ef0#3c30430ef04c3eb5a034be64e893735b561dccd7"
-  integrity sha512-UnTXt0p8SPKeD0UmxvojihUx54gyMwe324/2FjD3muCEBoREzW0SsumS/mj1ASVASkcRJQ5SwDNXDRQsWHIgJQ==
+  version "0.1.7"
+  resolved "https://npm.pkg.github.com/download/@45drives/cockpit-helpers/0.1.7/fc1c065099065eb9eec8499f2a8823e0db573c3a1f9071f738ea19a136fe54c7#eb87551729cde09031ae47793994a7163b33db4d"
+  integrity sha512-R+05C7GvLRj1Wl7h/X//RsT7sybyTN6wEofWGUjYq05jWlBk6/+43tC6mQ1E52iRmTsEqTHKqZZhPN0A4L3iyQ==
 
 "@45drives/cockpit-syntaxes@^0.1.2":
   version "0.1.4"
