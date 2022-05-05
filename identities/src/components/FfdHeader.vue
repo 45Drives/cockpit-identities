@@ -65,10 +65,11 @@ If not, see <https://www.gnu.org/licenses/>.
 				<a
 					class="text-link"
 					href="https://www.45drives.com/?utm_source=Houston&utm_medium=UI&utm_campaign=OS-Link"
+					target="_blank"
 				>45Drives</a> for Houston UI (Cockpit)
 			</span>
-			<a class="text-link" href="sourceURL">Source Code</a>
-			<a class="text-link" href="issuesURL">Issue Tracker</a>
+			<a class="text-link" :href="sourceURL" target="_blank">Source Code</a>
+			<a class="text-link" :href="issuesURL" target="_blank">Issue Tracker</a>
 		</div>
 	</ModalPopup>
 </template>
