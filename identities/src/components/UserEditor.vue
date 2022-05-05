@@ -226,8 +226,8 @@ export default {
 		const feedback = reactive({});
 		const shells = inject(shellsInjectionKey);
 		const groupsRef = inject(groupsInjectionKey);
-		let groups = groupsRef.value.map(groupObj => groupObj.group); // get just plain group names
-		const nonMemberGroups = ref(groups.filter(group => !(tmpUser.groups?.includes(group))));
+		let groups = [];
+		const nonMemberGroups = ref([]);
 		const addGroupSelectorValue = ref("");
 		const showCustomShellModal = ref(false);
 		const customShell = reactive({ ...shellObj(""), isCustom: true });
@@ -270,7 +270,7 @@ export default {
 				const invalidCharacters = [...(tmpUser.user.match(/(?:^[^a-z_]|(?<=.+)[^a-z0-9_-](?=.+)|[^\$a-z0-9_-]$)/g) ?? [])];
 				feedback.user = (feedback.user ?? "")
 					+ `Invalid character${invalidCharacters.length > 1 ? 's' : ''}: `
-					+ invalidCharacters.map(char => `'${char}'`).join(', ') + '\n';
+					+ invalidCharacters.filter((c, i, a) => a.indexOf(c) === i).map(char => `'${char}'`).join(', ') + '\n';
 				result = false;
 			}
 			if (tmpUser.user.length > 32) {
@@ -329,6 +329,11 @@ export default {
 		};
 
 		onMounted(() => {
+			watch(groupsRef, () => {
+				groups = groupsRef.value.map(groupObj => groupObj.group); // get just plain group names
+				nonMemberGroups.value = groups.filter(group => !(tmpUser.groups?.includes(group)));
+			}, { immediate: true });
+
 			watch(tmpUser, checkIfChanged); // deep watch for nested mutations
 
 			watch(() => tmpUser.groups, () => {
