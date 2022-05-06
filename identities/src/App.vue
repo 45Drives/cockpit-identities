@@ -7,6 +7,7 @@
 			:infoNudgeScrollbar="infoNudgeScrollbar"
 			sourceURL="https://github.com/45Drives/cockpit-identities"
 			issuesURL="https://github.com/45Drives/cockpit-identities/issues"
+			:pluginVersion="version"
 		/>
 		<div class="grow overflow-y-auto">
 			<router-view class="h-full" @refreshGroups="getGroups" />
@@ -23,6 +24,9 @@ import { useSpawn, errorString, FIFO } from '@45drives/cockpit-helpers';
 import Notifications from './components/Notifications.vue';
 import { notificationsInjectionKey, darkModeInjectionKey, shellsInjectionKey, groupsInjectionKey, infoNudgeScrollbarInjectionKey } from './keys';
 import { useRoute } from 'vue-router';
+import { pluginVersion } from './version';
+
+const version = ref(pluginVersion);
 
 const props = defineProps({ notificationFIFO: FIFO });
 
