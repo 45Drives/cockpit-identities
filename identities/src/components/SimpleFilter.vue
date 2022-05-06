@@ -46,7 +46,6 @@ export default {
 		const masterSet = ref([...(props.set)]);
 		const showMenu = ref(false);
 
-
 		const toggleSelect = (item) => {
 			if (selected.value.has(item))
 				selected.value.delete(item);
@@ -63,13 +62,15 @@ export default {
 			emit('update:modelValue', () => true);
 		}
 
+		const asString = () => {
+			return selected.value.size ? [...selected.value].join(', ') : '(all)';
+		}
+
 		onMounted(() => emit('update:modelValue', () => true));
 
 		watch(() => props.set, () => {
 			masterSet.value = [...(props.set)];
 			clearSelected();
-			// TODO: do it right
-			//selected.value = new Set([...selected.value].filter(x => masterSet.value.includes(x)));
 		}, { deep: true });
 
 		return {
@@ -78,6 +79,7 @@ export default {
 			showMenu,
 			toggleSelect,
 			clearSelected,
+			asString,
 		}
 	},
 	components: {

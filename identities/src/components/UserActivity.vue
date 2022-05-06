@@ -5,7 +5,7 @@
 				<div class="flex flex-row space-x-2 items-center">
 					<div v-if="user !== null">{{ user.name === "" ? user.user : user.name }}'s Login History</div>
 					<div v-else>User Login History</div>
-					<button @click="saveCSV" title="Save data as CSV">
+					<button v-if="!processing" @click="saveCSV" title="Save data as CSV">
 						<DocumentDownloadIcon class="size-icon icon-default" />
 					</button>
 					<LoadingSpinner v-if="processing" class="size-icon" />
@@ -29,7 +29,7 @@
 				<th v-if="user === null" scope="col">
 					<div class="flex flex-row flex-nowrap space-x-2">
 						<div class="grow">User</div>
-						<SimpleFilter :set="filters.users.set" v-model="filters.users.callback" />
+						<SimpleFilter :set="filters.users.set" v-model="filters.users.callback" ref="userFilterRef" />
 						<SortCallbackButton v-model="sortCallback" :compareFunc="compareFuncs.user" />
 					</div>
 				</th>
@@ -67,19 +67,23 @@
 				<th scope="col">
 					<div class="flex flex-row flex-nowrap justify-between space-x-5">
 						<span>IP Address</span>
-						<SimpleFilter :set="filters.ips.set" v-model="filters.ips.callback" />
+						<SimpleFilter :set="filters.ips.set" v-model="filters.ips.callback" ref="ipFilterRef" />
 					</div>
 				</th>
 				<th scope="col">
 					<div class="flex flex-row flex-nowrap justify-between space-x-5">
 						<span>TTY</span>
-						<SimpleFilter :set="filters.ttys.set" v-model="filters.ttys.callback" />
+						<SimpleFilter :set="filters.ttys.set" v-model="filters.ttys.callback" ref="ttyFilterRef" />
 					</div>
 				</th>
 				<th scope="col">
 					<div class="flex flex-row flex-nowrap justify-between space-x-5">
 						<span>Auth Result</span>
-						<SimpleFilter :set="filters.authResults.set" v-model="filters.authResults.callback" />
+						<SimpleFilter
+							:set="filters.authResults.set"
+							v-model="filters.authResults.callback"
+							ref="authResultFilterRef"
+						/>
 					</div>
 				</th>
 			</tr>
@@ -193,6 +197,10 @@ export default {
 	},
 	setup(props) {
 		const range = ref();
+		const userFilterRef = ref();
+		const ipFilterRef = ref();
+		const ttyFilterRef = ref();
+		const authResultFilterRef = ref();
 		const history = ref([]);
 		const historyReactive = reactive(history);
 		const processing = ref(0);
@@ -310,7 +318,7 @@ export default {
 			let result = "";
 			result += previewRange[0].toLocaleDateString([], { dateStyle: "short" });
 			if (previewRange[1] !== null) {
-				if (isFullDay(...previewRange)) {}
+				if (isFullDay(...previewRange)) { }
 				else if (isSameDay(...previewRange))
 					result += `, ${previewRange[0].getHours().toString().padStart(2, '0')}:${previewRange[0].getMinutes().toString().padStart(2, '0')} - ${previewRange[1].getHours()}:${previewRange[1].getMinutes()}`;
 				else
@@ -332,28 +340,72 @@ export default {
 		}
 
 		const saveCSV = async () => {
-			const header = "user,session start,session end,time logged in,IP address,TTY,authorization result"
-			const data = [
-				header,
-				...(history.value
-					.map(entry => [
-						entry.user,
-						formatDate(entry.sessionStart),
-						entry.overrideEndText ?? formatDate(entry.sessionEnd),
-						entry.sessionTime ?? "",
-						entry.ip,
-						entry.tty,
-						entry.authResult,
-					].map(field => field.includes(',') ? `"${field}"` : field).join(','))
-				)
-			].join('\n');
-			let hostname = "";
+			const makeCSV = rows => rows.map(row => row.map(field => field.includes(',') ? `"${field}"` : field).join(',')).join('\n');
+			const dateFormatter = new Intl.DateTimeFormat([], {
+				year: 'numeric',
+				month: 'short',
+				day: '2-digit',
+				hourCycle: 'h24',
+				hour: '2-digit',
+				minute: '2-digit',
+				second: '2-digit',
+				timeZoneName: 'longOffset',
+			});
+			let user = props.user?.user ?? "";
+			let hostname;
 			try {
-				hostname = (await useSpawn(['hostname'], { superuser: 'try' }).promise()).stdout.trim() + ' ';
+				hostname = (await useSpawn(['hostname'], { superuser: 'try' }).promise()).stdout.trim();
+				user = user ? user + '@' : user;
 			} catch { }
 			const dataRange = range.value ? rangePreviewFormatter(range.value) : 'all time';
+			const info = [
+				['exported from', `${hostname} (${cockpit.transport.origin})`],
+				['exported by', ((await cockpit.user()).name)],
+				['exported on', dateFormatter.format(new Date())],
+				['history for', user ? user : 'all users'],
+				['range start', range.value?.[0] ? dateFormatter.format(range.value[0]) : 'all time' ],
+				['range end', range.value?.[1] ? dateFormatter.format(range.value[1]) : 'all time'],
+			];
+			const filterHeader = [
+				"Filter",
+				"Selected",
+			];
+			const filters = [
+				['user', userFilterRef.value.asString()],
+				['ip address', ipFilterRef.value.asString()],
+				['tty', ttyFilterRef.value.asString()],
+				['auth result', authResultFilterRef.value.asString()],
+			];
+			const activityHeader = [
+				"User",
+				"Session Start",
+				"Session End",
+				"Time Logged In",
+				"IP Address",
+				"TTY",
+				"Authorization Result",
+			];
+			const activity = history.value
+				.map((entry) => [
+					entry.user,
+					dateFormatter.format(entry.sessionStart),
+					entry.overrideEndText ?? dateFormatter.format(entry.sessionEnd),
+					entry.sessionTime ?? '',
+					entry.ip,
+					entry.tty,
+					entry.authResult,
+				]);
+			const data = makeCSV([
+				...info,
+				[],
+				filterHeader,
+				...filters,
+				[],
+				activityHeader,
+				...activity,	
+			]);
 			try {
-				await generatedFileDownload(`${hostname}user activity - ${dataRange}.csv`, data);
+				await generatedFileDownload(`${user}${hostname}${user || hostname ? ' ' : ''}login history - ${dataRange}.csv`, data, '/tmp/cockpit_csv_export');
 			} catch (error) {
 				notifications.value.constructNotification("Failed to download file", errorStringHTML(error), 'error');
 			}
@@ -379,6 +431,10 @@ export default {
 
 		return {
 			range,
+			userFilterRef,
+			ipFilterRef,
+			ttyFilterRef,
+			authResultFilterRef,
 			history,
 			historyReactive,
 			processing,
