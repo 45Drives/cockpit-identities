@@ -1,6 +1,4 @@
-## Cockpit Identities 0.1.3-1
+## Cockpit Identities 0.1.4-1
 
-* Add plugin info button
-* Handle user password case where locked and not set
-* Remove gap under activity table on dashboard
-* Add exporting user activity as CSV download
+* fix info button position
+* add more information to exported user activity CSV

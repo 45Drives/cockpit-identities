@@ -27,6 +27,9 @@ make DESTDIR=%{buildroot} install
 /usr/share/cockpit/identities/*
 
 %changelog
+* Fri May 06 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.4-1
+- fix info button position
+- add more information to exported user activity CSV
 * Thu May 05 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.3-1
 - Add plugin info button
 - Handle user password case where locked and not set
