@@ -1,6 +1,6 @@
 <template>
 	<div class="h-full flex flex-col text-default bg-well">
-		<FfdHeader
+		<HoustonHeader
 			moduleName="Identities"
 			centerName
 			:showSpinner="processing"
@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import FfdHeader from './components/FfdHeader.vue';
+import HoustonHeader from './components/HoustonHeader.vue';
 import { ref, provide } from 'vue';
 import shellObj from './hooks/shellObj';
 import { useSpawn, errorString, FIFO } from '@45drives/cockpit-helpers';
