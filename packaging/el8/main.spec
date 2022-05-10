@@ -18,7 +18,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 %setup -q
 
 %build
-make
+make OS_PACKAGE_RELEASE=el8
 
 %install
 make DESTDIR=%{buildroot} install
