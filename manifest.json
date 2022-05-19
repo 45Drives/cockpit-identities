@@ -4,7 +4,7 @@
     "title": "Cockpit Identities",
     "prerelease": true,
     "version": "0.1.5",
-    "buildVersion": "1",
+    "buildVersion": "2",
     "author": "Joshua Boudreau <jboudreau@45drives.com>",
     "url": "https://github.com/45Drives/cockpit-identities",
     "category": "utils",
@@ -25,13 +25,32 @@
         "deb": {
             "generic": [
                 "cockpit",
-                "smbclient"
+                "bash",
+                "coreutils",
+                "hostname",
+                "libc-bin",
+                "passwd",
+                "psmisc",
+                "samba",
+                "samba-common-bin",
+                "sudo",
+                "util-linux"
             ]
         },
         "el": {
             "generic": [
                 "cockpit",
-                "samba-client"
+                "bash",
+                "coreutils",
+                "glibc-common",
+                "hostname",
+                "passwd",
+                "psmisc",
+                "samba-common-tools",
+                "shadow-utils",
+                "sudo",
+                "util-linux",
+                "util-linux-user"
             ]
         }
     },
@@ -50,7 +69,7 @@
     "changelog": {
         "urgency": "medium",
         "version": "0.1.5",
-        "buildVersion": "1",
+        "buildVersion": "2",
         "ignore": [],
         "date": null,
         "packager": "Joshua Boudreau <jboudreau@45drives.com>",

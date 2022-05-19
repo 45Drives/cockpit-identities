@@ -1,3 +1,3 @@
-## Cockpit Identities 0.1.5-1
+## Cockpit Identities 0.1.5-2
 
-* store dark mode in cockpit.localStorage so it is synchronized across plugins
+* Add package dependencies
