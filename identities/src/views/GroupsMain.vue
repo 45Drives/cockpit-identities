@@ -191,46 +191,6 @@ export default {
 			},
 		});
 		newGroup.validateInputs(); // initial state
-		// const defaultShowDeleteConfirmationModalApplyCallback = () => {
-		// 	deleteConfirmation.bodyText = "Are you really sure?";
-		// 	deleteConfirmation.applyText = "Yes I am really sure";
-		// 	deleteConfirmation.applyCallback = async () => {
-		// 		// really remove
-		// 		processing.value++;
-		// 		try {
-		// 			await useSpawn(['groupdel', deleteConfirmation.group], { superuser: 'try' }).promise();
-		// 			notifications.value.constructNotification("Deleted group", `Successfully deleted group ${newGroup.group}`, 'success');
-		// 			emit('refreshGroups');
-		// 		} catch (state) {
-		// 			notifications.value.constructNotification("Failed to delete group", errorStringHTML(state), 'error');
-		// 		} finally {
-		// 			deleteConfirmation.reset();
-		// 			processing.value--;
-		// 		}
-		// 	};
-		// };
-		// const deleteConfirmation = reactive({
-		// 	showModal: false,
-		// 	group: "",
-		// 	bodyText: "This cannot be undone. Are you sure?",
-		// 	applyText: "Yes",
-		// 	applyCallback: defaultShowDeleteConfirmationModalApplyCallback,
-		// 	ask: (group) => {
-		// 		deleteConfirmation.group = group;
-		// 		deleteConfirmation.showModal = true;
-		// 	},
-		// 	cancelCallback: () => {
-		// 		deleteConfirmation.reset();
-		// 	},
-		// 	reset: () => {
-		// 		deleteConfirmation.showModal = false;
-		// 		deleteConfirmation.applyCallback = defaultShowDeleteConfirmationModalApplyCallback;
-		// 		setTimeout(() => {
-		// 			deleteConfirmation.bodyText = "This cannot be undone. Are you sure?";
-		// 			deleteConfirmation.applyText = "Yes";
-		// 		}, 300);
-		// 	},
-		// });
 		const deleteConfirmation = reactive({
 			showModal: false,
 			group: null,
