@@ -29,7 +29,7 @@
 				<th v-if="user === null" scope="col">
 					<div class="flex flex-row flex-nowrap space-x-2">
 						<div class="grow">User</div>
-						<SimpleFilter :set="filters.users.set" v-model="filters.users.callback" ref="userFilterRef" />
+						<SimpleFilter :set="filters.user.set" v-model="filters.user.callback" ref="userFilterRef" />
 						<SortCallbackButton v-model="sortCallback" :compareFunc="compareFuncs.user" />
 					</div>
 				</th>
@@ -67,21 +67,21 @@
 				<th scope="col">
 					<div class="flex flex-row flex-nowrap justify-between space-x-5">
 						<span>IP Address</span>
-						<SimpleFilter :set="filters.ips.set" v-model="filters.ips.callback" ref="ipFilterRef" />
+						<SimpleFilter :set="filters.ip.set" v-model="filters.ip.callback" ref="ipFilterRef" />
 					</div>
 				</th>
 				<th scope="col">
 					<div class="flex flex-row flex-nowrap justify-between space-x-5">
 						<span>TTY</span>
-						<SimpleFilter :set="filters.ttys.set" v-model="filters.ttys.callback" ref="ttyFilterRef" />
+						<SimpleFilter :set="filters.tty.set" v-model="filters.tty.callback" ref="ttyFilterRef" />
 					</div>
 				</th>
 				<th scope="col">
 					<div class="flex flex-row flex-nowrap justify-between space-x-5">
 						<span>Auth Result</span>
 						<SimpleFilter
-							:set="filters.authResults.set"
-							v-model="filters.authResults.callback"
+							:set="filters.authResult.set"
+							v-model="filters.authResult.callback"
 							ref="authResultFilterRef"
 						/>
 					</div>
@@ -91,7 +91,7 @@
 		<template #tbody>
 			<tr
 				v-for="(entry, index) in historyReactive"
-				v-show="filters.users.callback(entry.user) && filters.ips.callback(entry.ip) && filters.ttys.callback(entry.tty) && filters.authResults.callback(entry.authResult)"
+				v-show="!Object.keys(filters).map(key => filters[key].callback(entry[key])).includes(false)"
 			>
 				<td v-if="user === null">{{ entry.user }}</td>
 				<td>{{ formatDate(entry.sessionStart) }}</td>
@@ -207,19 +207,19 @@ export default {
 		const darkMode = inject(darkModeInjectionKey);
 		const notifications = inject(notificationsInjectionKey);
 		const filters = reactive({
-			users: {
+			user: {
 				set: new Set([]),
 				callback: () => true,
 			},
-			ips: {
+			ip: {
 				set: new Set([]),
 				callback: () => true,
 			},
-			ttys: {
+			tty: {
 				set: new Set([]),
 				callback: () => true,
 			},
-			authResults: {
+			authResult: {
 				set: new Set([]),
 				callback: () => true,
 			},
@@ -293,10 +293,10 @@ export default {
 													.add(sessionTimeObj.minutes, "minutes")
 													.toDate()
 											);
-										filters.users.set.add(obj.user);
-										filters.ips.set.add(obj.ip);
-										filters.ttys.set.add(obj.tty);
-										filters.authResults.set.add(obj.authResult);
+										filters.user.set.add(obj.user);
+										filters.ip.set.add(obj.ip);
+										filters.tty.set.add(obj.tty);
+										filters.authResult.set.add(obj.authResult);
 										return obj;
 									} catch (error) {
 										throw new Error(error.message + `, trigger: ${line}`);
