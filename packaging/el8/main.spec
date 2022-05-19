@@ -27,6 +27,8 @@ make DESTDIR=%{buildroot} install
 /usr/share/cockpit/identities/*
 
 %changelog
+* Thu May 19 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.5-1
+- store dark mode in cockpit.localStorage so it is synchronized across plugins
 * Fri May 06 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.4-1
 - fix info button position
 - add more information to exported user activity CSV

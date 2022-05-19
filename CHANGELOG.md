@@ -1,4 +1,3 @@
-## Cockpit Identities 0.1.4-1
+## Cockpit Identities 0.1.5-1
 
-* fix info button position
-* add more information to exported user activity CSV
+* store dark mode in cockpit.localStorage so it is synchronized across plugins
