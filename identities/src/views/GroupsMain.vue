@@ -1,107 +1,72 @@
 <template>
-	<div class="centered-column p-well space-y-well h-full">
-		<div class="card">
-			<!-- <div class="card-header">
-				<h3 class="text-header">Groups</h3>
-			</div>-->
-			<div class="card-body w-full">
-				<Table stickyHeaders noShrink noShrinkHeight="h-[70vh]">
-					<template #header>
-						<div class="flex flex-row gap-2 items-center">
-							<span>Groups</span>
-							<LoadingSpinner v-if="processing" class="size-icon" />
-							<div class="grow"></div>
-							<button @click="newGroup.showModal = true" title="Create new group">
-								<PlusIcon class="size-icon icon-default" />
-							</button>
+	<div class="centered-column p-well h-full overflow-hidden">
+		<Table stickyHeaders noShrink noShrinkHeight="h-full">
+			<template #header>
+				<div class="flex flex-row gap-2 items-center">
+					<span>Groups</span>
+					<LoadingSpinner v-if="processing" class="size-icon" />
+					<div class="grow"></div>
+					<button @click="newGroup.showModal = true" title="Create new group">
+						<PlusIcon class="size-icon icon-default" />
+					</button>
+				</div>
+			</template>
+			<template #thead>
+				<tr>
+					<th class="w-20">
+						<div class="flex flex-row flex-nowrap gap-x-2">
+							<div class="grow">Name</div>
+							<SortCallbackButton v-model="sorter.callback" :compareFunc="sorter.group"
+								initialFuncIsMine />
 						</div>
-					</template>
-					<template #thead>
-						<tr>
-							<th class="w-20">
-								<div class="flex flex-row flex-nowrap gap-x-2">
-									<div class="grow">Name</div>
-									<SortCallbackButton
-										v-model="sorter.callback"
-										:compareFunc="sorter.group"
-										initialFuncIsMine
-									/>
-								</div>
-							</th>
-							<th class="w-20 text-right mr-20 overflow-x-visible !pr-7">
-								<span>Group ID</span>
-								<SortCallbackButton
-									v-model="sorter.callback"
-									:compareFunc="sorter.gid"
-									class="absolute right-0 z-20"
-								/>
-							</th>
-							<th>Members</th>
-							<th>
-								<div class="!sr-only">Delete Group</div>
-							</th>
-						</tr>
-					</template>
-					<template #tbody>
-						<tr v-for="group in groupsSorted" :index="group.gid">
-							<td class="flex flex-row gap-x-2 items-center">
-								<span class="grow">{{ group.group }}</span>
-								<div
-									v-if="group.isPrimary && (group.gid >= 1000 || group.gid === 0)"
-									:title="`${group.primaryMember}'s primary group`"
-								>
-									<UserIcon class="size-icon-sm icon-default" />
-								</div>
-							</td>
-							<td class="text-right !pr-7">{{ group.gid }}</td>
-							<td v-if="group.members.length">{{ group.members.join(', ') }}</td>
-							<td v-else class="text-muted">No members</td>
-							<td class="w-20 text-right">
-								<button
-									:disabled="!checkIfCanDelete(group)"
-									:title="checkIfCanDelete(group) ? `Delete group ${group.group}` : 'Cannot delete system or primary user groups'"
-									@click="deleteConfirmation.ask(group)"
-								>
-									<TrashIcon class="size-icon icon-danger" />
-								</button>
-							</td>
-						</tr>
-					</template>
-				</Table>
-			</div>
-		</div>
+					</th>
+					<th class="w-20 text-right mr-20 overflow-x-visible !pr-7">
+						<span>Group ID</span>
+						<SortCallbackButton v-model="sorter.callback" :compareFunc="sorter.gid"
+							class="absolute right-0 z-20" />
+					</th>
+					<th>Members</th>
+					<th>
+						<div class="!sr-only">Delete Group</div>
+					</th>
+				</tr>
+			</template>
+			<template #tbody>
+				<tr v-for="group in groupsSorted" :index="group.gid">
+					<td class="flex flex-row gap-x-2 items-center">
+						<span class="grow">{{ group.group }}</span>
+						<div v-if="group.isPrimary && (group.gid >= 1000 || group.gid === 0)"
+							:title="`${group.primaryMember}'s primary group`">
+							<UserIcon class="size-icon-sm icon-default" />
+						</div>
+					</td>
+					<td class="text-right !pr-7">{{ group.gid }}</td>
+					<td v-if="group.members.length">{{ group.members.join(', ') }}</td>
+					<td v-else class="text-muted">No members</td>
+					<td class="w-20 text-right">
+						<button :disabled="!checkIfCanDelete(group)"
+							:title="checkIfCanDelete(group) ? `Delete group ${group.group}` : 'Cannot delete system or primary user groups'"
+							@click="deleteConfirmation.ask(group)">
+							<TrashIcon class="size-icon icon-danger" />
+						</button>
+					</td>
+				</tr>
+			</template>
+		</Table>
 	</div>
-	<ModalPopup
-		:showModal="newGroup.showModal"
-		autoWidth
-		headerText="Create New Group"
-		applyText="Create"
-		@apply="newGroup.applyCallback"
-		@cancel="newGroup.cancelCallback"
-		:disableContinue="!newGroup.valid"
-	>
+	<ModalPopup :showModal="newGroup.showModal" autoWidth headerText="Create New Group" applyText="Create"
+		@apply="newGroup.applyCallback" @cancel="newGroup.cancelCallback" :disableContinue="!newGroup.valid">
 		<label class="text-label block">Group Name</label>
-		<input
-			type="text"
-			class="w-full input-textlike"
-			v-model="newGroup.group"
-			@input="newGroup.validateInputs"
-		/>
+		<input type="text" class="w-full input-textlike" v-model="newGroup.group" @input="newGroup.validateInputs" />
 		<div class="feedback-group" v-if="newGroup.feedback.group">
 			<ExclamationCircleIcon class="size-icon icon-error" />
 			<span v-html="newGroup.feedback.group" class="text-feedback text-error"></span>
 		</div>
 	</ModalPopup>
-	<ModalPopup
-		:showModal="deleteConfirmation.showModal"
-		@apply="deleteConfirmation.applyCallback"
-		@cancel="deleteConfirmation.cancelCallback"
-		:headerText="`Delete group ${deleteConfirmation.group?.group}?`"
-		:applyText="deleteConfirmation.applyText"
-		:disableContinue="!deleteConfirmation.confirmed"
-		applyDangerous
-		autoWidth
-	>
+	<ModalPopup :showModal="deleteConfirmation.showModal" @apply="deleteConfirmation.applyCallback"
+		@cancel="deleteConfirmation.cancelCallback" :headerText="`Delete group ${deleteConfirmation.group?.group}?`"
+		:applyText="deleteConfirmation.applyText" :disableContinue="!deleteConfirmation.confirmed" applyDangerous
+		autoWidth>
 		<template #icon>
 			<ExclamationCircleIcon class="size-icon-xl icon-danger" />
 		</template>
@@ -111,17 +76,11 @@
 		</div>
 		<div class="whitespace-normal mb-3">
 			This cannot be undone. Type
-			<span
-				class="font-mono text-sm bg-accent p-1"
-			>{{ deleteConfirmation.confirmationCheck() }}</span>
+			<span class="font-mono text-sm bg-accent p-1">{{ deleteConfirmation.confirmationCheck() }}</span>
 			below to confirm.
 		</div>
-		<input
-			type="text"
-			class="input-textlike w-full"
-			v-model="deleteConfirmation.confirmationInput"
-			@input="deleteConfirmation.checkConfirmation"
-		/>
+		<input type="text" class="input-textlike w-full" v-model="deleteConfirmation.confirmationInput"
+			@input="deleteConfirmation.checkConfirmation" />
 	</ModalPopup>
 </template>
 
