@@ -1,3 +1,3 @@
-## Cockpit Identities 0.1.5-2
+## Cockpit Identities 0.1.6-1
 
-* Add package dependencies
+* Use new components and update styling

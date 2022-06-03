@@ -1,3 +1,9 @@
+cockpit-identities (0.1.6-1focal) focal; urgency=medium
+
+  * Use new components and update styling
+
+ -- Joshua Boudreau <jboudreau@45drives.com>  Fri, 03 Jun 2022 14:26:47 -0300
+
 cockpit-identities (0.1.5-2focal) focal; urgency=medium
 
   * Add package dependencies

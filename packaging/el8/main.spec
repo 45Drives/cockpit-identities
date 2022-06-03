@@ -27,6 +27,8 @@ make DESTDIR=%{buildroot} install
 /usr/share/cockpit/identities/*
 
 %changelog
+* Fri Jun 03 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.6-1
+- Use new components and update styling
 * Thu May 19 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.5-2
 - Add package dependencies
 * Thu May 19 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.5-1
