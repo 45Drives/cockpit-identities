@@ -35,7 +35,8 @@
                 "samba-common-bin",
                 "sudo",
                 "util-linux",
-                "perl"
+                "perl",
+                "openssh-client"
             ]
         },
         "el": {
@@ -52,7 +53,8 @@
                 "sudo",
                 "util-linux",
                 "util-linux-user",
-                "perl"
+                "perl",
+                "openssh"
             ]
         }
     },
