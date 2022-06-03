@@ -1,3 +1,20 @@
+<!--
+Copyright (C) 2022 Josh Boudreau <jboudreau@45drives.com>
+
+This file is part of Cockpit Identities.
+
+Cockpit Identities is free software: you can redistribute it and/or modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation, either version 3
+of the License, or (at your option) any later version.
+
+Cockpit Identities is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with Cockpit Identities.
+If not, see <https://www.gnu.org/licenses/>. 
+-->
+
 <template>
 	<div class="inline-block text-left overflow-visible" v-click-outside="hideMenu">
 		<button
@@ -26,6 +43,7 @@
 				v-show="menuVisible"
 				ref="menuElement"
 				class="text-default"
+				@click="hideOnClick && hideMenu()"
 			>
 				<div
 					v-for="option in options"
@@ -74,7 +92,7 @@ export default {
 		menuClasses: {
 			type: String,
 			required: false,
-			default: "rounded-md shadow-lg bg-default py-1 flex flex-col items-stretch",
+			default: "rounded-md shadow-lg bg-default flex flex-col items-stretch",
 		},
 		extraMenuClasses: String,
 		boundingRect: {
@@ -96,7 +114,8 @@ export default {
 			type: String,
 			required: false,
 			default: 'bottom-left',
-		}
+		},
+		hideOnClick: Boolean,
 	},
 	setup(props, { emit }) {
 		const buttonElement = ref(null);
