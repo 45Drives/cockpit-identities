@@ -34,7 +34,8 @@
                 "samba",
                 "samba-common-bin",
                 "sudo",
-                "util-linux"
+                "util-linux",
+                "perl"
             ]
         },
         "el": {
@@ -50,7 +51,8 @@
                 "shadow-utils",
                 "sudo",
                 "util-linux",
-                "util-linux-user"
+                "util-linux-user",
+                "perl"
             ]
         }
     },
