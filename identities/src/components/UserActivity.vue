@@ -1,5 +1,5 @@
 <template>
-	<Table stickyHeaders noShrink>
+	<Table class="rounded-lg" stickyHeaders noShrink>
 		<template #header>
 			<div class="self-stretch flex flex-row flex-wrap gap-3 justify-between items-baseline">
 				<div class="flex flex-row space-x-2 items-center">
