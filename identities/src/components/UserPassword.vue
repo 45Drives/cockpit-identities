@@ -92,10 +92,9 @@ import { notificationsInjectionKey } from "../keys";
 
 const checkIfPasswdSet = async (user) => {
 	try {
-		await useSpawn(['bash', '-c', `[[ -n "$(getent shadow ${user} | cut -d: -f2 | sed 's/^!+//')" ]]`], { superuser: 'require' }).promise();
+		await useSpawn(['bash', '-c', `set -e; set -o pipefail; [[ -n "$(getent shadow ${user} | cut -d: -f2 | perl -pne 's/^!+//')" ]]`], { superuser: 'require' }).promise();
 		return true;
 	} catch (state) {
-		console.error(state);
 		return false;
 	}
 }
