@@ -2,12 +2,8 @@
 	<div class="card-body space-y-content overflow-visible">
 		<div v-if="createNew">
 			<label class="block text-label">Username</label>
-			<input
-				type="text"
-				class="w-full input-textlike"
-				placeholder="Valid format: [a-z_][a-z0-9_-]*[$a-z0-9_-]"
-				v-model="tmpUser.user"
-			/>
+			<input type="text" class="w-full input-textlike" placeholder="Valid format: [a-z_][a-z0-9_-]*[$a-z0-9_-]"
+				v-model="tmpUser.user" />
 			<div class="feedback-group" v-if="feedback.user">
 				<ExclamationCircleIcon class="size-icon icon-error" />
 				<span v-html="feedback.user" class="text-feedback text-error"></span>
@@ -19,12 +15,8 @@
 		</div>
 		<div>
 			<label class="block text-label">Home Directory</label>
-			<input
-				type="text"
-				class="w-full input-textlike"
-				placeholder="Path to Working Directory at login"
-				v-model="tmpUser.home"
-			/>
+			<input type="text" class="w-full input-textlike" placeholder="Path to Working Directory at login"
+				v-model="tmpUser.home" />
 			<div class="feedback-group" v-if="feedback.home">
 				<ExclamationCircleIcon class="size-icon icon-error" />
 				<span class="text-feedback text-error">{{ feedback.home }}</span>
@@ -43,62 +35,44 @@
 					</span>
 				</ListboxButton>
 
-				<transition
-					leave-active-class="transition ease-in duration-100"
-					leave-from-class="opacity-100"
-					leave-to-class="opacity-0"
-				>
+				<transition leave-active-class="transition ease-in duration-100" leave-from-class="opacity-100"
+					leave-to-class="opacity-0">
 					<ListboxOptions
-						class="absolute z-10 mt-1 w-full bg-accent shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
-					>
-						<ListboxOption
-							as="template"
-							v-for="shell in shells"
-							:key="shell.path"
-							:value="shell"
-							v-slot="{ active, selected }"
-						>
+						class="absolute z-10 mt-1 w-full bg-accent shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+						<ListboxOption as="template" v-for="shell in shells" :key="shell.path" :value="shell"
+							v-slot="{ active, selected }">
 							<li
-								:class="[active ? 'text-white bg-red-600' : '', 'cursor-default select-none relative py-2 pl-3 pr-9']"
-							>
+								:class="[active ? 'text-white bg-red-600' : '', 'cursor-default select-none relative py-2 pl-3 pr-9']">
 								<div class="flex">
-									<span :class="[selected ? 'font-semibold' : 'font-normal', 'truncate']">{{ shell.name }}</span>
-									<span
-										:class="[active ? 'text-red-200' : 'text-gray-500', 'ml-2 truncate']"
-									>{{ shell.path }}</span>
+									<span :class="[selected ? 'font-semibold' : 'font-normal', 'truncate']">{{
+											shell.name
+									}}</span>
+									<span :class="[active ? 'text-red-200' : 'text-gray-500', 'ml-2 truncate']">{{
+											shell.path
+									}}</span>
 								</div>
 
-								<span
-									v-if="selected"
-									:class="[active ? 'text-white' : 'text-red-600', 'absolute inset-y-0 right-0 flex items-center pr-4']"
-								>
+								<span v-if="selected"
+									:class="[active ? 'text-white' : 'text-red-600', 'absolute inset-y-0 right-0 flex items-center pr-4']">
 									<CheckIcon class="h-5 w-5" aria-hidden="true" />
 								</span>
 							</li>
 						</ListboxOption>
 						<ListboxOption as="template" :value="customShell" v-slot="{ active, selected }">
 							<li
-								:class="[active ? 'bg-red-600' : '', 'cursor-default select-none relative py-2 pl-3 pr-9']"
-							>
+								:class="[active ? 'bg-red-600' : '', 'cursor-default select-none relative py-2 pl-3 pr-9']">
 								<div class="flex items-baseline space-x-2">
 									<span
-										:class="[selected ? 'font-semibold' : 'font-normal', 'truncate', active ? 'text-white' : '']"
-									>Custom Shell</span>
-									<input
-										@click.stop
+										:class="[selected ? 'font-semibold' : 'font-normal', 'truncate', active ? 'text-white' : '']">Custom
+										Shell</span>
+									<input @click.stop
 										@keydown.stop="e => { if (e.code === 'Enter') $emit('keydown', e) }"
 										@keypress.stop="e => { if (e.code === 'Enter') $emit('keypress', e) }"
-										@change="tmpUser.shell = customShell"
-										v-model.lazy="customShell.path"
-										type="text"
-										placeholder="/path/to/custom/shell"
-										class="input-textlike"
-									/>
+										@change="tmpUser.shell = customShell" v-model.lazy="customShell.path"
+										type="text" placeholder="/path/to/custom/shell" class="input-textlike" />
 								</div>
-								<span
-									v-if="selected"
-									:class="[active ? 'text-white' : 'text-red-600', 'absolute inset-y-0 right-0 flex items-center pr-4']"
-								>
+								<span v-if="selected"
+									:class="[active ? 'text-white' : 'text-red-600', 'absolute inset-y-0 right-0 flex items-center pr-4']">
 									<CheckIcon class="h-5 w-5" aria-hidden="true" />
 								</span>
 							</li>
@@ -111,55 +85,26 @@
 			<ExclamationCircleIcon class="size-icon icon-error" />
 			<span v-html="feedback.shell" class="text-feedback text-error"></span>
 		</div>
-		<Table emptyText="No groups. Click '+' to add one.">
+		<Table class="rounded-lg" emptyText="No groups. Click '+' to add one.">
 			<template #header>
 				<div class="flex flex-row justify-between items-center relative">
 					<div>Groups</div>
-					<Listbox as="div" v-model="addGroupSelectorValue">
-						<ListboxButton class="size-icon cursor-pointer">
+					<FixedMenu extraMenuClasses="max-w-lg max-h-56 overflow-y-auto" hideOnClick>
+						<template #buttonContent>
 							<PlusIcon class="size-icon icon-default" />
-						</ListboxButton>
-
-						<transition
-							leave-active-class="transition ease-in duration-100"
-							leave-from-class="opacity-100"
-							leave-to-class="opacity-0"
-						>
-							<ListboxOptions
-								class="absolute z-10 right-0 top-5 bg-default shadow-lg max-h-60 rounded-md text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
-							>
-								<ListboxOption
-									as="template"
-									v-for="group in nonMemberGroups"
-									:value="group"
-									v-slot="{ active, selected }"
-								>
-									<li
-										:class="[active ? 'text-white bg-red-600' : '', 'cursor-default select-none relative py-2 pl-3 pr-9']"
-									>
-										<div class="flex">
-											<span :class="[selected ? 'font-semibold' : 'font-normal', 'truncate']">{{ group }}</span>
-										</div>
-
-										<span
-											v-if="selected"
-											:class="[active ? 'text-white' : 'text-red-600', 'absolute inset-y-0 right-0 flex items-center pr-4']"
-										>
-											<CheckIcon class="h-5 w-5" aria-hidden="true" />
-										</span>
-									</li>
-								</ListboxOption>
-							</ListboxOptions>
-						</transition>
-					</Listbox>
+						</template>
+						<div class="block w-40"></div>
+						<div v-for="group in nonMemberGroups" @click="addGroupSelectorValue = group" :title="group"
+							class="hover:text-white hover:bg-red-600 px-4 py-2 text-sm">
+							{{ group }}
+						</div>
+					</FixedMenu>
 				</div>
 			</template>
 			<template #thead>
 				<tr>
-					<th
-						scope="col"
-						class="sr-only"
-					>{{ tmpUser.name === "" ? tmpUser.user : tmpUser.name }}'s Groups</th>
+					<th scope="col" class="sr-only">{{ tmpUser.name === "" ? tmpUser.user : tmpUser.name }}'s Groups
+					</th>
 					<th scope="col" class="sr-only">Remove</th>
 				</tr>
 			</template>
@@ -184,12 +129,9 @@
 			<slot />
 			<div class="grow" />
 			<button class="btn btn-secondary justify-self-end" v-if="changesMade" @click="cancel()">Cancel</button>
-			<button
-				class="btn btn-primary justify-self-end"
-				:disabled="!(changesMade && inputsValid)"
+			<button class="btn btn-primary justify-self-end" :disabled="!(changesMade && inputsValid)"
 				:title="!changesMade ? 'No changes to apply.' : (!inputsValid ? 'Cannot continue with errors.' : '')"
-				@click="apply()"
-			>Apply</button>
+				@click="apply()">Apply</button>
 		</div>
 	</div>
 </template>
@@ -204,6 +146,7 @@ import shellObj from "../hooks/shellObj";
 import ModalPopup from './ModalPopup.vue';
 import { useSpawn } from "@45drives/cockpit-helpers";
 import Table from "./Table.vue";
+import FixedMenu from "./FixedMenu.vue";
 
 export default {
 	props: {
@@ -396,6 +339,7 @@ export default {
 		ExclamationCircleIcon,
 		ModalPopup,
 		Table,
+		FixedMenu,
 	},
 	emits: [
 		'applyChanges',
