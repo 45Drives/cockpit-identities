@@ -12,7 +12,7 @@
 				<button v-else class="btn btn-primary" @click="publicID.generateID">Generate SSH Key Pair</button>
 				<button class="btn btn-secondary" @click="testSSH.showModal = true">Test Passwordless SSH</button>
 			</div>
-			<Table>
+			<Table class="rounded-lg">
 				<template #header>
 					<div class="flex flex-row justify-between items-center">
 						<div>Authorized SSH Access Keys</div>
