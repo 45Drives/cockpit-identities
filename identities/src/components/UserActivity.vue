@@ -16,16 +16,27 @@ If not, see <https://www.gnu.org/licenses/>.
 -->
 
 <template>
-	<Table class="rounded-lg" stickyHeaders noShrink>
+	<Table
+		class="rounded-lg"
+		stickyHeaders
+		noShrink
+	>
 		<template #header>
 			<div class="self-stretch flex flex-row flex-wrap gap-3 justify-between items-baseline">
 				<div class="flex flex-row space-x-2 items-center">
 					<div v-if="user !== null">{{ user.name === "" ? user.user : user.name }}'s Login History</div>
 					<div v-else>User Login History</div>
-					<button v-if="!processing" @click="saveCSV" title="Save data as CSV">
+					<button
+						v-if="!processing"
+						@click="saveCSV"
+						title="Save data as CSV"
+					>
 						<DocumentDownloadIcon class="size-icon icon-default" />
 					</button>
-					<LoadingSpinner v-if="processing" class="size-icon" />
+					<LoadingSpinner
+						v-if="processing"
+						class="size-icon"
+					/>
 				</div>
 				<Datepicker
 					v-model="range"
@@ -43,11 +54,21 @@ If not, see <https://www.gnu.org/licenses/>.
 		</template>
 		<template #thead>
 			<tr>
-				<th v-if="user === null" scope="col">
+				<th
+					v-if="user === null"
+					scope="col"
+				>
 					<div class="flex flex-row flex-nowrap space-x-2">
 						<div class="grow">User</div>
-						<SimpleFilter :set="filters.user.set" v-model="filters.user.callback" ref="userFilterRef" />
-						<SortCallbackButton v-model="sortCallback" :compareFunc="compareFuncs.user" />
+						<SimpleFilter
+							:set="filters.user.set"
+							v-model="filters.user.callback"
+							ref="userFilterRef"
+						/>
+						<SortCallbackButton
+							v-model="sortCallback"
+							:compareFunc="compareFuncs.user"
+						/>
 					</div>
 				</th>
 				<th scope="col">
@@ -84,13 +105,21 @@ If not, see <https://www.gnu.org/licenses/>.
 				<th scope="col">
 					<div class="flex flex-row flex-nowrap justify-between space-x-5">
 						<span>IP Address</span>
-						<SimpleFilter :set="filters.ip.set" v-model="filters.ip.callback" ref="ipFilterRef" />
+						<SimpleFilter
+							:set="filters.ip.set"
+							v-model="filters.ip.callback"
+							ref="ipFilterRef"
+						/>
 					</div>
 				</th>
 				<th scope="col">
 					<div class="flex flex-row flex-nowrap justify-between space-x-5">
 						<span>TTY</span>
-						<SimpleFilter :set="filters.tty.set" v-model="filters.tty.callback" ref="ttyFilterRef" />
+						<SimpleFilter
+							:set="filters.tty.set"
+							v-model="filters.tty.callback"
+							ref="ttyFilterRef"
+						/>
 					</div>
 				</th>
 				<th scope="col">
@@ -126,7 +155,7 @@ If not, see <https://www.gnu.org/licenses/>.
 import { ref, reactive, watch, inject, onMounted } from 'vue';
 import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
-import { useSpawn, errorStringHTML, generatedFileDownload } from '@45drives/cockpit-helpers';
+import { useSpawn, errorStringHTML, objectURLDownload } from '@45drives/cockpit-helpers';
 import { FilterIcon, DocumentDownloadIcon } from '@heroicons/vue/solid';
 import SimpleFilter from './SimpleFilter.vue';
 import LoadingSpinner from './LoadingSpinner.vue';
@@ -357,72 +386,76 @@ export default {
 		}
 
 		const saveCSV = async () => {
-			const makeCSV = rows => rows.map(row => row.map(field => field.includes(',') ? `"${field}"` : field).join(',')).join('\n');
-			const dateFormatter = new Intl.DateTimeFormat([], {
-				year: 'numeric',
-				month: 'short',
-				day: '2-digit',
-				hourCycle: 'h24',
-				hour: '2-digit',
-				minute: '2-digit',
-				second: '2-digit',
-				timeZoneName: 'longOffset',
-			});
-			let user = props.user?.user ?? "";
-			let hostname;
 			try {
-				hostname = (await useSpawn(['hostname'], { superuser: 'try' }).promise()).stdout.trim();
-				user = user ? user + '@' : user;
-			} catch { }
-			const dataRange = range.value ? rangePreviewFormatter(range.value) : 'all time';
-			const info = [
-				['exported from', `${hostname} (${cockpit.transport.origin})`],
-				['exported by', ((await cockpit.user()).name)],
-				['exported on', dateFormatter.format(new Date())],
-				['history for', user ? user : 'all users'],
-				['range start', range.value?.[0] ? dateFormatter.format(range.value[0]) : 'all time' ],
-				['range end', range.value?.[1] ? dateFormatter.format(range.value[1]) : 'all time'],
-			];
-			const filterHeader = [
-				"Filter",
-				"Selected",
-			];
-			const filters = [
-				['user', userFilterRef.value.asString()],
-				['ip address', ipFilterRef.value.asString()],
-				['tty', ttyFilterRef.value.asString()],
-				['auth result', authResultFilterRef.value.asString()],
-			];
-			const activityHeader = [
-				"User",
-				"Session Start",
-				"Session End",
-				"Time Logged In",
-				"IP Address",
-				"TTY",
-				"Authorization Result",
-			];
-			const activity = history.value
-				.map((entry) => [
-					entry.user,
-					dateFormatter.format(entry.sessionStart),
-					entry.overrideEndText ?? dateFormatter.format(entry.sessionEnd),
-					entry.sessionTime ?? '',
-					entry.ip,
-					entry.tty,
-					entry.authResult,
+				const makeCSV = rows => rows.map(row => row.map(field => field.includes(',') ? `"${field}"` : field).join(',')).join('\n');
+				const dateFormatter = new Intl.DateTimeFormat([], {
+					year: 'numeric',
+					month: 'short',
+					day: '2-digit',
+					hourCycle: 'h24',
+					hour: '2-digit',
+					minute: '2-digit',
+					second: '2-digit',
+					timeZoneName: 'longOffset',
+				});
+				let user = props.user?.user ?? "";
+				let hostname = "";
+				let fullUser = user;
+				try {
+					hostname = (await useSpawn(['hostname'], { superuser: 'try' }).promise()).stdout.trim();
+					fullUser = (user ? user + '@' + hostname : hostname);
+				} catch { }
+				if (fullUser)
+					fullUser += ' ';
+				const dataRange = range.value ? rangePreviewFormatter(range.value) : 'all time';
+				const info = [
+					['exported from', `${hostname} (${cockpit.transport.origin})`],
+					['exported by', ((await cockpit.user()).name)],
+					['exported on', dateFormatter.format(new Date())],
+					['history for', user ? fullUser : '(all users)' + (hostname ? `@${hostname}` : '')],
+					['range start', range.value?.[0] ? dateFormatter.format(range.value[0]) : 'all time'],
+					['range end', range.value?.[1] ? dateFormatter.format(range.value[1]) : 'all time'],
+				];
+				const filterHeader = [
+					"Filter",
+					"Selected",
+				];
+				const filters = [
+					props.user ? null : ['user', userFilterRef.value.asString()],
+					['ip address', ipFilterRef.value.asString()],
+					['tty', ttyFilterRef.value.asString()],
+					['auth result', authResultFilterRef.value.asString()],
+				].filter(f => f !== null);
+				const activityHeader = [
+					"User",
+					"Session Start",
+					"Session End",
+					"Time Logged In",
+					"IP Address",
+					"TTY",
+					"Authorization Result",
+				];
+				const activity = history.value
+					.map((entry) => [
+						entry.user,
+						dateFormatter.format(entry.sessionStart),
+						entry.overrideEndText ?? dateFormatter.format(entry.sessionEnd),
+						entry.sessionTime ?? '',
+						entry.ip,
+						entry.tty,
+						entry.authResult,
+					]);
+				const data = makeCSV([
+					...info,
+					[],
+					filterHeader,
+					...filters,
+					[],
+					activityHeader,
+					...activity,
 				]);
-			const data = makeCSV([
-				...info,
-				[],
-				filterHeader,
-				...filters,
-				[],
-				activityHeader,
-				...activity,	
-			]);
-			try {
-				await generatedFileDownload(`${user}${hostname}${user || hostname ? ' ' : ''}login history - ${dataRange}.csv`, data, '/tmp/cockpit_csv_export');
+				const filename = `${fullUser}login history - ${dataRange}.csv`;
+				objectURLDownload(data, filename);
 			} catch (error) {
 				notifications.value.constructNotification("Failed to download file", errorStringHTML(error), 'error');
 			}
