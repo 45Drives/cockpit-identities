@@ -27,6 +27,8 @@ make DESTDIR=%{buildroot} install
 /usr/share/cockpit/identities/*
 
 %changelog
+* Fri Jun 24 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.9-1
+- Clean up table styling
 * Fri Jun 24 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.8-1
 - Fix z-height of modal popups
 * Fri Jun 24 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.7-1

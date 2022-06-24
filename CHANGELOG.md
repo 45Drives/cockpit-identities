@@ -1,3 +1,3 @@
-## Cockpit Identities 0.1.8-1
+## Cockpit Identities 0.1.9-1
 
-* Fix z-height of modal popups
+* Clean up table styling
