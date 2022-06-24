@@ -16,7 +16,7 @@ If not, see <https://www.gnu.org/licenses/>.
 -->
 
 <template>
-	<TransitionRoot as="div" class="fixed inset-0 z-10 overflow-visible" :show="showModal">
+	<TransitionRoot as="div" class="fixed inset-0 z-20 overflow-visible" :show="showModal">
 		<TransitionChild as="template" enter="ease-out duration-500" enter-from="opacity-0" enter-to="opacity-100"
 			leave="ease-in duration-500" leave-from="opacity-100" leave-to="opacity-0">
 			<div class="fixed z-10 inset-0 bg-neutral-500/75 dark:bg-black/50 transition-opacity" />
