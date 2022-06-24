@@ -81,13 +81,8 @@ If not, see <https://www.gnu.org/licenses/>.
 				/>
 			</div>
 		</div>
-		<div class="card">
-			<div class="card-header">
-				<div class="text-header">Activity</div>
-			</div>
-			<div class="card-body">
-				<UserActivity :user="user" v-if="user.user !== undefined" />
-			</div>
+		<div class="card overflow-hidden">
+			<UserActivity :user="user" v-if="user.user !== undefined" class="!border-0" />
 		</div>
 	</div>
 	<ModalPopup

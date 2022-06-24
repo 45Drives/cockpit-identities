@@ -17,7 +17,8 @@ If not, see <https://www.gnu.org/licenses/>.
 
 <template>
 	<div class="centered-column p-well h-full overflow-hidden">
-		<Table stickyHeaders noShrink noShrinkHeight="h-full">
+		<div class="card h-full overflow-hidden">
+			<Table stickyHeaders noShrink noShrinkHeight="h-full" class="!border-0">
 			<template #header>
 				<div class="flex flex-row gap-2 items-center">
 					<span>Groups</span>
@@ -70,6 +71,7 @@ If not, see <https://www.gnu.org/licenses/>.
 				</tr>
 			</template>
 		</Table>
+		</div>
 	</div>
 	<ModalPopup :showModal="newGroup.showModal" autoWidth headerText="Create New Group" applyText="Create"
 		@apply="newGroup.applyCallback" @cancel="newGroup.cancelCallback" :disableContinue="!newGroup.valid">

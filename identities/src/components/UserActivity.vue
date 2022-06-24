@@ -17,7 +17,6 @@ If not, see <https://www.gnu.org/licenses/>.
 
 <template>
 	<Table
-		class="rounded-lg"
 		stickyHeaders
 		noShrink
 	>

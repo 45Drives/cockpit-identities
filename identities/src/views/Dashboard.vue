@@ -37,10 +37,8 @@ If not, see <https://www.gnu.org/licenses/>.
 				</div>
 			</button>
 		</div>
-		<div class="card">
-			<div class="card-body">
-				<UserActivity :initialRangeDays="0" />
-			</div>
+		<div class="card overflow-hidden">
+			<UserActivity :initialRangeDays="0" class="!border-0" />
 		</div>
 	</div>
 </template>
