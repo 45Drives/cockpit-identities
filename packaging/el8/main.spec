@@ -27,6 +27,9 @@ make DESTDIR=%{buildroot} install
 /usr/share/cockpit/identities/*
 
 %changelog
+* Fri Jun 24 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.7-1
+- Download login history CSV directly in browser instead of through fsread1 channel
+  payload
 * Fri Jun 03 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.6-1
 - Use new components and update styling
 * Thu May 19 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.5-2

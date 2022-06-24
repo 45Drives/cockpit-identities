@@ -1,3 +1,3 @@
-## Cockpit Identities 0.1.6-1
+## Cockpit Identities 0.1.7-1
 
-* Use new components and update styling
+* Download login history CSV directly in browser instead of through fsread1 channel payload

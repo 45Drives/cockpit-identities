@@ -1,3 +1,10 @@
+cockpit-identities (0.1.7-1focal) focal; urgency=medium
+
+  * Download login history CSV directly in browser instead of through fsread1 channel
+    payload
+
+ -- Joshua Boudreau <jboudreau@45drives.com>  Fri, 24 Jun 2022 11:55:48 -0300
+
 cockpit-identities (0.1.6-1focal) focal; urgency=medium
 
   * Use new components and update styling
