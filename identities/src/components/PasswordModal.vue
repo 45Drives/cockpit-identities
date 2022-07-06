@@ -84,7 +84,6 @@ If not, see <https://www.gnu.org/licenses/>.
 import ModalPopup from "./ModalPopup.vue";
 import { ExclamationCircleIcon, CheckIcon, XIcon, EyeIcon, EyeOffIcon, LockClosedIcon } from '@heroicons/vue/solid';
 import { ref, watch } from 'vue';
-import { Warning } from "postcss";
 
 export default {
 	props: {
@@ -232,6 +231,11 @@ export default {
 			applyCallback.value = defaultApplyCallback;
 			cancelCallback.value = defaultCancelCallback;
 		}, { immediate: true });
+
+		watch(() => props.showModal, () => {
+			if (props.showModal)
+				password1.value = password2.value = "";
+		});
 
 		return {
 			password1,
