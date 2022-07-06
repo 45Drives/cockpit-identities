@@ -3,7 +3,7 @@
     "name": "cockpit-identities",
     "title": "Cockpit Identities",
     "prerelease": true,
-    "version": "0.1.9",
+    "version": "0.1.10",
     "buildVersion": "1",
     "author": "Joshua Boudreau <jboudreau@45drives.com>",
     "url": "https://github.com/45Drives/cockpit-identities",
@@ -72,7 +72,7 @@
     ],
     "changelog": {
         "urgency": "medium",
-        "version": "0.1.9",
+        "version": "0.1.10",
         "buildVersion": "1",
         "ignore": [],
         "date": null,

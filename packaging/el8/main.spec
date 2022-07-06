@@ -27,6 +27,10 @@ make DESTDIR=%{buildroot} install
 /usr/share/cockpit/identities/*
 
 %changelog
+* Wed Jul 06 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.10-1
+- Clear password modal inputs on reopen
+- Fix accidental bold font in datepicker in user activity table
+- Bump dependency versions
 * Fri Jun 24 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.9-1
 - Clean up table styling
 * Fri Jun 24 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.8-1
