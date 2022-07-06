@@ -2,7 +2,7 @@
     "__version": "45D-R2",
     "name": "cockpit-identities",
     "title": "Cockpit Identities",
-    "prerelease": true,
+    "prerelease": false,
     "version": "0.1.10",
     "buildVersion": "1",
     "author": "Joshua Boudreau <jboudreau@45drives.com>",
