@@ -47,6 +47,7 @@ If not, see <https://www.gnu.org/licenses/>.
 					autoApply
 					teleport="#app"
 					enableSeconds
+					class="font-normal"
 					:startTime="[{ hours: 0, minutes: 0, seconds: 0 }, { hours: 23, minutes: 59, seconds: 59 }]"
 				/>
 			</div>
