@@ -28,17 +28,71 @@ User and group management plugin for Houston UI (Cockpit)
 - Create groups
 - Delete groups (if it's a non-system, non-primary group)
 
-## Installation
-### From 45Drives Repo
-#### Ubuntu 20.04
+# Installation
+## Ubuntu 20.04
+### From 45Drives Repo (Recommended, Ubuntu 20.04 only)
 ```bash
-$ curl -sSL https://repo.45drives.com/setup | sudo bash
-$ sudo apt install cockpit-identities
+curl -sSL https://repo.45drives.com/setup | sudo bash
+sudo apt install cockpit-identities
 ```
-#### Rocky 8
+### Direct from .deb
+Installing this way may work for other versions of Ubuntu and Debian, but it is unsupported. You won't get automatic updates this way.
 ```bash
-$ curl -sSL https://repo.45drives.com/setup | sudo bash
-$ sudo dnf install cockpit-identities
+curl -LO https://github.com/45Drives/cockpit-identities/releases/download/v0.1.10/cockpit-identities_0.1.10-1focal_all.deb
+sudo apt install ./cockpit-identities_0.1.10-1focal_all.deb
+```
+## Rocky 8
+### From 45Drives Repo (Recommended, Rocky 8 only)
+```bash
+curl -sSL https://repo.45drives.com/setup | sudo bash
+sudo dnf install cockpit-identities
+```
+### Direct from .rpm
+Installing this way may work for other versions of Rocky/Centos/RHEL/Fedora/etc, but it is unsupported. You won't get automatic updates this way.
+```bash
+# dnf or yum
+sudo dnf install https://github.com/45Drives/cockpit-identities/releases/download/v0.1.10/cockpit-identities-0.1.10-1.el8.noarch.rpm
+```
+## Generic Installation
+1. Install Dependencies
+```bash
+# debian-like
+cockpit
+bash
+coreutils
+hostname
+libc-bin
+passwd
+psmisc
+samba
+samba-common-bin
+sudo
+util-linux
+perl
+openssh-client
+# RHEL-like
+cockpit
+bash
+coreutils
+glibc-common
+hostname
+passwd
+psmisc
+samba-common-tools
+shadow-utils
+sudo
+util-linux
+util-linux-user
+perl
+openssh
+```
+2. Download pre-built archive and install
+```bash
+curl -LO https://github.com/45Drives/cockpit-identities/releases/download/v0.1.10/cockpit-identities_0.1.10_generic.zip
+unzip cockpit-identities_0.1.10_generic.zip
+cd cockpit-identities_0.1.10_generic
+# no need to run `make` first, the plugin is pre-built
+sudo make install
 ```
 
 If you haven't already, consider getting [cockpit-file-sharing](https://github.com/45drives/cockpit-file-sharing) for managing Samba and NFS shares.
