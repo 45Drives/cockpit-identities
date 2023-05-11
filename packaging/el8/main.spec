@@ -27,6 +27,8 @@ make DESTDIR=%{buildroot} install
 /usr/share/cockpit/identities/*
 
 %changelog
+* Thu May 11 2023 Joshua Boudreau <jboudreau@45drives.com> 0.1.12-1
+- remove all regex lookbehinds
 * Thu May 11 2023 Joshua Boudreau <jboudreau@45drives.com> 0.1.11-1
 - Fix parsing regex for Safari
 * Wed Jul 06 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.10-1

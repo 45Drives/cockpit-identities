@@ -1,3 +1,3 @@
-## Cockpit Identities 0.1.11-1
+## Cockpit Identities 0.1.12-1
 
-* Fix parsing regex for Safari
+* remove all regex lookbehinds
