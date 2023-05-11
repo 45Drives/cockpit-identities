@@ -362,7 +362,7 @@ export default {
 		const createSshDir = async (path) => {
 			emit('startProcessing');
 			try {
-				const authorizedKeysPathArr = path.split(/(?<!\\)\//);
+				const authorizedKeysPathArr = path.split('/');
 				const sshDir = authorizedKeysPathArr.slice(0, authorizedKeysPathArr.length - 1).join('/');
 				if (! await checkIfExists(sshDir)) {
 					await useSpawn(['mkdir', '-p', sshDir], { superuser: 'try' }).promise();
@@ -382,8 +382,7 @@ export default {
 		}
 
 		const validateAuthorizedKeysPath = async (path) => {
-			const authorizedKeysPathArr = path.split(/(?<!\\)\//);
-			const sshDir = authorizedKeysPathArr.slice(0, authorizedKeysPathArr.length - 1).join('/');
+			const sshDir = path.split('/').slice(0, -1).join('/');
 			if (! await checkIfAllowed(props.user.home)) {
 				// permission denied
 				notifications.value.constructNotification("Permission denied for SSH", "You cannot manage SSH for this user.", 'warning');

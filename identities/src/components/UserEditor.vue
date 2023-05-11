@@ -227,7 +227,7 @@ export default {
 				feedback.user = (feedback.user ?? "") + "Username required.\n";
 				result = false;
 			} else if (!/^[a-z_][a-z0-9_-]*[\$a-z0-9_-]?$/.test(tmpUser.user)) {
-				const invalidCharacters = [...(tmpUser.user.match(/^[^a-z_]|(?<=.+)[^a-z0-9_-](?=.+)|[^\$a-z0-9_-]$/g) ?? [])];
+				const invalidCharacters = [...(tmpUser.user.match(/^[^a-z_]|[^a-z0-9_-](?=.+)|[^\$a-z0-9_-]$/g) ?? [])];
 				feedback.user = (feedback.user ?? "")
 					+ `Invalid character${invalidCharacters.length > 1 ? 's' : ''}: `
 					+ invalidCharacters.filter((c, i, a) => a.indexOf(c) === i).map(char => `'${char}'`).join(', ') + '\n';
