@@ -65,7 +65,7 @@ const getShells = async () => {
 		try {
 			shells.value = (await cockpit.file("/etc/shells", { superuser: 'try' }).read())
 				.split('\n')
-				.filter(line => !/^\s*(?:#.*)?$/.test(line))
+				.filter(line => !/^\s*(#.*)?$/.test(line))
 				.map(path => (shellObj(path)));
 		} catch (error) {
 			alert("Failed to get shells: " + error.message);

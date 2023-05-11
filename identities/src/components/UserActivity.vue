@@ -174,7 +174,7 @@ function formatDateForLast(date) {
 }
 
 function sessionTimeToSentence(sessionTime) {
-	const matchGroups = sessionTime.match(/^(?:(\d+)\+)?(\d{2}):(\d{2})$/)?.slice(1).map(num => num === null ? num : parseInt(num)) ?? null;
+	const matchGroups = sessionTime.match(/^((\d+)\+)?(\d{2}):(\d{2})$/)?.slice(2).map(num => num === null ? num : parseInt(num)) ?? null;
 	if (!matchGroups)
 		return sessionTime;
 	return (matchGroups[0] ? `${matchGroups[0]} Day${matchGroups[0] === 1 ? '' : 's'}, ` : "")
@@ -183,7 +183,7 @@ function sessionTimeToSentence(sessionTime) {
 }
 
 function sessionTimeToObj(sessionTime) {
-	const matchGroups = sessionTime?.match(/^(?:(\d+)\+)?(\d{2}):(\d{2})$/)?.slice(1).map(num => num === null ? num : parseInt(num)) ?? null;
+	const matchGroups = sessionTime?.match(/^((\d+)\+)?(\d{2}):(\d{2})$/)?.slice(2).map(num => num === null ? num : parseInt(num)) ?? null;
 	if (!matchGroups)
 		return { days: 0, hours: 0, minutes: 0 };
 	return {
@@ -275,10 +275,10 @@ export default {
 			sessionStart: (entry1, entry2) => entry1.sessionStart - entry2.sessionStart,
 			sessionEnd: (entry1, entry2) => entry1.sessionEnd - entry2.sessionEnd,
 			sessionTime: (entry1, entry2) => {
-				const match1 = entry1.sessionTime.match(/^(?:(\d+) Days?, )?(?:(\d+) Hours?, )?(\d+) Minutes?$/).slice(1);
-				const match2 = entry2.sessionTime.match(/^(?:(\d+) Days?, )?(?:(\d+) Hours?, )?(\d+) Minutes?$/).slice(1);
-				return ((match1[0] ? parseInt(match1[0]) * 1440 : 0) + (match1[1] ? parseInt(match1[1]) * 60 : 0) + (match1[2]))
-					- ((match2[0] ? parseInt(match2[0]) * 1440 : 0) + (match2[1] ? parseInt(match2[1]) * 60 : 0) + (match2[2]));
+				const match1 = entry1.sessionTime.match(/^((\d+) Days?, )?((\d+) Hours?, )?(\d+) Minutes?$/).slice(1);
+				const match2 = entry2.sessionTime.match(/^((\d+) Days?, )?((\d+) Hours?, )?(\d+) Minutes?$/).slice(1);
+				return ((match1[1] ? parseInt(match1[1]) * 1440 : 0) + (match1[3] ? parseInt(match1[1]) * 60 : 0) + (match1[4]))
+					- ((match2[1] ? parseInt(match2[1]) * 1440 : 0) + (match2[3] ? parseInt(match2[1]) * 60 : 0) + (match2[4]));
 			},
 		});
 		const sortCallback = ref(() => 0);
@@ -306,32 +306,33 @@ export default {
 								.filter(line => !(/^\s*$/.test(line) || /^[wb]tmp begins/.test(line))) // remove empty lines and last line
 								.map(line => {
 									const bad = arg === 'lastb';
-									const match = line.match(/^(\S+)\s+(\S+(?: \S+)*)\s+(\d{1,3}(?:.\d{1,3}){3})\s+(\S+)(?: - (\S+)\s+\(([^\)]+)\)|\s+(\S+(?: \S+)*))/)?.slice(1);
+									const match = line.match(/^(\S+)\s+(\S+( \S+)*)\s+(\d{1,3}(.\d{1,3}){3})\s+(\S+)( - (\S+)\s+\(([^\)]+)\)|\s+(\S+( \S+)*))/)?.slice(1);
 									if (!match)
 										return null;
+									const [user, tty, _1, ip, _2, sessionStart, _3, sessionEnd, sessionTime, stillRunning, _4] = match;
 									try {
 										const obj = reactive({
-											user: match[0],
-											tty: match[1],
-											ip: match[2],
-											sessionStart: tryDate(match[3]),
+											user,
+											tty,
+											ip,
+											sessionStart: tryDate(sessionStart),
 											sessionEnd: null, // end time or "still logged in" (or something else?)
-											sessionTime: match[5] ? sessionTimeToSentence(match[5]) : "0 Minutes",
+											sessionTime: sessionTime ? sessionTimeToSentence(sessionTime) : "0 Minutes",
 											overrideEndText: null,
 											authResult: bad ? 'bad' : 'good',
 										});
-										if (match[6] === "still logged in" || match[6] === "still running") {
+										if (stillRunning === "still logged in" || stillRunning === "still running") {
 											// live update time
 											setInterval(() => {
-												obj.sessionTime = timeSince(match[3]);
+												obj.sessionTime = timeSince(sessionStart);
 												obj.sessionEnd = new Date();
 											}, 60 * 1000);
-											obj.sessionTime = timeSince(match[3]);
-											obj.overrideEndText = match[6].replace(/\b(\w)/g, w => w.toUpperCase());
+											obj.sessionTime = timeSince(sessionStart);
+											obj.overrideEndText = stillRunning.replace(/\b(\w)/g, w => w.toUpperCase());
 										}
-										const sessionTimeObj = sessionTimeToObj(match[5]);
-										obj.sessionEnd = tryDate(match[4])
-											?? ((!match[5])
+										const sessionTimeObj = sessionTimeToObj(sessionTime);
+										obj.sessionEnd = tryDate(sessionEnd)
+											?? ((!sessionTime)
 												? new Date()
 												: moment(obj.sessionStart)
 													.add(sessionTimeObj.days, "days")

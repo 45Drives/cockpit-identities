@@ -1,3 +1,9 @@
+cockpit-identities (0.1.11-1focal) focal; urgency=medium
+
+  * Fix parsing regex for Safari
+
+ -- Joshua Boudreau <jboudreau@45drives.com>  Thu, 11 May 2023 12:44:42 -0300
+
 cockpit-identities (0.1.10-1focal) focal; urgency=medium
 
   * Clear password modal inputs on reopen

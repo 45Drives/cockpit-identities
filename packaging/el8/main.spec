@@ -27,6 +27,8 @@ make DESTDIR=%{buildroot} install
 /usr/share/cockpit/identities/*
 
 %changelog
+* Thu May 11 2023 Joshua Boudreau <jboudreau@45drives.com> 0.1.11-1
+- Fix parsing regex for Safari
 * Wed Jul 06 2022 Joshua Boudreau <jboudreau@45drives.com> 0.1.10-1
 - Clear password modal inputs on reopen
 - Fix accidental bold font in datepicker in user activity table

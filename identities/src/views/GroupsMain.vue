@@ -132,7 +132,7 @@ export default {
 					newGroup.feedback.group = "Group name required.";
 					result = false;
 				} else if (!/^[a-z_][a-z0-9_-]*[\$a-z0-9_-]?$/.test(newGroup.group)) {
-					const invalidCharacters = [...(newGroup.group.match(/(?:^[^a-z_]|(?<=.+)[^a-z0-9_-](?=.+)|[^\$a-z0-9_-]$)/g) ?? [])];
+					const invalidCharacters = [...(newGroup.group.match(/^[^a-z_]|(?<=.+)[^a-z0-9_-](?=.+)|[^\$a-z0-9_-]$/g) ?? [])];
 					newGroup.feedback.group =
 						`Invalid character${invalidCharacters.length > 1 ? 's' : ''}: `
 						+ invalidCharacters.filter((c, i, a) => a.indexOf(c) === i).map(char => `'${char}'`).join(', ');
