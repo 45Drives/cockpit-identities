@@ -39,8 +39,8 @@ sudo apt install cockpit-identities
 ### Direct from .deb
 Installing this way may work for other versions of Ubuntu and Debian, but it is unsupported. You won't get automatic updates this way.
 ```bash
-curl -LO https://github.com/45Drives/cockpit-identities/releases/download/v0.1.10/cockpit-identities_0.1.10-1focal_all.deb
-sudo apt install ./cockpit-identities_0.1.10-1focal_all.deb
+curl -LO https://github.com/45Drives/cockpit-identities/releases/download/v0.1.11/cockpit-identities_0.1.11-1focal_all.deb
+sudo apt install ./cockpit-identities_0.1.11-1focal_all.deb
 ```
 ## Rocky 8
 ### From 45Drives Repo (Recommended, Rocky 8 only)
@@ -52,7 +52,7 @@ sudo dnf install cockpit-identities
 Installing this way may work for other versions of Rocky/Centos/RHEL/Fedora/etc, but it is unsupported. You won't get automatic updates this way.
 ```bash
 # dnf or yum
-sudo dnf install https://github.com/45Drives/cockpit-identities/releases/download/v0.1.10/cockpit-identities-0.1.10-1.el8.noarch.rpm
+sudo dnf install https://github.com/45Drives/cockpit-identities/releases/download/v0.1.11/cockpit-identities-0.1.11-1.el8.noarch.rpm
 ```
 ## Generic Installation
 1. Install Dependencies
@@ -89,9 +89,9 @@ openssh
 ```
 2. Download pre-built archive and install
 ```bash
-curl -LO https://github.com/45Drives/cockpit-identities/releases/download/v0.1.10/cockpit-identities_0.1.10_generic.zip
-unzip cockpit-identities_0.1.10_generic.zip
-cd cockpit-identities_0.1.10_generic
+curl -LO https://github.com/45Drives/cockpit-identities/releases/download/v0.1.11/cockpit-identities_0.1.11_generic.zip
+unzip cockpit-identities_0.1.11_generic.zip
+cd cockpit-identities_0.1.11_generic
 # no need to run `make` first, the plugin is pre-built
 sudo make install
 ```
