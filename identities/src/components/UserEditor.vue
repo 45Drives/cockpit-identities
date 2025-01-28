@@ -157,13 +157,13 @@ If not, see <https://www.gnu.org/licenses/>.
 import { ref, watch, reactive, inject, onMounted } from "vue";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue';
 import { CheckIcon, SelectorIcon, PlusIcon, MinusIcon, ExclamationCircleIcon } from '@heroicons/vue/solid';
-import LoadingSpinner from "../components/LoadingSpinner.vue";
+import { LoadingSpinner, pushNotification, Notification } from "@45drives/houston-common-ui";
 import { shellsInjectionKey, groupsInjectionKey } from "../keys";
 import shellObj from "../hooks/shellObj";
 import ModalPopup from './ModalPopup.vue';
-import { useSpawn } from "@45drives/cockpit-helpers";
 import Table from "./Table.vue";
 import FixedMenu from "./FixedMenu.vue";
+import { legacy } from '@45drives/houston-common-lib';
 
 export default {
 	props: {
@@ -180,6 +180,7 @@ export default {
 		}
 	},
 	setup(props, { emit }) {
+		const { useSpawn } = legacy;
 		const tmpUser = reactive({ ...props.user });
 		const changesMade = ref(false);
 		const inputsValid = ref(true);
