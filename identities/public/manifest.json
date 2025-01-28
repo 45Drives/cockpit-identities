@@ -3,7 +3,7 @@
 
     "menu": {
         "identities": {
-            "label": "Identities",
+            "label": "Identities (TESTING)",
             "path": "index.html",
             "order": 116
         }

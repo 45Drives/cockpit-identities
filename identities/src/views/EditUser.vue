@@ -135,10 +135,9 @@ If not, see <https://www.gnu.org/licenses/>.
 <script>
 import { useRoute } from "vue-router";
 import { ref, watch, computed, reactive, inject, onMounted, onBeforeUnmount } from "vue";
-import { useSpawn, errorString, errorStringHTML } from "@45drives/cockpit-helpers";
 import UserEditor from "../components/UserEditor.vue";
 import SambaPassword from "../components/SambaPassword.vue";
-import LoadingSpinner from "../components/LoadingSpinner.vue";
+import { LoadingSpinner, pushNotification, Notification } from "@45drives/houston-common-ui";
 import SSHKeys from "../components/SSHKeys.vue";
 import UserActivity from "../components/UserActivity.vue";
 import { shellsInjectionKey, notificationsInjectionKey, infoNudgeScrollbarInjectionKey } from "../keys";
@@ -147,16 +146,17 @@ import { TrashIcon, ExclamationCircleIcon, LogoutIcon } from "@heroicons/vue/sol
 import ModalPopup from "../components/ModalPopup.vue";
 import UserPassword from "../components/UserPassword.vue";
 import FixedMenu from "../components/FixedMenu.vue";
+import { legacy } from '@45drives/houston-common-lib';
 
 export default {
 	setup(props, { emit }) {
+		const { errorString, errorStringHTML, useSpawn } = legacy;
 		const testOutput = ref("");
 		const route = useRoute();
 		const user = reactive({ groups: [], isCurrentLoggedIn: false });
 		const processing = ref(0);
 		const processingCredentials = ref(0);
 		const shells = inject(shellsInjectionKey);
-		const notifications = inject(notificationsInjectionKey);
 		const infoNudgeScrollbar = inject(infoNudgeScrollbarInjectionKey);
 		onMounted(() => infoNudgeScrollbar.value = true);
 		onBeforeUnmount(() => infoNudgeScrollbar.value = false);
@@ -224,11 +224,11 @@ export default {
 					tmpUser.home = fields[5];
 					tmpUser.shell = shells.value.find(shell => shell.path === fields[6]);
 					if (!tmpUser.shell) {
-						notifications.value.constructNotification(
+						pushNotification(new Notification(
 							`${fields[6]} not in /etc/shells`,
 							"If you modify this user's shell, you will need to use 'Custom Shell' in the dropdown to set it back.",
-							'info'
-						);
+							'info', 5000
+						));
 						tmpUser.shell = shellObj(fields[6]);
 					}
 					tmpUser.groups = (await useSpawn(['groups', user.user], { superuser: 'try' }).promise()).stdout
@@ -243,11 +243,11 @@ export default {
 						message = `User '${user.user}' not found.`;
 					else
 						message = errorStringHTML(state);
-					notifications.value.constructNotification(
+					pushNotification(new Notification(
 						"Failed to query user",
 						message,
-						'error'
-					)
+						'error', 5000
+					))
 					cockpit.location.go("/users");
 					return;
 				}
@@ -303,20 +303,45 @@ export default {
 			}
 		}
 
+		// const deleteUser = async () => {
+		// 	const argv = ['userdel'];
+		// 	if (deleteConfirmation.removeFiles)
+		// 		argv.push('--remove');
+		// 	argv.push(user.user);
+		// 	try {
+		// 		await useSpawn(argv, { superuser: 'try' }).promise();
+		// 		pushNotification(new Notification("Deleted user", `${user.user} was deleted successfully.`, 'success', 5000));
+		// 		emit('refreshGroups');
+		// 		cockpit.location.go("/users");
+		// 	} catch (state) {
+		// 		pushNotification(new Notification("Error deleting user", errorStringHTML(state), 'error', 5000));
+		// 	}
+		// }
 		const deleteUser = async () => {
 			const argv = ['userdel'];
 			if (deleteConfirmation.removeFiles)
 				argv.push('--remove');
 			argv.push(user.user);
+
 			try {
 				await useSpawn(argv, { superuser: 'try' }).promise();
-				notifications.value.constructNotification("Deleted user", `${user.user} was deleted successfully.`, 'success');
-				emit('refreshGroups');
-				cockpit.location.go("/users");
 			} catch (state) {
-				notifications.value.constructNotification("Error deleting user", errorStringHTML(state), 'error');
+				// Verify if user actually exists after the error
+				try {
+					await useSpawn(['id', user.user], { superuser: 'try' }).promise();
+					// If id succeeds, user still exists - show original error
+					pushNotification(new Notification("Error deleting user", errorStringHTML(state), 'error', 5000));
+					return;
+				} catch {
+					// User doesn't exist - suppression of false error
+				}
 			}
-		}
+			
+			// Success flow (user was deleted)
+			pushNotification(new Notification("Deleted user", `${user.user} was deleted successfully.`, 'success', 5000));
+			emit('refreshGroups');
+			cockpit.location.go("/users");
+		};
 
 		watch(() => route.path, async () => {
 			if (!/^\/users\/.*$/.test(route.path)) {

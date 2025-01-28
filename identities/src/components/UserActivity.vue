@@ -47,7 +47,7 @@ If not, see <https://www.gnu.org/licenses/>.
 					autoApply
 					teleport="#app"
 					enableSeconds
-					class="font-normal"
+					class="font-normal bg-default"
 					:startTime="[{ hours: 0, minutes: 0, seconds: 0 }, { hours: 23, minutes: 59, seconds: 59 }]"
 				/>
 			</div>
@@ -155,14 +155,14 @@ If not, see <https://www.gnu.org/licenses/>.
 import { ref, reactive, watch, inject, onMounted } from 'vue';
 import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
-import { useSpawn, errorStringHTML, objectURLDownload } from '@45drives/cockpit-helpers';
 import { FilterIcon, DocumentDownloadIcon } from '@heroicons/vue/solid';
 import SimpleFilter from './SimpleFilter.vue';
-import LoadingSpinner from './LoadingSpinner.vue';
 import SortCallbackButton from './SortCallbackButton.vue';
 import moment from 'moment';
-import { darkModeInjectionKey, notificationsInjectionKey } from '../keys';
+import { darkModeInjectionKey } from '../keys';
 import Table from './Table.vue';
+import { legacy, Download } from '@45drives/houston-common-lib';
+import { LoadingSpinner, pushNotification, Notification } from '@45drives/houston-common-ui';
 
 function formatDateForLast(date) {
 	const year = date.getFullYear().toString().padStart(4, '0');
@@ -242,6 +242,7 @@ export default {
 		},
 	},
 	setup(props) {
+		const { errorStringHTML, useSpawn } = legacy;
 		const range = ref();
 		const userFilterRef = ref();
 		const ipFilterRef = ref();
@@ -251,7 +252,7 @@ export default {
 		const historyReactive = reactive(history);
 		const processing = ref(0);
 		const darkMode = inject(darkModeInjectionKey);
-		const notifications = inject(notificationsInjectionKey);
+		// const notifications = inject(notificationsInjectionKey);
 		const filters = reactive({
 			user: {
 				set: new Set([]),
@@ -353,7 +354,7 @@ export default {
 					}
 					history.value = tmpHistory.sort(sortCallback.value);
 				} catch (state) {
-					notifications.value.constructNotification("Error getting login history", errorStringHTML(state), 'error');
+					pushNotification(new Notification("Error getting login history", errorStringHTML(state), 'error', 5000));
 					return;
 				}
 			} finally {
@@ -456,9 +457,9 @@ export default {
 					...activity,
 				]);
 				const filename = `${fullUser}login history - ${dataRange}.csv`;
-				objectURLDownload(data, filename);
+				Download.text(data, filename);
 			} catch (error) {
-				notifications.value.constructNotification("Failed to download file", errorStringHTML(error), 'error');
+				pushNotification(new Notification("Failed to download file", errorStringHTML(error), 'error', 5000));
 			}
 		}
 

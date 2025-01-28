@@ -89,7 +89,6 @@ export default {
 </script>
 
 <style>
-@import "@45drives/cockpit-css/src/index.css";
 
 table.houston-table thead.use-sticky tr th {
 	@apply sticky z-10 top-0;

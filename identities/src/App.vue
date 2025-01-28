@@ -16,41 +16,32 @@ If not, see <https://www.gnu.org/licenses/>.
 -->
 
 <template>
-	<div class="h-full flex flex-col text-default bg-well">
-		<HoustonHeader
-			moduleName="Identities"
-			centerName
-			:showSpinner="processing"
-			:infoNudgeScrollbar="infoNudgeScrollbar"
-			sourceURL="https://github.com/45Drives/cockpit-identities"
-			issuesURL="https://github.com/45Drives/cockpit-identities/issues"
-			:pluginVersion="version"
-		/>
+	<!-- <div class="h-full flex flex-col text-default bg-well">
+		<HoustonHeader moduleName="Identities" centerName :showSpinner="processing"
+			:infoNudgeScrollbar="infoNudgeScrollbar" sourceURL="https://github.com/45Drives/cockpit-identities"
+			issuesURL="https://github.com/45Drives/cockpit-identities/issues" :pluginVersion="version" />
 		<div class="grow overflow-y-auto">
-			<router-view class="h-full" @refreshGroups="getGroups" />
+			<router-view class="h-full" @refreshGroups="getAllGroups" />
 		</div>
-	</div>
-	<Notifications :notificationFIFO="notificationFIFO" ref="notifications" />
+	</div> -->
+	<HoustonAppContainer moduleName="Identities" :appVersion="version"
+		sourceURL="https://github.com/45Drives/cockpit-identities"
+		issuesURL="https://github.com/45Drives/cockpit-identities/issues">
+		<router-view class="h-full" @refreshGroups="getAllGroups" />
+	</HoustonAppContainer>
 </template>
 
 <script setup>
-import HoustonHeader from './components/HoustonHeader.vue';
 import { ref, provide } from 'vue';
 import shellObj from './hooks/shellObj';
-import { useSpawn, errorString, FIFO } from '@45drives/cockpit-helpers';
-import Notifications from './components/Notifications.vue';
-import { notificationsInjectionKey, darkModeInjectionKey, shellsInjectionKey, groupsInjectionKey, infoNudgeScrollbarInjectionKey } from './keys';
-import { useRoute } from 'vue-router';
-import { pluginVersion } from './version';
+import { HoustonAppContainer, useDarkModeState } from '@45drives/houston-common-ui'
+import { darkModeInjectionKey, shellsInjectionKey, groupsInjectionKey, infoNudgeScrollbarInjectionKey } from './keys';
+import { legacy, getGroups } from '@45drives/houston-common-lib';
+const { errorString } = legacy;
 
-const version = ref(pluginVersion);
+const version = __APP_VERSION__;
 
-const props = defineProps({ notificationFIFO: FIFO });
-
-const notifications = ref();
-provide(notificationsInjectionKey, notifications);
-
-const darkMode = ref(false);
+const darkMode = useDarkModeState();
 provide(darkModeInjectionKey, darkMode);
 
 const infoNudgeScrollbar = ref(false);
@@ -86,37 +77,11 @@ const getShells = async () => {
 provide(shellsInjectionKey, shells);
 
 const groups = ref([]);
-const getGroups = async () => {
+const getAllGroups = async () => {
 	processing.value++;
 	try {
-		const primaryGroups = (await useSpawn(['getent', 'passwd'], { superuser: 'try' }).promise()).stdout
-			.split('\n')
-			.filter(l => !/^\s*$/.test(l))
-			.map(record => {
-				const [user, pass, uid, gid, ...etc] = record.split(':');
-				return { gid: parseInt(gid), user };
-			});
-		const groupDB = (await useSpawn(['getent', 'group'], { superuser: 'try' }).promise()).stdout;
-		groups.value = groupDB
-			.split('\n')
-			.filter(record => !/^\s*$/.test(record)) // remove empty lines
-			.map(record => {
-				const fields = record.split(':');
-				const obj = {
-					group: fields[0], // group name is 1st field
-					gid: parseInt(fields[2]),
-					members: fields[3]?.split(',').filter(m => m), // comma-delim list of members is 4th field
-					isPrimary: false,
-				}
-				let primaryGroup = primaryGroups.find(g => g.gid === obj.gid);
-				if (primaryGroup) {
-					obj.isPrimary = true;
-					obj.primaryMember = primaryGroup.user;
-					obj.members = [...new Set([...obj.members, primaryGroup.user])];
-				}
-				return obj;
-			});
-		groups.value.sort((a, b) => a.group.localeCompare(b.group));
+		groups.value = await getGroups();
+		groups.value.sort((a, b) => a.name.localeCompare(b.name));
 	} catch (state) {
 		alert("Failed to get groups: " + errorString(state));
 	} finally {
@@ -127,7 +92,7 @@ provide(groupsInjectionKey, groups);
 
 const init = async () => {
 	await getShells();
-	await getGroups();
+	await getAllGroups();
 }
 
 init();

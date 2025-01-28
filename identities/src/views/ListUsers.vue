@@ -47,38 +47,20 @@ If not, see <https://www.gnu.org/licenses/>.
 
 <script>
 import { UserIcon, UserAddIcon, StarIcon, ShieldExclamationIcon } from "@heroicons/vue/solid";
-import { useSpawn, errorString } from '@45drives/cockpit-helpers';
 import { ref } from "vue";
-import LoadingSpinner from "../components/LoadingSpinner.vue";
+import { LoadingSpinner } from "@45drives/houston-common-ui";
+import { legacy, getUsers } from '@45drives/houston-common-lib';
 
 export default {
 	setup() {
+		const { errorString } = legacy;
 		const users = ref([]);
 		const processing = ref(0);
 
-		const getUsers = async () => {
+		const getAllUsers = async () => {
 			processing.value++;
 			try {
-				const currentLoggedInUser = (await cockpit.user()).name;
-				users.value = (await useSpawn(['getent', 'passwd'], { superuser: 'try' }).promise()).stdout
-					.split('\n')
-					.map(record => {
-						if (/^\s*$/.test(record))
-							return null;
-						const fields = record.split(':');
-						const uid = fields[2];
-						const uidInt = parseInt(uid);
-						if (uidInt < 1000 && uidInt !== 0)
-							return null;
-						const user = fields[0];
-						const name = fields[4];
-						return {
-							user,
-							name: name === "" ? user : name,
-							currentLoggedIn: user === currentLoggedInUser,
-							uid: uidInt,
-						};
-					}).filter(user => user !== null) ?? [];
+				users.value = await getUsers();
 			} catch (state) {
 				alert("Failed to get users: " + errorString(state));
 			} finally {
@@ -90,7 +72,7 @@ export default {
 			cockpit.location.go(`/users/${username}`);
 		};
 
-		getUsers();
+		getAllUsers();
 
 		const addUser = () => {
 			cockpit.location.go('/new-user');

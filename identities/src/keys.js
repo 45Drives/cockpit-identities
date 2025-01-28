@@ -1,7 +1,7 @@
 /**
  * Notifications component instance to add notifs
  */
-export const notificationsInjectionKey = Symbol();
+// export const notificationsInjectionKey = Symbol();
 /**
  * ref to boolean for dark mode (can't set dark mode by changing)
  * setting to string for compatibility within FfdHeader
