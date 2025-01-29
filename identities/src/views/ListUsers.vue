@@ -50,10 +50,10 @@ import { UserIcon, UserAddIcon, StarIcon, ShieldExclamationIcon } from "@heroico
 import { ref } from "vue";
 import { LoadingSpinner } from "@45drives/houston-common-ui";
 import { legacy, getUsers } from '@45drives/houston-common-lib';
+const { errorString } = legacy;
 
 export default {
 	setup() {
-		const { errorString } = legacy;
 		const users = ref([]);
 		const processing = ref(0);
 

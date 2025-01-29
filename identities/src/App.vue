@@ -16,14 +16,6 @@ If not, see <https://www.gnu.org/licenses/>.
 -->
 
 <template>
-	<!-- <div class="h-full flex flex-col text-default bg-well">
-		<HoustonHeader moduleName="Identities" centerName :showSpinner="processing"
-			:infoNudgeScrollbar="infoNudgeScrollbar" sourceURL="https://github.com/45Drives/cockpit-identities"
-			issuesURL="https://github.com/45Drives/cockpit-identities/issues" :pluginVersion="version" />
-		<div class="grow overflow-y-auto">
-			<router-view class="h-full" @refreshGroups="getAllGroups" />
-		</div>
-	</div> -->
 	<HoustonAppContainer moduleName="Identities" :appVersion="version"
 		sourceURL="https://github.com/45Drives/cockpit-identities"
 		issuesURL="https://github.com/45Drives/cockpit-identities/issues">

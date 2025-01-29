@@ -46,7 +46,7 @@ If not, see <https://www.gnu.org/licenses/>.
 </template>
 
 <script>
-import { onMounted, reactive, ref, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { CheckIcon, FilterIcon } from '@heroicons/vue/solid';
 import FixedMenu from './FixedMenu.vue';
 

@@ -16,27 +16,16 @@ If not, see <https://www.gnu.org/licenses/>.
 -->
 
 <template>
-	<ModalPopup
-		:showModal="showModal"
-		:headerText="headerText"
-		:applyText="applyText"
-		:cancelText="cancelText"
-		:disableContinue="!passwordValid"
-		@apply="applyCallback"
-		@cancel="cancelCallback"
-	>
+	<ModalPopup :showModal="showModal" :headerText="headerText" :applyText="applyText" :cancelText="cancelText"
+		:disableContinue="!passwordValid" @apply="applyCallback" @cancel="cancelCallback">
 		<div class="my-2 space-y-content">
 			<div class="relative">
 				<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
 					<LockClosedIcon class="size-icon icon-default" aria-hidden="true" />
 				</div>
-				<input
-					:type="hidden ? 'password' : 'text'"
-					autocomplete="new-password"
-					class="block w-full px-10 input-textlike"
-					placeholder="Type Password"
-					v-model="password1"
-				/>
+				<input :type="hidden ? 'password' : 'text'" autocomplete="new-password"
+					class="block w-full !pl-10 !pr-10 input-textlike" placeholder="Type Password" 
+					v-model="password1" />
 				<div @click="hidden = !hidden" class="absolute inset-y-0 right-0 pr-3 flex items-center">
 					<EyeOffIcon v-if="hidden" class="size-icon icon-default" aria-hidden="true" />
 					<EyeIcon v-else class="size-icon icon-default" aria-hidden="true" />
@@ -46,18 +35,15 @@ If not, see <https://www.gnu.org/licenses/>.
 				<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
 					<LockClosedIcon class="size-icon icon-default" aria-hidden="true" />
 				</div>
-				<input
-					:type="hidden ? 'password' : 'text'"
-					autocomplete="new-password"
-					class="block w-full px-10 input-textlike"
-					placeholder="Repeat Password"
-					v-model="password2"
-				/>
+				<input :type="hidden ? 'password' : 'text'" autocomplete="new-password"
+					class="block w-full !pl-10 !pr-10 input-textlike" placeholder="Repeat Password"
+					v-model="password2" />
 				<div @click="hidden = !hidden" class="absolute inset-y-0 right-0 pr-3 flex items-center">
 					<EyeOffIcon v-if="hidden" class="size-icon icon-default" aria-hidden="true" />
 					<EyeIcon v-else class="size-icon icon-default" aria-hidden="true" />
 				</div>
 			</div>
+
 			<div v-if="allRequirements.length" class="flex flex-col items-start">
 				<div>The password should satisfy the following requirements:</div>
 				<div class="inline-flex flex-col items-stretch">

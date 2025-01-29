@@ -164,6 +164,8 @@ import Table from './Table.vue';
 import { legacy, Download } from '@45drives/houston-common-lib';
 import { LoadingSpinner, pushNotification, Notification } from '@45drives/houston-common-ui';
 
+const { errorStringHTML, useSpawn } = legacy;
+
 function formatDateForLast(date) {
 	const year = date.getFullYear().toString().padStart(4, '0');
 	const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -242,7 +244,6 @@ export default {
 		},
 	},
 	setup(props) {
-		const { errorStringHTML, useSpawn } = legacy;
 		const range = ref();
 		const userFilterRef = ref();
 		const ipFilterRef = ref();
@@ -252,7 +253,6 @@ export default {
 		const historyReactive = reactive(history);
 		const processing = ref(0);
 		const darkMode = inject(darkModeInjectionKey);
-		// const notifications = inject(notificationsInjectionKey);
 		const filters = reactive({
 			user: {
 				set: new Set([]),

@@ -44,17 +44,17 @@ If not, see <https://www.gnu.org/licenses/>.
 </template>
 
 <script>
-import { ref, watch, computed, reactive, inject, onMounted, onBeforeUnmount } from "vue";
+import { ref, reactive, inject, onMounted, onBeforeUnmount } from "vue";
 import shellObj from "../hooks/shellObj";
 import UserEditor from "../components/UserEditor.vue";
-import { LoadingSpinner, pushNotification, Notification } from "@45drives/houston-common-ui";
 import UserPassword from "../components/UserPassword.vue";
-import { shellsInjectionKey, infoNudgeScrollbarInjectionKey, groupsInjectionKey } from "../keys";
+import { shellsInjectionKey, infoNudgeScrollbarInjectionKey } from "../keys";
+import { LoadingSpinner, pushNotification, Notification } from "@45drives/houston-common-ui";
 import { legacy, addUser, getUsers } from '@45drives/houston-common-lib';
+const { errorString, errorStringHTML } = legacy;
 
 export default {
 	setup(props, { emit }) {
-		const { errorString, errorStringHTML, useSpawn } = legacy;
 		const userPasswordRef = ref();
 		const shells = inject(shellsInjectionKey);
 		const user = reactive({
@@ -111,75 +111,34 @@ export default {
 		}
 		getExistingUsers();
 
-
 		const createUser = async (newUser, oldUser) => {
-			console.log("Starting user creation process:", user); // Log the incoming user data
 			processing.value++;
 			try {
 				// Merge the new user details into the `user` object
 				Object.assign(user, newUser);
-				console.log("Calling addUser with data:", user);
 
 				// Call the addUser function and await its result
 				const result = await addUser(user, existingUsers);
-				console.log("addUser result:", result);
 
 				// Check if the user creation was successful
 				if (result.success) {
-					console.log("User created successfully:", user.user);
 					pushNotification(new Notification("Created user", `${user.user} was created successfully.`, 'success', 5000));
 					emit('refreshGroups');
+					await userPasswordRef.value.setPassword();
 
-					// try {
-					// 	console.log("Attempting to set password for user:", user.user);
-					// 	await userPasswordRef.value.setPassword();
-					// } catch (err) {
-					// 	console.error("Error setting password:", err);
-					// }
-					console.log("User created successfully:", user.user);
-
-					// Add verification loop
-					let userExists = false;
-					for (let i = 0; i < 5; i++) { // Retry up to 5 times
-						try {
-							await useSpawn(['id', user.user], { superuser: 'try' }).promise();
-							userExists = true;
-							break;
-						} catch {
-							await new Promise(resolve => setTimeout(resolve, 200)); // Wait 200ms
-						}
-					}
-
-					if (!userExists) {
-						throw new Error(`User ${user.user} not recognized by system after creation`);
-					}
-
-					// Proceed with password setup
-					try {
-						await userPasswordRef.value.setPassword();
-					} catch (err) {
-						console.error("Error setting password:", err);
-					}
-
-					console.log("Redirecting to user editor for:", user.user);
 					cockpit.location.go(`/users/${user.user}`);
 					pushNotification(new Notification("Redirected", "You were taken to the user editor after creation.", 'info', 5000))
 						.addAction('Back to users list', () => cockpit.location.go('/users'));
 				} else {
-					console.error("Failed to create user:", result.error);
 					pushNotification(new Notification("Failed to create user", errorString(result.error), 'error', 5000));
 					return;
 				}
-			
 			} catch (error) {
-				console.error("Exception during user creation:", error);
 				pushNotification(new Notification("Failed to create user", errorStringHTML(error), 'error', 5000));
 			} finally {
 				processing.value--;
 			}
-		};
-
-
+		}
 
 		return {
 			userPasswordRef,

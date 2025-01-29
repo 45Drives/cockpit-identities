@@ -112,10 +112,10 @@ import ModalPopup from "../components/ModalPopup.vue";
 import SortCallbackButton from "../components/SortCallbackButton.vue";
 import { pushNotification, Notification } from "@45drives/houston-common-ui";
 import { legacy, createNewGroup } from '@45drives/houston-common-lib';
+const { errorStringHTML, useSpawn } = legacy;
 
 export default {
 	setup(props, { emit }) {
-		const { errorStringHTML, useSpawn } = legacy;
 		const processing = ref(0);
 		const groups = inject(groupsInjectionKey);
 		const groupsSorted = ref([...groups.value]);

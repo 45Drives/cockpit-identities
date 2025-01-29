@@ -138,7 +138,7 @@ If not, see <https://www.gnu.org/licenses/>.
 </template>
 
 <script>
-import { ref, reactive, watch, inject, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, watch, onUnmounted } from 'vue';
 import { MinusIcon, PlusIcon, ClipboardCopyIcon, ExclamationCircleIcon, CheckCircleIcon, MinusCircleIcon } from '@heroicons/vue/solid';
 import Table from './Table.vue';
 import ModalPopup from './ModalPopup.vue';

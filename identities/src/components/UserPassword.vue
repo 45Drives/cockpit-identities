@@ -19,10 +19,8 @@ If not, see <https://www.gnu.org/licenses/>.
 	<div v-if="!modalOnly && allowed">
 		<label class="block text-label">User Login</label>
 		<div class="button-group-row-wrap">
-			<button
-				class="btn btn-primary"
-				@click="setPassword"
-			>{{ userPassword.isSet ? 'Change' : 'Set' }} Account Password</button>
+			<button class="btn btn-primary" @click="setPassword">{{ userPassword.isSet ? 'Change' : 'Set' }} Account
+				Password</button>
 			<button class="btn btn-primary" @click="togglePasswordLock()">
 				<div class="flex flex-row items-center">
 					<span class="mr-2">{{ userPassword.isLocked ? 'Unlock' : 'Lock' }} Account Password</span>
@@ -30,86 +28,71 @@ If not, see <https://www.gnu.org/licenses/>.
 					<LockOpenIcon v-else class="size-icon" />
 				</div>
 			</button>
-			<button
-				class="btn btn-primary"
-				@click="showPasswordExpiryModal = true"
-				v-if="userPassword.isSet"
-			>Edit Password Expiry</button>
+			<button class="btn btn-primary" @click="showPasswordExpiryModal = true" v-if="userPassword.isSet">Edit
+				Password Expiry</button>
 		</div>
 		<div v-if="userPassword.isSet" class="feedback-group">
 			<InformationCircleIcon class="size-icon icon-default" />
 			<div class="text-feedback text-muted">{{ userPassword.expires }}</div>
 		</div>
-		<ModalPopup
-			:showModal="showPasswordExpiryModal"
-			@apply="() => showPasswordExpiryModal = false"
-			:headerText="`Password expiry settings for ${user}`"
-			applyText="Done"
-			noCancel
-		>
+		<ModalPopup :showModal="showPasswordExpiryModal" @apply="() => showPasswordExpiryModal = false"
+			:headerText="`Password expiry settings for ${user}`" applyText="Done" noCancel>
 			<div class="flex flex-col gap-4 items-start">
 				<div class="flex gap-1 items-baseline flex-wrap justify-start">
 					<span>Expire password every</span>
 					<input
 						:value="(userPassword.expireDays == -1 || userPassword.expireDays == 99999) ? '' : userPassword.expireDays"
-						@change="updateExpiry($event.target.value)"
-						type="number"
-						placeholder="∞"
-						min="0"
-						max="9999"
-						class="w-24 grow-0 input-textlike"
-					/>
+						@change="updateExpiry($event.target.value)" type="number" placeholder="∞" min="0" max="9999"
+						class="w-24 grow-0 input-textlike" />
 					<span>days</span>
 				</div>
-				<button
-					class="btn btn-primary"
-					@click="showExpirePasswordModal = true"
-					v-if="userPassword.isSet"
+				<button class="btn btn-primary" @click="showExpirePasswordModal = true" v-if="userPassword.isSet"
 					:disabled="userPassword.isExpired"
-					:title="userPassword.isExpired ? 'Password already expired.' : 'Force user to change password on next login.'"
-				>Force Expire Account Password</button>
+					:title="userPassword.isExpired ? 'Password already expired.' : 'Force user to change password on next login.'">Force
+					Expire Account Password</button>
 				<div class="feedback-group">
 					<InformationCircleIcon class="size-icon icon-default" />
 					<div class="text-feedback text-muted">{{ userPassword.expires }}</div>
 				</div>
 			</div>
 		</ModalPopup>
-		<ModalPopup
-			:showModal="showExpirePasswordModal"
-			@apply="expirePassword"
-			@cancel="() => showExpirePasswordModal = false"
-			:headerText="`Expire password for ${user}?`"
-			applyDangerous
-			applyText="Yes"
-			cancelText="No"
-		>
-			<template #icon><ExclamationCircleIcon class="size-icon-xl icon-error" /></template>
+		<ModalPopup :showModal="showExpirePasswordModal" @apply="expirePassword"
+			@cancel="() => showExpirePasswordModal = false" :headerText="`Expire password for ${user}?`" applyDangerous
+			applyText="Yes" cancelText="No">
+			<template #icon>
+				<ExclamationCircleIcon class="size-icon-xl icon-error" />
+			</template>
 			They will need to set a new password at next login.
 		</ModalPopup>
 	</div>
-	<PasswordModal
-		:showModal="userPassword.showModal"
-		:user="user"
+	<PasswordModal :showModal="userPassword.showModal" :user="user"
 		:headerText="`${userPassword.isSet ? 'Change' : 'Set'} login password for ${user}`"
-		:cancelText="userPassword.isSet ? 'Cancel' : 'No Password'"
-		:warnCancel="!userPassword.isSet"
-		@apply="userPassword.applyCallback"
-		@cancel="userPassword.cancelCallback"
-		requireDifferentFromUser
-	/>
+		:cancelText="userPassword.isSet ? 'Cancel' : 'No Password'" :warnCancel="!userPassword.isSet"
+		@apply="userPassword.applyCallback" @cancel="userPassword.cancelCallback" requireDifferentFromUser />
 </template>
 
 <script>
 import ModalPopup from "./ModalPopup.vue";
+
 import PasswordModal from "./PasswordModal.vue";
 import { ExclamationCircleIcon, LockClosedIcon, LockOpenIcon, InformationCircleIcon } from '@heroicons/vue/solid';
-import { ref, reactive, watch, inject } from 'vue';
+import { ref, reactive, watch } from 'vue';
 import { pushNotification, Notification } from "@45drives/houston-common-ui";
 import { legacy, setNewPassword } from '@45drives/houston-common-lib';
+const { errorStringHTML, useSpawn } = legacy;
 
 const checkIfPasswdSet = async (user) => {
 	try {
 		await useSpawn(['bash', '-c', `set -e; set -o pipefail; [[ -n "$(getent shadow ${user} | cut -d: -f2 | perl -pne 's/^!+//')" ]]`], { superuser: 'require' }).promise();
+		return true;
+	} catch (state) {
+		return false;
+	}
+}
+
+const checkIfUserExists = async (user) => {
+	try {
+		await useSpawn(['id', user], { superuser: 'try' }).promise();
 		return true;
 	} catch (state) {
 		return false;
@@ -131,7 +114,6 @@ export default {
 		},
 	},
 	setup(props, { emit }) {
-		const { errorString, errorStringHTML, useSpawn } = legacy;
 		const userPassword = reactive({
 			showModal: false,
 			applyCallback: () => userPassword.showModal = false,
@@ -145,51 +127,43 @@ export default {
 		const allowed = ref(true);
 		const showExpirePasswordModal = ref(false);
 		const showPasswordExpiryModal = ref(false);
-		// const notifications = inject(notificationsInjectionKey);
 
 		const checkPasswdStatus = async () => {
 			emit('startProcessing');
 			try {
-				// First verify user exists
-				await useSpawn(['id', props.user], { superuser: 'try' }).promise();
-
-				const passwdStatusFields = (await useSpawn(['passwd', '--status', props.user], { superuser: 'try' }).promise()).stdout
-					.trim().split(' ');
-				switch (passwdStatusFields[1]) {
-					case 'P':
-					case 'PS':
-						userPassword.isSet = true;
-						userPassword.isLocked = false;
-						break;
-					case 'NP':
-						userPassword.isSet = false;
-						userPassword.isLocked = false;
-						break;
-					case 'L':
-					case 'LK':
-						userPassword.isSet = await checkIfPasswdSet(props.user);
-						userPassword.isLocked = true;
-						break;
-					default:
-						throw new Error(`Unknown field in passwd -S: ${passwdStatusFields[1]}. Should be NP, P, PS, L, or LK.`);
+				if (await checkIfUserExists(props.user)) {
+					const passwdStatusFields = (await useSpawn(['passwd', '--status', props.user], { superuser: 'try' }).promise()).stdout
+						.trim().split(' ');
+					switch (passwdStatusFields[1]) {
+						case 'P':
+						case 'PS':
+							userPassword.isSet = true;
+							userPassword.isLocked = false;
+							break;
+						case 'NP':
+							userPassword.isSet = false;
+							userPassword.isLocked = false;
+							break;
+						case 'L':
+						case 'LK':
+							userPassword.isSet = await checkIfPasswdSet(props.user);
+							userPassword.isLocked = true;
+							break;
+						default:
+							throw new Error(`Unknown field in passwd -S: ${passwdStatusFields[1]}. Should be NP, P, PS, L, or LK.`);
+					}
+					userPassword.expireDays = parseInt(passwdStatusFields[4]);
+					const chageLines = (await useSpawn(['chage', '-l', props.user], { superuser: 'try' }).promise()).stdout
+						.split('\n'); // split lines
+					const chageExpires = chageLines.find(line => /^Password expires/.test(line))
+						.split(':')[1]
+						.trim();
+					userPassword.isExpired = chageExpires === "password must be changed";
+					userPassword.expires = chageExpires.replace(/^(?!password must be changed)(?!never)(.*)$/, "Password expires on $1.")
+						.replace("password must be changed", "Password is expired.")
+						.replace("never", "Password never expires.");
 				}
-				userPassword.expireDays = parseInt(passwdStatusFields[4]);
-				const chageLines = (await useSpawn(['chage', '-l', props.user], { superuser: 'try' }).promise()).stdout
-					.split('\n'); // split lines
-				const chageExpires = chageLines.find(line => /^Password expires/.test(line))
-					.split(':')[1]
-					.trim();
-				userPassword.isExpired = chageExpires === "password must be changed";
-				userPassword.expires = chageExpires.replace(/^(?!password must be changed)(?!never)(.*)$/, "Password expires on $1.")
-					.replace("password must be changed", "Password is expired.")
-					.replace("never", "Password never expires.");
 			} catch (state) {
-				if (state.exit === 252) { // Specific "user not found" error
-					console.warn(`User ${props.user} not found during password check`);
-					allowed.value = false;
-					return;
-				} 
-
 				pushNotification(new Notification(
 					"Failed to check password status",
 					errorStringHTML(state),
@@ -202,68 +176,28 @@ export default {
 			}
 		};
 
-		// const setPassword = async () => {
-		// 	const waitForPassword = () => new Promise(
-		// 		(resolve, reject) => {
-		// 			userPassword.applyCallback = (password) => resolve(password);
-		// 			userPassword.cancelCallback = () => resolve(null);
-		// 			userPassword.showModal = true;
-		// 		}
-		// 	);
-
-		// 	let password = null;
-		// 	if (password = await waitForPassword()) {
-		// 		emit('startProcessing');
-		// 		try {
-		// 			const state = useSpawn(['passwd', props.user], { superuser: 'try' });
-		// 			state.proc.input(`${password}\n${password}\n`);
-		// 			await state.promise();
-		// 			// await setNewPassword(props.user, password);
-		// 			pushNotification(new Notification(`Set password for ${props.user}`, "Password was set successfully.", 'success', 5000));
-		// 			await checkPasswdStatus();
-		// 		} catch (state) {
-		// 			pushNotification(new Notification(
-		// 				"Error setting password",
-		// 				errorStringHTML(state),
-		// 				'error', 5000
-		// 			));
-		// 		} finally {
-		// 			emit('stopProcessing');
-		// 		}
-		// 	} else if (!userPassword.isSet) {
-		// 		pushNotification(new Notification(`${props.user} has no password`, "Set the password in the user editor to be able to log in.", 'warning', 5000));
-		// 	}
-		// 	userPassword.showModal = false;
-		// };
-
 		const setPassword = async () => {
-			console.log("Opening password modal for:", props.user);
 			const waitForPassword = () => new Promise(
 				(resolve, reject) => {
-					userPassword.applyCallback = (password) => resolve(password);
-					userPassword.cancelCallback = () => resolve(null);
+					userPassword.applyCallback = (password) => {
+						userPassword.showModal = false;
+						resolve(password);
+					};
+					userPassword.cancelCallback = () => {
+						userPassword.showModal = false;
+						resolve(null);
+					};
 					userPassword.showModal = true;
 				}
 			);
 			let password = null;
 			if (password = await waitForPassword()) {
-				console.log("Password received for:", props.user);
 				emit('startProcessing');
 				try {
-					console.log("Setting password for:", props.user);
-					
-					// Call the addUser function and await its result
-					const result = await setNewPassword(props.user, password);
-					console.log("setPassword result:", result);
-
-					// Check if the user creation was successful
-					if (result.success) {
-						console.log("Password successfully set for:", props.user);
-						pushNotification(new Notification(`Set password for ${props.user}`, "Password was set successfully.", 'success', 5000));
-						await checkPasswdStatus();
-					}
+					setNewPassword(props.user, password);
+					pushNotification(new Notification(`Set password for ${props.user}`, "Password was set successfully.", 'success', 5000));
+					await checkPasswdStatus();
 				} catch (state) {
-					console.error("Error setting password for:", props.user, state);
 					pushNotification(new Notification(
 						"Error setting password",
 						errorStringHTML(state),
@@ -273,12 +207,10 @@ export default {
 					emit('stopProcessing');
 				}
 			} else if (!userPassword.isSet) {
-				console.warn(`No password set for user: ${props.user}`);
 				pushNotification(new Notification(`${props.user} has no password`, "Set the password in the user editor to be able to log in.", 'warning', 5000));
 			}
 			userPassword.showModal = false;
 		};
-
 
 		const expirePassword = async () => {
 			emit('startProcessing');
@@ -341,13 +273,6 @@ export default {
 		watch(() => props.user, async () => {
 			await checkPasswdStatus();
 		}, { immediate: !props.newUser });
-		// watch(() => props.user, async (newVal) => {
-		// 	if (props.newUser) {
-		// 		// Wait 500ms before initial check for new users
-		// 		await new Promise(resolve => setTimeout(resolve, 500));
-		// 	}
-		// 	await checkPasswdStatus();
-		// }, { immediate: !props.newUser });
 
 		return {
 			userPassword,

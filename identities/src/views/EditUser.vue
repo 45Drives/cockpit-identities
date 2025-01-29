@@ -147,10 +147,10 @@ import ModalPopup from "../components/ModalPopup.vue";
 import UserPassword from "../components/UserPassword.vue";
 import FixedMenu from "../components/FixedMenu.vue";
 import { legacy } from '@45drives/houston-common-lib';
+const { errorString, errorStringHTML, useSpawn } = legacy;
 
 export default {
 	setup(props, { emit }) {
-		const { errorString, errorStringHTML, useSpawn } = legacy;
 		const testOutput = ref("");
 		const route = useRoute();
 		const user = reactive({ groups: [], isCurrentLoggedIn: false });
@@ -302,21 +302,6 @@ export default {
 				processing.value--;
 			}
 		}
-
-		// const deleteUser = async () => {
-		// 	const argv = ['userdel'];
-		// 	if (deleteConfirmation.removeFiles)
-		// 		argv.push('--remove');
-		// 	argv.push(user.user);
-		// 	try {
-		// 		await useSpawn(argv, { superuser: 'try' }).promise();
-		// 		pushNotification(new Notification("Deleted user", `${user.user} was deleted successfully.`, 'success', 5000));
-		// 		emit('refreshGroups');
-		// 		cockpit.location.go("/users");
-		// 	} catch (state) {
-		// 		pushNotification(new Notification("Error deleting user", errorStringHTML(state), 'error', 5000));
-		// 	}
-		// }
 		const deleteUser = async () => {
 			const argv = ['userdel'];
 			if (deleteConfirmation.removeFiles)
