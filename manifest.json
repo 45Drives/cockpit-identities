@@ -1,29 +1,23 @@
 {
-    "__version": "45D-R2",
+    "schema_version": "45D_AP_V2.0",
     "name": "cockpit-identities",
     "title": "Cockpit Identities",
-    "prerelease": false,
+    "stable": false,
     "version": "0.1.12",
-    "buildVersion": "1",
+    "build_number": "1",
     "author": "Joshua Boudreau <jboudreau@45drives.com>",
-    "url": "https://github.com/45Drives/cockpit-identities",
-    "category": "utils",
-    "priority": "optional",
-    "licence": "GPL-3.0+",
+    "git_url": "https://github.com/45Drives/cockpit-identities",
+    "license": "GPL-3.0+",
     "architecture": {
-        "deb": "all",
-        "el": "noarch"
+        "ubuntu": "all",
+        "rocky": "noarch"
     },
-    "description": {
-        "long": "User and Group Management for Cockpit (Houston)",
-        "short": "User and Group Management for Cockpit (Houston)"
-    },
+    "description": "User and Group Management for Cockpit (Houston)",
     "defaults": {
         "urgency": "medium"
     },
     "dependencies": {
-        "deb": {
-            "generic": [
+        "ubuntu_common": [
                 "cockpit",
                 "bash",
                 "coreutils",
@@ -37,10 +31,8 @@
                 "util-linux",
                 "perl",
                 "openssh-client"
-            ]
-        },
-        "el": {
-            "generic": [
+            ],
+        "rocky_common": [
                 "cockpit",
                 "bash",
                 "coreutils",
@@ -56,18 +48,17 @@
                 "perl",
                 "openssh"
             ]
-        }
-    },
-    "releases": [
+        },
+    "builds": [
         {
-            "image": "node-ubuntu-focal-builder",
-            "codeName": "focal",
-            "type": "deb"
+            "image": "ci.cr.45d.io/ci/simple/ubuntu-focal:1",
+            "os_name": "ubuntu-focal",
+            "group": "ubuntu"
         },
         {
-            "image": "node-rocky-el8-builder",
-            "codeName": "el8",
-            "type": "el"
+            "image": "ci.cr.45d.io/ci/simple/rocky-el8:1",
+            "os_name": "rocky-el8",
+            "group": "rocky"
         }
     ],
     "changelog": {
