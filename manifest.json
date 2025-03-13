@@ -61,6 +61,10 @@
             "group": "rocky"
         }
     ],
+    "repos": [
+        "community",
+        "enterprise"
+    ],
     "changelog": {
         "urgency": "medium",
         "version": "0.1.12",
