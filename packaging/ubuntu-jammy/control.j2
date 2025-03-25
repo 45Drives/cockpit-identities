@@ -1,0 +1,12 @@
+Source: {{ name }}
+Section: utils
+Priority: optional
+Maintainer: {{ author }}
+Build-Depends: debhelper-compat (= 12)
+Standards-Version: 4.4.1
+Homepage: {{ git_url }}
+
+Package: {{ name }}
+Architecture: {{ architecture.ubuntu }}
+Depends: {{ dependencies.ubuntu_common | join(', ') }}
+Description: {{ description }}

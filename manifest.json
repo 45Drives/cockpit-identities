@@ -2,9 +2,9 @@
     "schema_version": "45D_AP_V2.0",
     "name": "cockpit-identities",
     "title": "Cockpit Identities",
-    "stable": false,
+    "stable": true,
     "version": "0.1.12",
-    "build_number": "1",
+    "build_number": "2",
     "author": "Joshua Boudreau <jboudreau@45drives.com>",
     "git_url": "https://github.com/45Drives/cockpit-identities",
     "license": "GPL-3.0+",
@@ -14,41 +14,41 @@
     },
     "description": "User and Group Management for Cockpit (Houston)",
     "defaults": {
-        "urgency": "medium"
+        "change_urgency": "medium"
     },
     "dependencies": {
         "ubuntu_common": [
-                "cockpit",
-                "bash",
-                "coreutils",
-                "hostname",
-                "libc-bin",
-                "passwd",
-                "psmisc",
-                "samba",
-                "samba-common-bin",
-                "sudo",
-                "util-linux",
-                "perl",
-                "openssh-client"
-            ],
+            "cockpit",
+            "bash",
+            "coreutils",
+            "hostname",
+            "libc-bin",
+            "passwd",
+            "psmisc",
+            "samba",
+            "samba-common-bin",
+            "sudo",
+            "util-linux",
+            "perl",
+            "openssh-client"
+        ],
         "rocky_common": [
-                "cockpit",
-                "bash",
-                "coreutils",
-                "glibc-common",
-                "hostname",
-                "passwd",
-                "psmisc",
-                "samba-common-tools",
-                "shadow-utils",
-                "sudo",
-                "util-linux",
-                "util-linux-user",
-                "perl",
-                "openssh"
-            ]
-        },
+            "cockpit",
+            "bash",
+            "coreutils",
+            "glibc-common",
+            "hostname",
+            "passwd",
+            "psmisc",
+            "samba-common-tools",
+            "shadow-utils",
+            "sudo",
+            "util-linux",
+            "util-linux-user",
+            "perl",
+            "openssh"
+        ]
+    },
     "builds": [
         {
             "image": "ci.cr.45d.io/ci/simple/ubuntu-focal:1",
@@ -73,8 +73,7 @@
     "changelog": {
         "urgency": "medium",
         "version": "0.1.12",
-        "buildVersion": "1",
-        "ignore": [],
+        "build_number": "2",
         "date": null,
         "packager": "Joshua Boudreau <jboudreau@45drives.com>",
         "changes": []
