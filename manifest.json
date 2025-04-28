@@ -4,7 +4,7 @@
     "title": "Cockpit Identities",
     "stable": true,
     "version": "0.1.12",
-    "build_number": "2",
+    "build_number": "3",
     "author": "Joshua Boudreau <jboudreau@45drives.com>",
     "git_url": "https://github.com/45Drives/cockpit-identities",
     "license": "GPL-3.0+",
@@ -83,7 +83,7 @@
     "changelog": {
         "urgency": "medium",
         "version": "0.1.12",
-        "build_number": "2",
+        "build_number": "3",
         "date": null,
         "packager": "Joshua Boudreau <jboudreau@45drives.com>",
         "changes": []

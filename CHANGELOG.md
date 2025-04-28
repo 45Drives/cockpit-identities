@@ -1,3 +1,3 @@
-## Cockpit Identities 0.1.12-2
+## Cockpit Identities 0.1.12-3
 
-* build for jammy,focal,el8,el9,bookworm
+* bump build version to force repo updates

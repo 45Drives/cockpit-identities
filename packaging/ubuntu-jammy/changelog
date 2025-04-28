@@ -1,3 +1,9 @@
+cockpit-identities (0.1.12-3jammy) jammy; urgency=medium
+
+  * bump build version to force repo updates
+
+ -- Joshua Boudreau <jboudreau@45drives.com>  Mon, 28 Apr 2025 13:09:21 -0300
+
 cockpit-identities (0.1.12-1jammy) jammy; urgency=medium
 
   * First build for jammy

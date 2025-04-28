@@ -1,3 +1,9 @@
+cockpit-identities (0.1.12-3bookworm) bookworm; urgency=medium
+
+  * bump build version to force repo updates
+
+ -- Joshua Boudreau <jboudreau@45drives.com>  Mon, 28 Apr 2025 13:09:21 -0300
+
 cockpit-identities (0.1.12-2bookworm) bookworm; urgency=medium
 
   * build for jammy,focal,el8,el9,bookworm
