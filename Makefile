@@ -71,7 +71,7 @@ all: default
 .PHONY: default all install clean help install-local install-remote install
 
 $(VERSION_FILES): ./manifest.json
-	echo 'export const pluginVersion = "$(shell jq -r '.version' ./manifest.json)-$(shell jq -r '.buildVersion' ./manifest.json)$(OS_PACKAGE_RELEASE)";' > $@
+	echo 'export const pluginVersion = "$(shell jq -r '.version' ./manifest.json)-$(shell jq -r '.build_number' ./manifest.json)$(OS_PACKAGE_RELEASE)";' > $@
 
 # build outputs
 .SECONDEXPANSION:
