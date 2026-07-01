@@ -1,0 +1,6 @@
+#!/usr/bin/make -f
+
+export OS_PACKAGE_RELEASE := trixie
+
+%:
+dh $@

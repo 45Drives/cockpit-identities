@@ -78,5 +78,12 @@
         "date": null,
         "packager": "Joshua Boudreau <jboudreau@45drives.com>",
         "changes": []
-    }
+    },
+    "builds": [
+        {
+            "group": "debian",
+            "os_name": "debian-trixie",
+            "image": "ci.cr.45d.io/ci/simple/debian-trixie:1"
+        }
+    ]
 }
