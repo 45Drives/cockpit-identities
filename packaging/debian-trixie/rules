@@ -3,4 +3,4 @@
 export OS_PACKAGE_RELEASE := trixie
 
 %:
-dh $@
+	dh $@
