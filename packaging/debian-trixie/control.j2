@@ -1,0 +1,12 @@
+Source: {{ name }}
+Section: utils
+Priority: optional
+Maintainer: {{ author }}
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: {{ git_url }}
+
+Package: {{ name }}
+Architecture: {{ architecture.debian if architecture.debian is defined else 'all' }}
+Depends: cockpit, ${misc:Depends}
+Description: {{ description }}
