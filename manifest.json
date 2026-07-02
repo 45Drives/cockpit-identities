@@ -63,7 +63,12 @@
         {
             "group": "debian",
             "os_name": "debian-bookworm",
-            "image": "ci.cr.45d.io/ci/simple/ubuntu-jammy:1"
+            "image": "ci.cr.45d.io/ci/simple/debian-bookworm:1"
+        },
+        {
+            "group": "debian",
+            "os_name": "debian-trixie",
+            "image": "ci.cr.45d.io/ci/simple/debian-trixie:1"
         },
         {
             "image": "ci.cr.45d.io/ci/simple/rocky-el8:1",
@@ -87,12 +92,5 @@
         "date": null,
         "packager": "Joshua Boudreau <jboudreau@45drives.com>",
         "changes": []
-    },
-    "builds": [
-        {
-            "group": "debian",
-            "os_name": "debian-trixie",
-            "image": "ci.cr.45d.io/ci/simple/debian-trixie:1"
-        }
-    ]
+    }
 }
