@@ -69,7 +69,7 @@
         {
             "group": "debian",
             "os_name": "debian-trixie",
-            "image": "ci.cr.45d.io/ci/simple/debian-trixie:2"
+            "image": "ci.cr.45d.io/ci/simple/debian-trixie:1"
         },
         {
             "image": "ci.cr.45d.io/ci/simple/rocky-el8:1",
