@@ -3,4 +3,5 @@ node_modules/
 identities/node_modules/
 identities/dist/
 .yarn/
+.yarnrc.yml
 yarn.lock
