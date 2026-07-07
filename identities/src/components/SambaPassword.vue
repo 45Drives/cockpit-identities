@@ -54,9 +54,10 @@ If not, see <https://www.gnu.org/licenses/>.
 
 <script>
 import { ExclamationCircleIcon } from '@heroicons/vue/solid';
-import { reactive, watch, inject, ref } from 'vue';
-import { useSpawn, errorStringHTML } from "@45drives/cockpit-helpers";
-import { notificationsInjectionKey } from '../keys';
+import { reactive, watch, ref } from 'vue';
+import { legacy } from '@45drives/houston-common-lib';
+const { useSpawn, errorStringHTML } = legacy;
+import { pushNotification, Notification } from '@45drives/houston-common-ui';
 import ModalPopup from './ModalPopup.vue';
 import PasswordModal from './PasswordModal.vue';
 
@@ -66,7 +67,6 @@ export default {
 	},
 	setup(props, { emit }) {
 		const sambaPassword = reactive({ showModal: false, showRemoveModal: false, isSet: false });
-		const notifications = inject(notificationsInjectionKey);
 
 		const checkIfSmbpasswdSet = async () => {
 			emit('startProcessing');
@@ -87,9 +87,9 @@ export default {
 				state.proc.input(`${password}\n${password}\n`);
 				await state.promise();
 				sambaPassword.isSet = true;
-				notifications.value.constructNotification("Set Samba password", `Samba password for ${props.user} was set successfully.`, 'success');
+				pushNotification(new Notification("Set Samba password", `Samba password for ${props.user} was set successfully.`, 'success'));
 			} catch (state) {
-				notifications.value.constructNotification(`Failed to set Samba password for ${props.user}`, errorStringHTML(state), 'error');
+				pushNotification(new Notification(`Failed to set Samba password for ${props.user}`, errorStringHTML(state), 'error'));
 				checkIfSmbpasswdSet();
 			} finally {
 				sambaPassword.showModal = false;
@@ -102,9 +102,9 @@ export default {
 			try {
 				await useSpawn(['smbpasswd', '-x', props.user], { superuser: 'try' }).promise();
 				sambaPassword.isSet = false;
-				notifications.value.constructNotification("Removed Samba password", `Samba password for ${props.user} was removed successfully.`, 'success');
+				pushNotification(new Notification("Removed Samba password", `Samba password for ${props.user} was removed successfully.`, 'success'));
 			} catch (state) {
-				notifications.value.constructNotification(`Failed to remove Samba password for ${props.user}`, errorStringHTML(state), 'error');
+				pushNotification(new Notification(`Failed to remove Samba password for ${props.user}`, errorStringHTML(state), 'error'));
 				checkIfSmbpasswdSet();
 			} finally {
 				sambaPassword.showRemoveModal = false;

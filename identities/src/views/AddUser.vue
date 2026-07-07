@@ -45,18 +45,19 @@ If not, see <https://www.gnu.org/licenses/>.
 
 <script>
 import { ref, watch, computed, reactive, inject, onMounted, onBeforeUnmount } from "vue";
-import { useSpawn, errorString, errorStringHTML } from "@45drives/cockpit-helpers";
+import { legacy } from '@45drives/houston-common-lib';
+const { useSpawn, errorString, errorStringHTML } = legacy;
 import shellObj from "../hooks/shellObj";
 import UserEditor from "../components/UserEditor.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import UserPassword from "../components/UserPassword.vue";
-import { shellsInjectionKey, notificationsInjectionKey, infoNudgeScrollbarInjectionKey } from "../keys";
+import { shellsInjectionKey, infoNudgeScrollbarInjectionKey } from "../keys";
+import { pushNotification, Notification } from '@45drives/houston-common-ui';
 
 export default {
 	setup(props, { emit }) {
 		const userPasswordRef = ref();
 		const shells = inject(shellsInjectionKey);
-		const notifications = inject(notificationsInjectionKey);
 		const user = reactive({
 			user: "",
 			primaryGroup: "",
@@ -107,11 +108,11 @@ export default {
 					})
 					.filter(user => user !== null);
 			} catch (state) {
-				notifications.value.constructNotification(
+				pushNotification(new Notification(
 					"Failed to get exiting users",
 					`${errorStringHTML(state)}\nBe careful not to create an existing user.`,
 					'warning'
-				);
+				));
 			} finally {
 				processing.value--;
 			}
@@ -152,16 +153,15 @@ export default {
 					}
 				}
 				if (errors.length) {
-					notifications.value.constructNotification("Error creating user", `<span class="text-gray-500 font-mono text-sm whitespace-pre-wrap">${errors.join('\n')}</span>`, 'error');
+					pushNotification(new Notification("Error creating user", `<span class="text-gray-500 font-mono text-sm whitespace-pre-wrap">${errors.join('\n')}</span>`, 'error'));
 				} else {
 					Object.assign(user, newUser);
-					notifications.value.constructNotification("Created user", `${newUser.name ?? newUser.user} was created successfully.`, 'success');
+					pushNotification(new Notification("Created user", `${newUser.name ?? newUser.user} was created successfully.`, 'success'));
 					emit('refreshGroups');
 					await userPasswordRef.value.setPassword();
 					cockpit.location.go(`/users/${newUser.user}`);
-					notifications.value
-						.constructNotification("Redirected", "You were taken to the user editor after creation.", 'info')
-						.addAction('Back to users list', () => cockpit.location.go('/users'));
+					pushNotification(new Notification("Redirected", "You were taken to the user editor after creation.", 'info')
+						.addAction('Back to users list', () => cockpit.location.go('/users')));
 				}
 			} finally {
 				processing.value--;

@@ -106,15 +106,16 @@ If not, see <https://www.gnu.org/licenses/>.
 <script>
 import Table from "../components/Table.vue";
 import { PlusIcon, TrashIcon, ExclamationCircleIcon, UserIcon } from "@heroicons/vue/solid";
-import { groupsInjectionKey, notificationsInjectionKey } from "../keys";
+import { groupsInjectionKey } from "../keys";
 import { inject, onBeforeMount, reactive, ref, watch } from "vue";
+import { pushNotification, Notification } from '@45drives/houston-common-ui';
 import ModalPopup from "../components/ModalPopup.vue";
 import SortCallbackButton from "../components/SortCallbackButton.vue";
-import { useSpawn, errorStringHTML } from "@45drives/cockpit-helpers";
+import { legacy } from '@45drives/houston-common-lib';
+const { useSpawn, errorStringHTML } = legacy;
 
 export default {
 	setup(props, { emit }) {
-		const notifications = inject(notificationsInjectionKey);
 		const processing = ref(0);
 		const groups = inject(groupsInjectionKey);
 		const groupsSorted = ref([...groups.value]);
@@ -151,10 +152,10 @@ export default {
 				processing.value++;
 				try {
 					await useSpawn(['groupadd', newGroup.group], { superuser: 'try' }).promise();
-					notifications.value.constructNotification("Created group", `Successfully created group ${newGroup.group}`, 'success');
+					pushNotification(new Notification("Created group", `Successfully created group ${newGroup.group}`, 'success'));
 					emit('refreshGroups');
 				} catch (state) {
-					notifications.value.constructNotification("Failed to create group", errorStringHTML(state), 'error');
+					pushNotification(new Notification("Failed to create group", errorStringHTML(state), 'error'));
 				} finally {
 					newGroup.showModal = false;
 					setTimeout(() => {
@@ -190,10 +191,10 @@ export default {
 					processing.value++;
 					try {
 						await useSpawn(['groupdel', deleteConfirmation.group.group], { superuser: 'try' }).promise();
-						notifications.value.constructNotification("Deleted group", `Successfully deleted group ${deleteConfirmation.group.group}`, 'success');
+						pushNotification(new Notification("Deleted group", `Successfully deleted group ${deleteConfirmation.group.group}`, 'success'));
 						emit('refreshGroups');
 					} catch (state) {
-						notifications.value.constructNotification("Failed to delete group", errorStringHTML(state), 'error');
+						pushNotification(new Notification("Failed to delete group", errorStringHTML(state), 'error'));
 					} finally {
 						deleteConfirmation.reset();
 						processing.value--;

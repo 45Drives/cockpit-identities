@@ -30,25 +30,21 @@ If not, see <https://www.gnu.org/licenses/>.
 			<router-view class="h-full" @refreshGroups="getGroups" />
 		</div>
 	</div>
-	<Notifications :notificationFIFO="notificationFIFO" ref="notifications" />
+	<NotificationView />
 </template>
 
 <script setup>
 import HoustonHeader from './components/HoustonHeader.vue';
 import { ref, provide } from 'vue';
 import shellObj from './hooks/shellObj';
-import { useSpawn, errorString, FIFO } from '@45drives/cockpit-helpers';
-import Notifications from './components/Notifications.vue';
-import { notificationsInjectionKey, darkModeInjectionKey, shellsInjectionKey, groupsInjectionKey, infoNudgeScrollbarInjectionKey } from './keys';
+import { legacy } from '@45drives/houston-common-lib';
+const { useSpawn, errorString } = legacy;
+import { NotificationView } from '@45drives/houston-common-ui';
+import { darkModeInjectionKey, shellsInjectionKey, groupsInjectionKey, infoNudgeScrollbarInjectionKey } from './keys';
 import { useRoute } from 'vue-router';
 import { pluginVersion } from './version';
 
 const version = ref(pluginVersion);
-
-const props = defineProps({ notificationFIFO: FIFO });
-
-const notifications = ref();
-provide(notificationsInjectionKey, notifications);
 
 const darkMode = ref(false);
 provide(darkModeInjectionKey, darkMode);

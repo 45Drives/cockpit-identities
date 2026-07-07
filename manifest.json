@@ -2,7 +2,7 @@
     "schema_version": "45D_AP_V2.0",
     "name": "cockpit-identities",
     "title": "Cockpit Identities",
-    "stable": true,
+    "stable": false,
     "version": "0.1.12",
     "build_number": "3",
     "author": "Joshua Boudreau <jboudreau@45drives.com>",
@@ -10,7 +10,8 @@
     "license": "GPL-3.0+",
     "architecture": {
         "ubuntu": "all",
-        "rocky": "noarch"
+        "rocky": "noarch",
+        "debian": "all"
     },
     "description": "User and Group Management for Cockpit (Houston)",
     "defaults": {

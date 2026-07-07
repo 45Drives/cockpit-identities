@@ -47,7 +47,8 @@ If not, see <https://www.gnu.org/licenses/>.
 
 <script>
 import { UserIcon, UserAddIcon, StarIcon, ShieldExclamationIcon } from "@heroicons/vue/solid";
-import { useSpawn, errorString } from '@45drives/cockpit-helpers';
+import { legacy } from '@45drives/houston-common-lib';
+const { useSpawn, errorString } = legacy;
 import { ref } from "vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 

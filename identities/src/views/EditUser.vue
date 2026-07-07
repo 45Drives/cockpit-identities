@@ -135,13 +135,15 @@ If not, see <https://www.gnu.org/licenses/>.
 <script>
 import { useRoute } from "vue-router";
 import { ref, watch, computed, reactive, inject, onMounted, onBeforeUnmount } from "vue";
-import { useSpawn, errorString, errorStringHTML } from "@45drives/cockpit-helpers";
+import { legacy } from '@45drives/houston-common-lib';
+const { useSpawn, errorString, errorStringHTML } = legacy;
 import UserEditor from "../components/UserEditor.vue";
 import SambaPassword from "../components/SambaPassword.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import SSHKeys from "../components/SSHKeys.vue";
 import UserActivity from "../components/UserActivity.vue";
-import { shellsInjectionKey, notificationsInjectionKey, infoNudgeScrollbarInjectionKey } from "../keys";
+import { shellsInjectionKey, infoNudgeScrollbarInjectionKey } from "../keys";
+import { pushNotification, Notification } from '@45drives/houston-common-ui';
 import shellObj from "../hooks/shellObj";
 import { TrashIcon, ExclamationCircleIcon, LogoutIcon } from "@heroicons/vue/solid";
 import ModalPopup from "../components/ModalPopup.vue";
@@ -156,7 +158,6 @@ export default {
 		const processing = ref(0);
 		const processingCredentials = ref(0);
 		const shells = inject(shellsInjectionKey);
-		const notifications = inject(notificationsInjectionKey);
 		const infoNudgeScrollbar = inject(infoNudgeScrollbarInjectionKey);
 		onMounted(() => infoNudgeScrollbar.value = true);
 		onBeforeUnmount(() => infoNudgeScrollbar.value = false);
@@ -224,11 +225,11 @@ export default {
 					tmpUser.home = fields[5];
 					tmpUser.shell = shells.value.find(shell => shell.path === fields[6]);
 					if (!tmpUser.shell) {
-						notifications.value.constructNotification(
+						pushNotification(new Notification(
 							`${fields[6]} not in /etc/shells`,
 							"If you modify this user's shell, you will need to use 'Custom Shell' in the dropdown to set it back.",
 							'info'
-						);
+						));
 						tmpUser.shell = shellObj(fields[6]);
 					}
 					tmpUser.groups = (await useSpawn(['groups', user.user], { superuser: 'try' }).promise()).stdout
@@ -243,11 +244,11 @@ export default {
 						message = `User '${user.user}' not found.`;
 					else
 						message = errorStringHTML(state);
-					notifications.value.constructNotification(
+					pushNotification(new Notification(
 						"Failed to query user",
 						message,
 						'error'
-					)
+					));
 					cockpit.location.go("/users");
 					return;
 				}
@@ -310,11 +311,11 @@ export default {
 			argv.push(user.user);
 			try {
 				await useSpawn(argv, { superuser: 'try' }).promise();
-				notifications.value.constructNotification("Deleted user", `${user.user} was deleted successfully.`, 'success');
+				pushNotification(new Notification("Deleted user", `${user.user} was deleted successfully.`, 'success'));
 				emit('refreshGroups');
 				cockpit.location.go("/users");
 			} catch (state) {
-				notifications.value.constructNotification("Error deleting user", errorStringHTML(state), 'error');
+				pushNotification(new Notification("Error deleting user", errorStringHTML(state), 'error'));
 			}
 		}
 

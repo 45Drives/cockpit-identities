@@ -103,9 +103,10 @@ If not, see <https://www.gnu.org/licenses/>.
 import ModalPopup from "./ModalPopup.vue";
 import PasswordModal from "./PasswordModal.vue";
 import { ExclamationCircleIcon, LockClosedIcon, LockOpenIcon, InformationCircleIcon } from '@heroicons/vue/solid';
-import { ref, reactive, watch, inject } from 'vue';
-import { useSpawn, errorString, errorStringHTML } from '@45drives/cockpit-helpers';
-import { notificationsInjectionKey } from "../keys";
+import { ref, reactive, watch } from 'vue';
+import { legacy } from '@45drives/houston-common-lib';
+const { useSpawn, errorString, errorStringHTML } = legacy;
+import { pushNotification, Notification } from '@45drives/houston-common-ui';
 
 const checkIfPasswdSet = async (user) => {
 	try {
@@ -144,7 +145,6 @@ export default {
 		const allowed = ref(true);
 		const showExpirePasswordModal = ref(false);
 		const showPasswordExpiryModal = ref(false);
-		const notifications = inject(notificationsInjectionKey);
 
 		const checkPasswdStatus = async () => {
 			emit('startProcessing');
@@ -180,11 +180,11 @@ export default {
 					.replace("password must be changed", "Password is expired.")
 					.replace("never", "Password never expires.");
 			} catch (state) {
-				notifications.value.constructNotification(
+				pushNotification(new Notification(
 					"Failed to check password status",
 					errorStringHTML(state),
 					'error'
-				);
+				));
 				allowed.value = false;
 				userPassword.isSet = false;
 			} finally {
@@ -207,19 +207,19 @@ export default {
 					const state = useSpawn(['passwd', props.user], { superuser: 'try' });
 					state.proc.input(`${password}\n${password}\n`);
 					await state.promise();
-					notifications.value.constructNotification(`Set password for ${props.user}`, "Password was set successfully.", 'success');
+					pushNotification(new Notification(`Set password for ${props.user}`, "Password was set successfully.", 'success'));
 					await checkPasswdStatus();
 				} catch (state) {
-					notifications.value.constructNotification(
+					pushNotification(new Notification(
 						"Error setting password",
 						errorStringHTML(state),
 						'error'
-					);
+					));
 				} finally {
 					emit('stopProcessing');
 				}
 			} else if (!userPassword.isSet) {
-				notifications.value.constructNotification(`${props.user} has no password`, "Set the password in the user editor to be able to log in.", 'warning');
+				pushNotification(new Notification(`${props.user} has no password`, "Set the password in the user editor to be able to log in.", 'warning'));
 			}
 			userPassword.showModal = false;
 		};
@@ -230,11 +230,11 @@ export default {
 				await useSpawn(['passwd', '-e', props.user], { superuser: 'try' }).promise();
 				await checkPasswdStatus();
 			} catch (state) {
-				notifications.value.constructNotification(
+				pushNotification(new Notification(
 					`Failed to expire password`,
 					errorStringHTML(state),
 					'error'
-				);
+				));
 			} finally {
 				showExpirePasswordModal.value = false;
 				emit('stopProcessing');
@@ -254,11 +254,11 @@ export default {
 				await useSpawn(argv, { superuser: 'try' }).promise();
 				await checkPasswdStatus();
 			} catch (state) {
-				notifications.value.constructNotification(
+				pushNotification(new Notification(
 					`Failed to ${userPassword.isLocked ? 'un' : ''}lock password`,
 					errorStringHTML(state),
 					'error'
-				);
+				));
 			} finally {
 				emit('stopProcessing');
 			}
@@ -271,11 +271,11 @@ export default {
 				const days = daysStr ? parseInt(daysStr) : -1;
 				await useSpawn(['passwd', '-x', `${days}`, props.user], { superuser: 'try' }).promise();
 			} catch (state) {
-				notifications.value.constructNotification(
+				pushNotification(new Notification(
 					`Failed to set password expiry`,
 					errorStringHTML(state),
 					'error'
-				);
+				));
 			} finally {
 				emit('stopProcessing');
 				await checkPasswdStatus();

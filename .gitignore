@@ -1,1 +1,6 @@
 TODO
+node_modules/
+identities/node_modules/
+identities/dist/
+.yarn/
+yarn.lock

@@ -161,7 +161,8 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 import { shellsInjectionKey, groupsInjectionKey } from "../keys";
 import shellObj from "../hooks/shellObj";
 import ModalPopup from './ModalPopup.vue';
-import { useSpawn } from "@45drives/cockpit-helpers";
+import { legacy } from '@45drives/houston-common-lib';
+const { useSpawn } = legacy;
 import Table from "./Table.vue";
 import FixedMenu from "./FixedMenu.vue";
 
