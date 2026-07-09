@@ -3,8 +3,8 @@
     "name": "cockpit-identities",
     "title": "Cockpit Identities",
     "stable": false,
-    "version": "0.1.12",
-    "build_number": "3",
+    "version": "0.1.13",
+    "build_number": "1",
     "author": "Joshua Boudreau <jboudreau@45drives.com>",
     "git_url": "https://github.com/45Drives/cockpit-identities",
     "license": "GPL-3.0+",
@@ -48,6 +48,25 @@
             "util-linux-user",
             "perl",
             "openssh"
+        ],
+        "debian_common": [
+            "cockpit-ws",
+            "cockpit-bridge",
+            "cockpit-system",
+            "cockpit-storaged",
+            "cockpit-packagekit",
+            "bash",
+            "coreutils",
+            "hostname",
+            "libc-bin",
+            "passwd",
+            "psmisc",
+            "samba",
+            "samba-common-bin",
+            "sudo",
+            "util-linux",
+            "perl",
+            "openssh-client"
         ]
     },
     "builds": [
@@ -88,8 +107,8 @@
     ],
     "changelog": {
         "urgency": "medium",
-        "version": "0.1.12",
-        "build_number": "3",
+        "version": "0.1.13",
+        "build_number": "1",
         "date": null,
         "packager": "Joshua Boudreau <jboudreau@45drives.com>",
         "changes": []

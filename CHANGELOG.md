@@ -1,3 +1,3 @@
-## Cockpit Identities 0.1.12-3
+## Cockpit Identities 0.1.13-1
 
-* bump build version to force repo updates
+* fix: use explicit cockpit deps for debian to avoid network-manager

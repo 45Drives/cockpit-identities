@@ -1,3 +1,9 @@
+cockpit-identities (0.1.13-1bookworm) bookworm; urgency=medium
+
+  * fix: use explicit cockpit deps for debian to avoid network-manager
+
+ -- Rachit Hans <rhans@45drives.com>  Wed, 08 Jul 2026 19:47:32 -0300
+
 cockpit-identities (0.1.12-3bookworm) bookworm; urgency=medium
 
   * bump build version to force repo updates
