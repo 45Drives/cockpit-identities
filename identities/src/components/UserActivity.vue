@@ -36,6 +36,13 @@ If not, see <https://www.gnu.org/licenses/>.
 						v-if="processing"
 						class="size-icon"
 					/>
+					<span
+						v-if="historySourcesReady && !failedLoginHistoryAvailable"
+						class="text-sm font-normal text-gray-500"
+						title="This system does not provide a compatible failed-login history command."
+					>
+						Failed-login records unavailable
+					</span>
 				</div>
 				<Datepicker
 					v-model="range"
@@ -165,14 +172,29 @@ import moment from 'moment';
 import { darkModeInjectionKey } from '../keys';
 import { pushNotification, Notification } from '@45drives/houston-common-ui';
 import Table from './Table.vue';
+import { commandProbe, formatDateForLast, parseWtmpdbOutput, selectHistorySources } from '../loginHistory.mjs';
 
-function formatDateForLast(date) {
-	const year = date.getFullYear().toString().padStart(4, '0');
-	const month = (date.getMonth() + 1).toString().padStart(2, '0');
-	const day = date.getDate().toString().padStart(2, '0');
-	const hour = date.getHours().toString().padStart(2, '0');
-	const minute = date.getMinutes().toString().padStart(2, '0');
-	return `${year}-${month}-${day} ${hour}:${minute}`;
+let historySourcesPromise = null;
+
+async function commandExists(command) {
+	try {
+		const probe = commandProbe(command);
+		await useSpawn(probe.command, probe.options).promise();
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+function getHistorySources() {
+	if (historySourcesPromise === null) {
+		historySourcesPromise = Promise.all(
+			['wtmpdb', 'last', 'lastb'].map(async command => [command, await commandExists(command)]),
+		).then(results => selectHistorySources(new Set(
+			results.filter(([, exists]) => exists).map(([command]) => command),
+		)));
+	}
+	return historySourcesPromise;
 }
 
 function sessionTimeToSentence(sessionTime) {
@@ -252,6 +274,8 @@ export default {
 		const history = ref([]);
 		const historyReactive = reactive(history);
 		const processing = ref(0);
+		const historySourcesReady = ref(false);
+		const failedLoginHistoryAvailable = ref(true);
 		const darkMode = inject(darkModeInjectionKey);
 		const filters = reactive({
 			user: {
@@ -301,56 +325,74 @@ export default {
 
 				try {
 					let tmpHistory = [];
-					for (let arg of ['last', 'lastb']) {
-						tmpHistory.push(
-							...(await useSpawn([arg, ...opts], { superuser: 'try' }).promise()).stdout.split('\n')
-								.filter(line => !(/^\s*$/.test(line) || /^[wb]tmp begins/.test(line))) // remove empty lines and last line
+					const sources = await getHistorySources();
+					if (sources.length === 0)
+						throw new Error('No compatible login history command found');
+
+					failedLoginHistoryAvailable.value = sources.some(source => source.authResult === 'bad');
+					historySourcesReady.value = true;
+
+					for (const source of sources) {
+						let output;
+						try {
+							output = (await useSpawn([...source.command, ...opts], { superuser: 'try' }).promise()).stdout;
+						} catch (error) {
+							if (source.authResult === 'bad') {
+								failedLoginHistoryAvailable.value = false;
+								continue;
+							}
+							throw error;
+						}
+
+						const entries = source.format === 'wtmpdb-json'
+							? parseWtmpdbOutput(output)
+							: output.split('\n')
+								.filter(line => !(/^\s*$/.test(line) || /^[wb]tmp begins/.test(line)))
 								.map(line => {
-									const bad = arg === 'lastb';
 									const match = line.match(/^(\S+)\s+(\S+( \S+)*)\s+(\d{1,3}(.\d{1,3}){3})\s+(\S+)( - (\S+)\s+\(([^\)]+)\)|\s+(\S+( \S+)*))/)?.slice(1);
 									if (!match)
 										return null;
-									const [user, tty, _1, ip, _2, sessionStart, _3, sessionEnd, sessionTime, stillRunning, _4] = match;
-									try {
-										const obj = reactive({
-											user,
-											tty,
-											ip,
-											sessionStart: tryDate(sessionStart),
-											sessionEnd: null, // end time or "still logged in" (or something else?)
-											sessionTime: sessionTime ? sessionTimeToSentence(sessionTime) : "0 Minutes",
-											overrideEndText: null,
-											authResult: bad ? 'bad' : 'good',
-										});
-										if (stillRunning === "still logged in" || stillRunning === "still running") {
-											// live update time
-											setInterval(() => {
-												obj.sessionTime = timeSince(sessionStart);
-												obj.sessionEnd = new Date();
-											}, 60 * 1000);
-											obj.sessionTime = timeSince(sessionStart);
-											obj.overrideEndText = stillRunning.replace(/\b(\w)/g, w => w.toUpperCase());
-										}
-										const sessionTimeObj = sessionTimeToObj(sessionTime);
-										obj.sessionEnd = tryDate(sessionEnd)
-											?? ((!sessionTime)
-												? new Date()
-												: moment(obj.sessionStart)
-													.add(sessionTimeObj.days, "days")
-													.add(sessionTimeObj.hours, "hours")
-													.add(sessionTimeObj.minutes, "minutes")
-													.toDate()
-											);
-										filters.user.set.add(obj.user);
-										filters.ip.set.add(obj.ip);
-										filters.tty.set.add(obj.tty);
-										filters.authResult.set.add(obj.authResult);
-										return obj;
-									} catch (error) {
-										throw new Error(error.message + `, trigger: ${line}`);
-									}
-								}).filter(entry => entry !== null)
-						)
+									const [user, tty, _1, ip, _2, sessionStart, _3, sessionEnd, sessionTime, stillRunning] = match;
+									return { user, tty, ip, sessionStart, sessionEnd, sessionTime, stillRunning, authResult: source.authResult };
+								})
+								.filter(entry => entry !== null);
+
+						tmpHistory.push(...entries.map((entry) => {
+							const { user, tty, ip, sessionStart, sessionEnd, sessionTime, stillRunning, authResult } = entry;
+							const obj = reactive({
+								user,
+								tty,
+								ip,
+								sessionStart: tryDate(sessionStart),
+								sessionEnd: null,
+								sessionTime: sessionTime ? sessionTimeToSentence(sessionTime) : "0 Minutes",
+								overrideEndText: null,
+								authResult,
+							});
+							if (stillRunning === "still logged in" || stillRunning === "still running") {
+								setInterval(() => {
+									obj.sessionTime = timeSince(sessionStart);
+									obj.sessionEnd = new Date();
+								}, 60 * 1000);
+								obj.sessionTime = timeSince(sessionStart);
+								obj.overrideEndText = stillRunning.replace(/\b(\w)/g, w => w.toUpperCase());
+							}
+							const sessionTimeObj = sessionTimeToObj(sessionTime);
+							obj.sessionEnd = tryDate(sessionEnd)
+								?? ((!sessionTime)
+									? new Date()
+									: moment(obj.sessionStart)
+										.add(sessionTimeObj.days, "days")
+										.add(sessionTimeObj.hours, "hours")
+										.add(sessionTimeObj.minutes, "minutes")
+										.toDate()
+								);
+							filters.user.set.add(obj.user);
+							filters.ip.set.add(obj.ip);
+							filters.tty.set.add(obj.tty);
+							filters.authResult.set.add(obj.authResult);
+							return obj;
+						}));
 					}
 					history.value = tmpHistory.sort(sortCallback.value);
 				} catch (state) {
@@ -490,6 +532,8 @@ export default {
 			history,
 			historyReactive,
 			processing,
+			historySourcesReady,
+			failedLoginHistoryAvailable,
 			darkMode,
 			filters,
 			compareFuncs,
