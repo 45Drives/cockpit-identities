@@ -74,6 +74,8 @@ jobs:
       - build
       - sign
       - update_repositories
+    permissions:
+      contents: write
     runs-on: buildinator-5
     steps:
       - name: Set Variables
