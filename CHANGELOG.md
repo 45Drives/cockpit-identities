@@ -1,3 +1,3 @@
-## Cockpit Identities 0.1.13-1
+## Cockpit Identities 0.1.14-1
 
-* fix: use explicit cockpit deps for debian to avoid network-manager
+* fix: remove cockpit-system, cockpit-storaged, cockpit-packagekit from debian dependencies to avoid pulling in network-manager
