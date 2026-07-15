@@ -2,7 +2,7 @@
     "schema_version": "45D_AP_V2.0",
     "name": "cockpit-identities",
     "title": "Cockpit Identities",
-    "stable": false,
+    "stable": true,
     "version": "0.1.14",
     "build_number": "1",
     "author": "Joshua Boudreau <jboudreau@45drives.com>",
