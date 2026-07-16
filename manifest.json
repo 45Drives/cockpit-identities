@@ -61,7 +61,7 @@
             "samba",
             "samba-common-bin",
             "sudo",
-            "util-linux",
+            "wtmpdb | util-linux",
             "perl",
             "openssh-client"
         ]
