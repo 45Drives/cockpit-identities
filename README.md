@@ -29,6 +29,14 @@ User and group management plugin for Houston UI (Cockpit)
 - Delete groups (if it's a non-system, non-primary group)
 
 # Installation
+## Debian login history
+
+On Debian 13, successful-login history uses `wtmpdb` and `libpam-wtmpdb`.
+The Debian package dependencies select these tools when the installed `util-linux` no longer provides the legacy history commands.
+Older Debian installations can continue using the legacy commands without installing the new backend.
+When `lastb` is unavailable, successful logins are still shown and the history view and CSV export disclose that failed-login history is unavailable.
+See the [Debian 13 release notes](https://www.debian.org/releases/trixie/release-notes/issues.en.html#the-last-lastb-and-lastlog-commands-have-been-replaced) for login-history migration details.
+
 ## Ubuntu 20.04
 ### From 45Drives Repo (Recommended, Ubuntu 20.04 only)
 ```bash
@@ -97,3 +105,11 @@ sudo make install
 ```
 
 If you haven't already, consider getting [cockpit-file-sharing](https://github.com/45drives/cockpit-file-sharing) for managing Samba and NFS shares.
+
+# Tests
+
+Run the login-history regression suite with:
+
+```bash
+npm --prefix identities test
+```

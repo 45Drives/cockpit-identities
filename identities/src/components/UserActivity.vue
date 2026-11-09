@@ -51,6 +51,9 @@ If not, see <https://www.gnu.org/licenses/>.
 					:startTime="[{ hours: 0, minutes: 0, seconds: 0 }, { hours: 23, minutes: 59, seconds: 59 }]"
 				/>
 			</div>
+			<p v-if="!failedHistoryAvailable" class="mt-2 text-sm font-normal text-muted" role="status">
+				Failed-login history is unavailable in this view.
+			</p>
 		</template>
 		<template #thead>
 			<tr>
@@ -156,7 +159,8 @@ import { ref, reactive, watch, inject, onMounted } from 'vue';
 import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { legacy, Download } from '@45drives/houston-common-lib';
-const { useSpawn, errorStringHTML } = legacy;
+const { useSpawn, errorString } = legacy;
+import { formatDateForLast, parseLoginHistoryOutput, readLoginHistory } from '../loginHistory.mjs';
 import { FilterIcon, DocumentDownloadIcon } from '@heroicons/vue/solid';
 import SimpleFilter from './SimpleFilter.vue';
 import LoadingSpinner from './LoadingSpinner.vue';
@@ -165,15 +169,6 @@ import moment from 'moment';
 import { darkModeInjectionKey } from '../keys';
 import { pushNotification, Notification } from '@45drives/houston-common-ui';
 import Table from './Table.vue';
-
-function formatDateForLast(date) {
-	const year = date.getFullYear().toString().padStart(4, '0');
-	const month = (date.getMonth() + 1).toString().padStart(2, '0');
-	const day = date.getDate().toString().padStart(2, '0');
-	const hour = date.getHours().toString().padStart(2, '0');
-	const minute = date.getMinutes().toString().padStart(2, '0');
-	return `${year}-${month}-${day} ${hour}:${minute}`;
-}
 
 function sessionTimeToSentence(sessionTime) {
 	const matchGroups = sessionTime.match(/^((\d+)\+)?(\d{2}):(\d{2})$/)?.slice(2).map(num => num === null ? num : parseInt(num)) ?? null;
@@ -252,6 +247,7 @@ export default {
 		const history = ref([]);
 		const historyReactive = reactive(history);
 		const processing = ref(0);
+		const failedHistoryAvailable = ref(true);
 		const darkMode = inject(darkModeInjectionKey);
 		const filters = reactive({
 			user: {
@@ -301,16 +297,17 @@ export default {
 
 				try {
 					let tmpHistory = [];
-					for (let arg of ['last', 'lastb']) {
+					const result = await readLoginHistory(
+						args => useSpawn(args, { superuser: 'try', environ: ['LC_ALL=C'] }).promise(),
+						opts,
+					);
+					failedHistoryAvailable.value = result.failedHistoryAvailable;
+					for (const source of result.sources) {
 						tmpHistory.push(
-							...(await useSpawn([arg, ...opts], { superuser: 'try' }).promise()).stdout.split('\n')
-								.filter(line => !(/^\s*$/.test(line) || /^[wb]tmp begins/.test(line))) // remove empty lines and last line
-								.map(line => {
-									const bad = arg === 'lastb';
-									const match = line.match(/^(\S+)\s+(\S+( \S+)*)\s+(\d{1,3}(.\d{1,3}){3})\s+(\S+)( - (\S+)\s+\(([^\)]+)\)|\s+(\S+( \S+)*))/)?.slice(1);
-									if (!match)
-										return null;
-									const [user, tty, _1, ip, _2, sessionStart, _3, sessionEnd, sessionTime, stillRunning, _4] = match;
+							...parseLoginHistoryOutput(source)
+								.map(entry => {
+									const bad = source.command === 'lastb';
+									const { user, tty, ip, sessionStart, sessionEnd, sessionTime, stillRunning } = entry;
 									try {
 										const obj = reactive({
 											user,
@@ -347,14 +344,14 @@ export default {
 										filters.authResult.set.add(obj.authResult);
 										return obj;
 									} catch (error) {
-										throw new Error(error.message + `, trigger: ${line}`);
+										throw new Error(error.message + `, trigger: ${JSON.stringify(entry)}`);
 									}
 								}).filter(entry => entry !== null)
 						)
 					}
 					history.value = tmpHistory.sort(sortCallback.value);
 				} catch (state) {
-					pushNotification(new Notification("Error getting login history", errorStringHTML(state), 'error'));
+					pushNotification(new Notification("Error getting login history", errorString(state), 'error'));
 					return;
 				}
 			} finally {
@@ -417,6 +414,7 @@ export default {
 					['history for', user ? fullUser : '(all users)' + (hostname ? `@${hostname}` : '')],
 					['range start', range.value?.[0] ? dateFormatter.format(range.value[0]) : 'all time'],
 					['range end', range.value?.[1] ? dateFormatter.format(range.value[1]) : 'all time'],
+					['failed login history', failedHistoryAvailable.value ? 'included' : 'unavailable'],
 				];
 				const filterHeader = [
 					"Filter",
@@ -459,7 +457,7 @@ export default {
 				const filename = `${fullUser}login history - ${dataRange}.csv`;
 				Download.text(data, filename);
 			} catch (error) {
-				pushNotification(new Notification("Failed to download file", errorStringHTML(error), 'error'));
+				pushNotification(new Notification("Failed to download file", errorString(error), 'error'));
 			}
 		}
 
@@ -490,6 +488,7 @@ export default {
 			history,
 			historyReactive,
 			processing,
+			failedHistoryAvailable,
 			darkMode,
 			filters,
 			compareFuncs,

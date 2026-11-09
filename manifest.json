@@ -61,7 +61,8 @@
             "samba",
             "samba-common-bin",
             "sudo",
-            "util-linux",
+            "util-linux (<< 2.40.1-3) | wtmpdb",
+            "util-linux (<< 2.40.1-3) | libpam-wtmpdb",
             "perl",
             "openssh-client"
         ]
